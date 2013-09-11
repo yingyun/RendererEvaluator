@@ -21,9 +21,13 @@
  *
  *20130901: Render each frame on each vsync event
  *
- *
- *
- *
+ *TODO
+ *20130911: Add various effect on the canvas.
+ * Goal: Control each frame with different remdering method via command cotnrol.
+ *  =>Transformation, RTS
+ *  =>Texture Mapping
+ *  =>Lighting
+ *  =>Various Buffer Control
  *
  */
 
@@ -42,10 +46,13 @@ void usage()
 {
     printf("\n");
     printf("Cui.YY Native_gl2_basic_render Ver20130905\n");
-    printf("Usage: \"Native_gl2_basic 4 2\"\n");
+    printf("Usage: \"Native_gl2_basic 4 2 1 1 1 1\"\n");
     printf("4: means create 4 layes, the range from 1 to 6.\n");
     printf("2: means render each frame on each 2 vsync was triggered.\n ");
     printf("  the range from 1 to 60. Argument 2 and 3 must be combined use.\n");
+    printf("1: means draw what kind of context into the canvas.\n");
+    printf("        1=> simple Triangle draw\n");  //FixMe
+    printf("        2=> simple Triangle draw\n");
     printf("\n");
 }
 

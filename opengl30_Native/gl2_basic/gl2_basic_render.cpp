@@ -1,7 +1,7 @@
 /*
 *MEIZU Technology. ZHUHAI 2013
 *Cui.YY
-*The implementation of gl render.
+*The implementation of GLES render.
 *Detailed see class header.
 *
 *
@@ -24,6 +24,29 @@ GLclampf gl2_basic_render::mColorMatrix[6][4] =
     {0.0, 0.0, 1.0, 1.0},	//Blue
     {1.0, 0.0, 1.0, 1.0}	//Magenta
 };
+
+//simple triangle vertices.
+GLfloat gl2_basic_render::mSimpleTriangleVertices[6] =
+{ 0.0f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f };
+
+char gl2_basic_render::mSimpleTriangleVertexShader[] =
+    "attribute vec4 vPosition;\n"
+    "void main() {\n"
+    "  gl_Position = vPosition;\n"
+    "}\n";
+
+char gl2_basic_render::mSimpleTriangleFragmentShader[] =
+    "precision mediump float;\n"
+    "void main() {\n"
+    "  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n"
+    "}\n";
+
+
+//TODO:
+// simple quad vertices
+
+// complex vertices
+
 gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step):mIndex(index), mStep(step), mCounter(1)
     ,gProgram(0), gvPositionHandle(0), oldTimeStamp(0)
 {
@@ -91,7 +114,7 @@ GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pF
                     glGetProgramiv(program, GL_INFO_LOG_LENGTH, &bufLength);
                     if (bufLength)
                         {
-                            char* buf = (char*) malloc(bufLength);
+                            char* buf = (char*) malloc(bufLength); //FixMe
                             if (buf)
                                 {
                                     glGetProgramInfoLog(program, bufLength, NULL, buf);
@@ -106,38 +129,41 @@ GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pF
     return program;
 }
 
-
-
-bool gl2_basic_render::setupGraphics(int w, int h)
+bool gl2_basic_render::polygonSetup(int w, int h, const char vertexShader[], const char fragmentShader[])
 {
-    printf("TID:%d setupGraphics-Done\n", gettid());
+    printf("TID:%d simpleTriangleSetup-Done\n", gettid());
 
-    /*
-    * Shader source sould be imported from outside storage.
-    */
-    const char gVertexShader[] = "attribute vec4 vPosition;\n"
-                                 "void main() {\n"
-                                 "  gl_Position = vPosition;\n"
-                                 "}\n";
-
-    const char gFragmentShader[] = "precision mediump float;\n"
-                                   "void main() {\n"
-                                   "  gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);\n"
-                                   "}\n";
-
-    gProgram = createProgram(gVertexShader, gFragmentShader);
+    gProgram = createProgram(mSimpleTriangleVertexShader, mSimpleTriangleFragmentShader);
     if (!gProgram)
         {
             return false;
         }
     gvPositionHandle = glGetAttribLocation(gProgram, "vPosition");
-//    fprintf(stderr, "glGetAttribLocation(\"vPosition\") = %d\n", gvPositionHandle);
 
     glViewport(0, 0, w, h);
+    glClearColor(mColorMatrix[mIndex][0], mColorMatrix[mIndex][1],
+                 mColorMatrix[mIndex][2], mColorMatrix[mIndex][3]);
+    glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glUseProgram(gProgram);
+    glVertexAttribPointer(gvPositionHandle, 2, GL_FLOAT, GL_FALSE, 0, mSimpleTriangleVertices);
+    glEnableVertexAttribArray(gvPositionHandle);
+
     return true;
 }
 
-void gl2_basic_render::renderFrame(int fd, int events, void* data)
+void gl2_basic_render::polygonDraw()
+{
+    glVertexAttribPointer(gvPositionHandle, 2, GL_FLOAT, GL_FALSE, 0, mSimpleTriangleVertices);
+    glEnableVertexAttribArray(gvPositionHandle);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    eglSwapBuffers(dpy, surface);
+}
+
+/*
+*   Note: This is Static member function
+*/
+void gl2_basic_render::frameControl(int fd, int events, void* data)
 {
     gl2_basic_render* thisObject = (gl2_basic_render*)data;
     ssize_t num_event;
@@ -146,20 +172,13 @@ void gl2_basic_render::renderFrame(int fd, int events, void* data)
 
     if(thisObject->mCounter == thisObject->mStep)
         {
-            unsigned int index = thisObject->mIndex;
             if(num_event > 0)
                 {
                     if(buffer[0].header.type == DisplayEventReceiver::DISPLAY_EVENT_VSYNC)
                         {
-                            const GLfloat gTriangleVertices[] = { 0.0f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f };
-                            glClearColor(mColorMatrix[index][0], mColorMatrix[index][1],
-                                         mColorMatrix[index][2], mColorMatrix[index][3]);
-                            glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-                            glUseProgram(thisObject->gProgram);
-                            glVertexAttribPointer(thisObject->gvPositionHandle, 2, GL_FLOAT, GL_FALSE, 0, gTriangleVertices);
-                            glEnableVertexAttribArray(thisObject->gvPositionHandle);
-                            glDrawArrays(GL_TRIANGLES, 0, 3);
-                            eglSwapBuffers(thisObject->dpy, thisObject->surface);
+                            // Real rendering block
+                            thisObject->polygonDraw();
+
                             printf("TID:%d swap buffers--", gettid());
                         }
                 }
@@ -180,6 +199,9 @@ void gl2_basic_render::renderFrame(int fd, int events, void* data)
     printf("TID:%d Event vsync:count=%d\n",gettid(), buffer[0].vsync.count);
 }
 
+/*
+*   Note: This is Static member function
+*/
 void* gl2_basic_render::mainRender(void* thisthis)
 {
     gl2_basic_render * thisObject = (gl2_basic_render*)thisthis;
@@ -198,8 +220,8 @@ void* gl2_basic_render::mainRender(void* thisthis)
     EGLint majorVersion;
     EGLint minorVersion;
     EGLContext context;
-//    EGLSurface surface;
-//    EGLDisplay dpy;
+    //    EGLSurface surface;
+    //    EGLDisplay dpy;
     EGLint w, h;
 
     thisObject->dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -216,19 +238,16 @@ void* gl2_basic_render::mainRender(void* thisthis)
     eglQuerySurface(thisObject->dpy, thisObject->surface, EGL_HEIGHT, &h);
     printf("TID:%d Window dimensions: %d x %d\n", gettid(), w, h);
 
-    if(!thisObject->setupGraphics(w, h))
+    if(!thisObject->polygonSetup(w, h, 
+        thisObject->mSimpleTriangleVertexShader, thisObject->mSimpleTriangleFragmentShader))
         {
             fprintf(stderr, "Could not set up graphics.\n");
             return (void *)0;
         }
-    /*    for (;;)
-            {
-                thisObject->renderFrame();
-                eglSwapBuffers(dpy, surface);
-            }*/
+
     thisObject->mLoop = new Looper(false);
     thisObject->mLoop->addFd(thisObject->mDisplayEventReceiver.getFd(), 0, ALOOPER_EVENT_INPUT,
-                             (ALooper_callbackFunc)gl2_basic_render::renderFrame, thisObject);
+                             (ALooper_callbackFunc)gl2_basic_render::frameControl, thisObject);
     thisObject->mDisplayEventReceiver.setVsyncRate(1);//Enable vsync forever
     int tid = gettid();
     printf("TID:%d Enable Vsync\n", tid);
@@ -238,26 +257,26 @@ void* gl2_basic_render::mainRender(void* thisthis)
             int ret = thisObject->mLoop->pollOnce(-1);
             switch(ret)
                 {
-                case ALOOPER_POLL_WAKE:
-                    printf("TID:%d Poll wake\n", tid);
-                    break;
-                case ALOOPER_POLL_CALLBACK:
-//                    printf("TID:%d Poll callback\n", tid);
-                    break;
-                case ALOOPER_POLL_TIMEOUT:
-                    printf("TID:%d Poll timeout\n", tid);
-                    break;
-                case ALOOPER_POLL_ERROR:
-                    printf("TID:%d Poll error\n", tid);
-                    break;
-                default:
-                    printf("TID:%d What???\n", tid);
-                    break;
+                    case ALOOPER_POLL_WAKE:
+                        printf("TID:%d Poll wake\n", tid);
+                        break;
+                    case ALOOPER_POLL_CALLBACK:
+                        //                    printf("TID:%d Poll callback\n", tid);
+                        break;
+                    case ALOOPER_POLL_TIMEOUT:
+                        printf("TID:%d Poll timeout\n", tid);
+                        break;
+                    case ALOOPER_POLL_ERROR:
+                        printf("TID:%d Poll error\n", tid);
+                        break;
+                    default:
+                        printf("TID:%d What???\n", tid);
+                        break;
                 }
         }
-    while(1);
+    while(true);
 
-//    sleep(99999999999);
+    //    sleep(99999999999);
     return 0;
 }
 

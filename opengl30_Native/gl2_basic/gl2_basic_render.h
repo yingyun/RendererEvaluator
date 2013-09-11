@@ -43,7 +43,17 @@ public:
     static void* mainRender(void* windowSurface);
 
 private:
+    //Each frame render color
     static GLclampf mColorMatrix[6][4];
+
+    //simple Triangle Render
+    static GLfloat mSimpleTriangleVertices[6];
+    static char mSimpleTriangleVertexShader[];
+    static char mSimpleTriangleFragmentShader[];
+    bool polygonSetup(int w, int h, const char vertexShader[], const char fragmentShader[]);
+    void polygonDraw();
+
+
     /*Cui.YY
     static constexpr GLclampf mColorMatrix[6][4];  in class static member initialization,
     just only available in C++11 standard, must combine used with constexpr keyword*/
@@ -59,10 +69,13 @@ private:
     EGLSurface surface;
     EGLDisplay dpy;
 
+    //Used to setup basic rendering environment
     GLuint loadShader(GLenum shaderType, const char* pSource);
     GLuint createProgram(const char* pVertexSource, const char* pFragmentSource);
-    bool setupGraphics(int w, int h);
-    static void renderFrame(int fd, int events, void* data);
+    static void frameControl(int fd, int events, void* data);
+    void frameSetup();
+    void frameDraw();
+
 };
 
 }
