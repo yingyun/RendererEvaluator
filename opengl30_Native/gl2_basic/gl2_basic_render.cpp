@@ -65,7 +65,7 @@ const char * gl2_basic_render::gFS_Main_Start_Function =
 const char * gl2_basic_render::gFS_Function_Direct_Pass_Color =
     "  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n";
 const char * gl2_basic_render::gFS_Main_End_Function =
-    "}\n"; 
+    "}\n";
 
 /* ---------- Data Definition Area End ---------- */
 
@@ -79,9 +79,14 @@ const char * gl2_basic_render::gFS_Main_End_Function =
 gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
 :mAttrVSPosition(0),mIndex(index), mStep(step), mCounter(1), mOGLProgram(0),  mOldTimeStamp(0)
 {
-    /*
-    *Construction. Nothing to do now
-    */
+    //FixMe Is it necessaly initialize all class memeber ?
+    hasRocation = false;
+    hasScale = false;
+    hasTranslation = false;
+    hasLighting = false;
+    hasTexureMap = false;
+    hasFBO = false;
+    hasVBO = false;
 }
 
 GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
@@ -326,7 +331,6 @@ void* gl2_basic_render::mainRender(void* thisthis)
         }
     while(true);
 
-    //    sleep(99999999999);
     return 0;
 }
 

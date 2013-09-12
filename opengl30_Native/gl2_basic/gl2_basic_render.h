@@ -66,7 +66,7 @@ private:
     static const char * gFS_Function_Direct_Pass_Color;
     static const char * gFS_Main_End_Function;
 
-    /* ---------- Data Declare Area End, Note it's a global member ---------- */
+    /* ========= Data Declare Area End, Note it's a global member ========= */
 
 
 
@@ -79,10 +79,22 @@ private:
 
     //Shader for fragment
 
+    /* === Attribute, Uniform handler End, Note it's a class object property ===  */
 
-    /* --- Attribute, Uniform handler End, Note it's a class object property ---  */
 
 
+    /* ------- Rendering options Start, Not it's a class object property------- */
+    bool hasRocation;
+    bool hasScale;
+    bool hasTranslation;
+    bool hasLighting;
+    bool hasTexureMap;
+    bool hasFBO;
+    bool hasVBO;
+
+    bool hasVAO;//OpenGL3.0 only
+    
+    /*====== Rendering options End, Not it's a class object property====== */
 
 
     //global shader source, class object property

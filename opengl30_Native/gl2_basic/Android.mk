@@ -4,7 +4,8 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES:= \
 	gl2_basic.cpp \
 	gl2_basic_render.cpp \
-	NativeSurfaceFlingerEGLService.cpp
+	NativeSurfaceFlingerEGLService.cpp \
+	MatrixTransform.cpp
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \
