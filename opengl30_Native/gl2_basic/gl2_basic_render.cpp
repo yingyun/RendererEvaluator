@@ -8,14 +8,15 @@
 */
 
 #include <pthread.h>
-
 #include "gl2_basic_render.h"
 
 
 namespace android
 {
 
-GLclampf gl2_basic_render::mColorMatrix[6][4] =
+/* ---------- Data Definition Area Start ---------- */
+
+GLclampf gl2_basic_render::gColorMatrix[6][4] =
 {
     {1.0, 1.0, 1.0, 1.0},	//White
     {1.0, 0.0, 0.0, 1.0},	//Red
@@ -26,20 +27,48 @@ GLclampf gl2_basic_render::mColorMatrix[6][4] =
 };
 
 //simple triangle vertices.
-GLfloat gl2_basic_render::mSimpleTriangleVertices[6] =
+GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
 { 0.0f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f };
 
-char gl2_basic_render::mSimpleTriangleVertexShader[] =
-    "attribute vec4 vPosition;\n"
-    "void main() {\n"
-    "  gl_Position = vPosition;\n"
+/*
+* Cui.YY
+* These constructor idea get from Android HWUI design
+*/
+
+/*
+*   FixMe; Notice while add render command control
+*
+*   Below source will be add/remvoe in the runtume, so in order to
+*   correct frame drawing, add the related logic in three part.
+*   1: polygonShaderSetup
+*   2: polygonBuildnLink
+*   3: poligonDraw
+*
+*/
+
+//Shader for vertex
+const char * gl2_basic_render::gVS_Header_Attribute_vPosition =
+    "attribute vec4 vPosition;\n";
+const char * gl2_basic_render::gVS_Main_Start_Function =
+    "void main() {\n";
+const char * gl2_basic_render::gVS_Function_Direct_Pass_Position =
+    "   gl_Position = vPosition;\n";
+const char * gl2_basic_render::gVS_Main_End_Function =
     "}\n";
 
-char gl2_basic_render::mSimpleTriangleFragmentShader[] =
-    "precision mediump float;\n"
-    "void main() {\n"
-    "  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n"
-    "}\n";
+
+//Shader for fragment
+const char * gl2_basic_render::gFS_Header_Precision_Mediump_Float =
+    "precision mediump float;\n";
+const char * gl2_basic_render::gFS_Main_Start_Function =
+    "void main() {\n";
+const char * gl2_basic_render::gFS_Function_Direct_Pass_Color =
+    "  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n";
+const char * gl2_basic_render::gFS_Main_End_Function =
+    "}\n"; 
+
+/* ---------- Data Definition Area End ---------- */
+
 
 
 //TODO:
@@ -47,8 +76,8 @@ char gl2_basic_render::mSimpleTriangleFragmentShader[] =
 
 // complex vertices
 
-gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step):mIndex(index), mStep(step), mCounter(1)
-    ,gProgram(0), gvPositionHandle(0), oldTimeStamp(0)
+gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
+:mAttrVSPosition(0),mIndex(index), mStep(step), mCounter(1), mOGLProgram(0),  mOldTimeStamp(0)
 {
     /*
     *Construction. Nothing to do now
@@ -114,7 +143,7 @@ GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pF
                     glGetProgramiv(program, GL_INFO_LOG_LENGTH, &bufLength);
                     if (bufLength)
                         {
-                            char* buf = (char*) malloc(bufLength); //FixMe
+                            char* buf = (char*) malloc(bufLength);
                             if (buf)
                                 {
                                     glGetProgramInfoLog(program, bufLength, NULL, buf);
@@ -129,35 +158,56 @@ GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pF
     return program;
 }
 
-bool gl2_basic_render::polygonSetup(int w, int h, const char vertexShader[], const char fragmentShader[])
+
+void gl2_basic_render::polygonShaderSetup()
+{
+    //Setup Vertext shader
+    mVertexShader.append(gVS_Header_Attribute_vPosition);
+    mVertexShader.append(gVS_Main_Start_Function);
+    mVertexShader.append(gVS_Function_Direct_Pass_Position);  //FixMe; need to add condition control
+    mVertexShader.append(gVS_Main_End_Function);
+    printf("VertextShader; \n");
+    printf("%s\n", mVertexShader.string());
+
+    //Setup Fragment shader
+    mFramgmentShader.append(gFS_Header_Precision_Mediump_Float);
+    mFramgmentShader.append(gFS_Main_Start_Function);
+    mFramgmentShader.append(gFS_Function_Direct_Pass_Color);  //FixMe; need to add condition control
+    mFramgmentShader.append(gFS_Main_End_Function);
+    printf("FragmentShader; \n");
+    printf("%s\n", mFramgmentShader.string());
+}
+
+
+bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
 {
     printf("TID:%d simpleTriangleSetup-Done\n", gettid());
 
-    gProgram = createProgram(mSimpleTriangleVertexShader, mSimpleTriangleFragmentShader);
-    if (!gProgram)
+    mOGLProgram= createProgram(vertexShader, fragmentShader);
+    if (!mOGLProgram)
         {
             return false;
         }
-    gvPositionHandle = glGetAttribLocation(gProgram, "vPosition");
+    mAttrVSPosition= glGetAttribLocation(mOGLProgram, "vPosition");  //FixMe; need to add condition control
 
     glViewport(0, 0, w, h);
-    glClearColor(mColorMatrix[mIndex][0], mColorMatrix[mIndex][1],
-                 mColorMatrix[mIndex][2], mColorMatrix[mIndex][3]);
+    glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
+                 gColorMatrix[mIndex][2], gColorMatrix[mIndex][3]);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    glUseProgram(gProgram);
-    glVertexAttribPointer(gvPositionHandle, 2, GL_FLOAT, GL_FALSE, 0, mSimpleTriangleVertices);
-    glEnableVertexAttribArray(gvPositionHandle);
+    glUseProgram(mOGLProgram);
+    glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
+    glEnableVertexAttribArray(mAttrVSPosition);
 
     return true;
 }
 
 void gl2_basic_render::polygonDraw()
 {
-    glVertexAttribPointer(gvPositionHandle, 2, GL_FLOAT, GL_FALSE, 0, mSimpleTriangleVertices);
-    glEnableVertexAttribArray(gvPositionHandle);
+    glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
+    glEnableVertexAttribArray(mAttrVSPosition);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    eglSwapBuffers(dpy, surface);
+    eglSwapBuffers(mEGLDisplay, mEGLSurface);
 }
 
 /*
@@ -190,12 +240,12 @@ void gl2_basic_render::frameControl(int fd, int events, void* data)
             thisObject->mCounter++;
         }
 
-    if (thisObject->oldTimeStamp)
+    if (thisObject->mOldTimeStamp)
         {
-            float t = float(buffer[0].header.timestamp - thisObject->oldTimeStamp) / s2ns(1);
+            float t = float(buffer[0].header.timestamp - thisObject->mOldTimeStamp) / s2ns(1);
             printf("TID:%d %f ms (%f Hz)--", gettid(), t*1000, 1.0/t);
         }
-    thisObject->oldTimeStamp = buffer[0].header.timestamp;
+    thisObject->mOldTimeStamp = buffer[0].header.timestamp;
     printf("TID:%d Event vsync:count=%d\n",gettid(), buffer[0].vsync.count);
 }
 
@@ -209,7 +259,6 @@ void* gl2_basic_render::mainRender(void* thisthis)
     EGLBoolean returnValue;
     EGLConfig myConfig = {0};
     EGLint numConfigs;
-
     EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
     EGLint s_configAttribs[] =
     {
@@ -220,26 +269,27 @@ void* gl2_basic_render::mainRender(void* thisthis)
     EGLint majorVersion;
     EGLint minorVersion;
     EGLContext context;
-    //    EGLSurface surface;
-    //    EGLDisplay dpy;
     EGLint w, h;
-
-    thisObject->dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    returnValue = eglInitialize(thisObject->dpy, &majorVersion, &minorVersion);
-    eglChooseConfig(thisObject->dpy, s_configAttribs, &myConfig, 1, &numConfigs);
-
-    //EGL native surface be passed by function argument, it's the responsible of
-    //Class caller to make sure the window surface was valid.
-    thisObject-> surface = eglCreateWindowSurface(thisObject->dpy, myConfig, thisObject->windowSurface, NULL);
-    context = eglCreateContext(thisObject->dpy, myConfig, EGL_NO_CONTEXT, context_attribs);
-    returnValue = eglMakeCurrent(thisObject->dpy, thisObject->surface, thisObject->surface, context);
-
-    eglQuerySurface(thisObject->dpy, thisObject->surface, EGL_WIDTH, &w);
-    eglQuerySurface(thisObject->dpy, thisObject->surface, EGL_HEIGHT, &h);
+    thisObject->mEGLDisplay= eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    returnValue = eglInitialize(thisObject->mEGLDisplay, &majorVersion, &minorVersion);
+    eglChooseConfig(thisObject->mEGLDisplay, s_configAttribs, &myConfig, 1, &numConfigs);
+    thisObject-> mEGLSurface= eglCreateWindowSurface(thisObject->mEGLDisplay, myConfig, thisObject->windowSurface, NULL);
+    context = eglCreateContext(thisObject->mEGLDisplay, myConfig, EGL_NO_CONTEXT, context_attribs);
+    returnValue = eglMakeCurrent(thisObject->mEGLDisplay, thisObject->mEGLSurface, thisObject->mEGLSurface, context);
+    eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_WIDTH, &w);
+    eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_HEIGHT, &h);
     printf("TID:%d Window dimensions: %d x %d\n", gettid(), w, h);
 
-    if(!thisObject->polygonSetup(w, h, 
-        thisObject->mSimpleTriangleVertexShader, thisObject->mSimpleTriangleFragmentShader))
+
+    /*
+    *   1: Generating polygon shader program
+    *   2: Build shader and link it
+    *   3: Pass control over to Looper to draw each frame
+    */
+    thisObject->polygonShaderSetup();
+
+    if(!thisObject->polygonBuildnLink(w, h, 
+        thisObject->mVertexShader.string(), thisObject->mFramgmentShader.string()))
         {
             fprintf(stderr, "Could not set up graphics.\n");
             return (void *)0;

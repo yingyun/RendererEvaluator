@@ -51,7 +51,7 @@ void usage()
     printf("2: means render each frame on each 2 vsync was triggered.\n ");
     printf("  the range from 1 to 60. Argument 2 and 3 must be combined use.\n");
     printf("1: means draw what kind of context into the canvas.\n");
-    printf("        1=> simple Triangle draw\n");  //FixMe
+    printf("        1=> simple Triangle draw\n");  //FixMe; change help
     printf("        2=> simple Triangle draw\n");
     printf("\n");
 }

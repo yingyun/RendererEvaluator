@@ -21,12 +21,15 @@
 #include <sched.h>
 #include <pthread.h>
 
+//TODO: Support GLES1
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+//TODO: Support GLES3
 
 #include <utils/RefBase.h>
 #include <utils/Looper.h>
+#include <utils/String8.h>
 
 #include <ui/FramebufferNativeWindow.h>
 #include <gui/DisplayEventReceiver.h>
@@ -40,41 +43,76 @@ public:
 
     gl2_basic_render(unsigned int index, unsigned int step);
     void startRender(EGLNativeWindowType windowSurface);
-    static void* mainRender(void* windowSurface);
+    static void* mainRender(void* windowSurface);   //static for function callback
 
 private:
-    //Each frame render color
-    static GLclampf mColorMatrix[6][4];
 
+    /* ---------- Data Declare Area Start, Note it's a global member ---------- */
+
+    //Each frame render color
+    static GLclampf gColorMatrix[6][4];
     //simple Triangle Render
-    static GLfloat mSimpleTriangleVertices[6];
-    static char mSimpleTriangleVertexShader[];
-    static char mSimpleTriangleFragmentShader[];
-    bool polygonSetup(int w, int h, const char vertexShader[], const char fragmentShader[]);
+    static GLfloat gSimpleTriangleVertices[6];
+
+    //Shader for vertex
+    static const char * gVS_Header_Attribute_vPosition;
+    static const char * gVS_Main_Start_Function;
+    static const char * gVS_Function_Direct_Pass_Position;
+    static const char * gVS_Main_End_Function;
+
+    //Shader for fragment
+    static const char * gFS_Header_Precision_Mediump_Float;
+    static const char * gFS_Main_Start_Function;
+    static const char * gFS_Function_Direct_Pass_Color;
+    static const char * gFS_Main_End_Function;
+
+    /* ---------- Data Declare Area End, Note it's a global member ---------- */
+
+
+
+
+    /* --- Attribute, Uniform handler Start, Note it's a class object property --- */
+
+    //Shader for vertex
+    GLuint mAttrVSPosition;
+
+
+    //Shader for fragment
+
+
+    /* --- Attribute, Uniform handler End, Note it's a class object property ---  */
+
+
+
+
+    //global shader source, class object property
+    String8 mVertexShader;
+    String8 mFramgmentShader;
+
+    //Polygon render function
+    void polygonShaderSetup();
+    bool polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[]);
     void polygonDraw();
 
 
     /*Cui.YY
-    static constexpr GLclampf mColorMatrix[6][4];  in class static member initialization,
+    static constexpr GLclampf gColorMatrix[6][4];  in class static member initialization,
     just only available in C++11 standard, must combine used with constexpr keyword*/
     unsigned int mIndex;
     unsigned int mStep;
     unsigned int mCounter;
-    GLuint gProgram;
-    GLuint gvPositionHandle;
-    nsecs_t oldTimeStamp;
+    GLuint mOGLProgram;
+    nsecs_t mOldTimeStamp;
 
     DisplayEventReceiver mDisplayEventReceiver;
     sp<Looper> mLoop;
-    EGLSurface surface;
-    EGLDisplay dpy;
+    EGLSurface mEGLSurface;
+    EGLDisplay mEGLDisplay;
 
     //Used to setup basic rendering environment
     GLuint loadShader(GLenum shaderType, const char* pSource);
     GLuint createProgram(const char* pVertexSource, const char* pFragmentSource);
-    static void frameControl(int fd, int events, void* data);
-    void frameSetup();
-    void frameDraw();
+    static void frameControl(int fd, int events, void* data);  //static for function callback
 
 };
 
