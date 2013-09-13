@@ -34,6 +34,8 @@
 #include <ui/FramebufferNativeWindow.h>
 #include <gui/DisplayEventReceiver.h>
 
+#include "MatrixTransform.h"
+
 namespace android
 {
 class gl2_basic_render:public virtual RefBase
@@ -55,9 +57,12 @@ private:
     static GLfloat gSimpleTriangleVertices[6];
 
     //Shader for vertex
-    static const char * gVS_Header_Attribute_vPosition;
+    static const char * gVS_Header_Attribute_vertexPosition;
+    static const char * gVS_Header_Uniform_modelviewMatrix;
+    
     static const char * gVS_Main_Start_Function;
     static const char * gVS_Function_Direct_Pass_Position;
+    static const char * gVS_Function_Pass_MV_Multi_Position;
     static const char * gVS_Main_End_Function;
 
     //Shader for fragment
@@ -75,6 +80,9 @@ private:
 
     //Shader for vertex
     GLuint mAttrVSPosition;
+    GLuint mUniVSrotateMat;
+    GLuint mUniVSscaleMat;
+    GLuint mUniVStranslateMat;
 
 
     //Shader for fragment
@@ -84,7 +92,10 @@ private:
 
 
     /* ------- Rendering options Start, Not it's a class object property------- */
-    bool hasRocation;
+    bool hasColorDirectPass;
+    bool hasPreciMidium;
+    bool hasNothing;
+    bool hasRotation;
     bool hasScale;
     bool hasTranslation;
     bool hasLighting;
@@ -96,6 +107,16 @@ private:
     
     /*====== Rendering options End, Not it's a class object property====== */
 
+
+
+    /* ------ Various transform matrix  Start------ */
+    Matrix44 mRotateMatrix;
+    Matrix44 mScaleMatrix;
+    Matrix44 mTranslateMatrix;
+    /* ===== Varous transform matrix   End ======*/
+
+
+    
 
     //global shader source, class object property
     String8 mVertexShader;

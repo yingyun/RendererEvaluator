@@ -19,6 +19,10 @@ namespace android
 * Detaild equation refer 3D Math primer please
 */
 
+
+#define PI  3.14159265
+
+
 void MatrixTransform::matrixIndentity(Matrix44 * result)
 {
     memset(result, 0x0, sizeof(Matrix44));
@@ -43,19 +47,21 @@ void MatrixTransform::matrixMultiply(Matrix44 *result, Matrix44 *srcA, Matrix44 
             tmp.m[i][2] = (srcA->m[i][0] * srcB->m[0][2]) + (srcA->m[i][1] * srcB->m[1][2])
                           + (srcA->m[i][2] * srcB->m[2][2]) + (srcA->m[i][3] * srcB->m[3][2]);
 
-            tmp.m[i][3] =	(srcA->m[i][0] * srcB->m[0][3]) + (srcA->m[i][1] * srcB->m[1][3])
-                            + (srcA->m[i][2] * srcB->m[2][3]) + (srcA->m[i][3] * srcB->m[3][3]);
+            tmp.m[i][3] = (srcA->m[i][0] * srcB->m[0][3]) + (srcA->m[i][1] * srcB->m[1][3])
+                          + (srcA->m[i][2] * srcB->m[2][3]) + (srcA->m[i][3] * srcB->m[3][3]);
         }
     memcpy(result, &tmp, sizeof(Matrix44));
 }
 
 void MatrixTransform::matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
-    GLfloat sinAngle, cosAngle;
+    GLfloat sinAngle;
+    GLfloat cosAngle;
     GLfloat mag = sqrtf(x * x + y * y + z * z);
+    GLfloat pass = (angle * PI)/180.0f;
 
-    sinAngle = sinf ( angle * mPI / 180.0f );
-    cosAngle = cosf ( angle * mPI / 180.0f );
+    sinAngle = sinf(pass);
+    cosAngle = cosf(pass);
     if ( mag > 0.0f )
         {
             GLfloat xx, yy, zz, xy, yz, zx, xs, ys, zs;

@@ -47,12 +47,16 @@ GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
 */
 
 //Shader for vertex
-const char * gl2_basic_render::gVS_Header_Attribute_vPosition =
-    "attribute vec4 vPosition;\n";
+const char * gl2_basic_render::gVS_Header_Attribute_vertexPosition =
+    "attribute vec4 vertexPosition;\n";
+const char * gl2_basic_render::gVS_Header_Uniform_modelviewMatrix =
+    "uniform mat4 modelViewMatrix;\n";
 const char * gl2_basic_render::gVS_Main_Start_Function =
     "void main() {\n";
+const char * gl2_basic_render::gVS_Function_Pass_MV_Multi_Position =
+    "   gl_Position = vertexPosition * modelViewMatrix; \n";
 const char * gl2_basic_render::gVS_Function_Direct_Pass_Position =
-    "   gl_Position = vPosition;\n";
+    "   gl_Position = vertexPosition;\n";
 const char * gl2_basic_render::gVS_Main_End_Function =
     "}\n";
 
@@ -67,7 +71,7 @@ const char * gl2_basic_render::gFS_Function_Direct_Pass_Color =
 const char * gl2_basic_render::gFS_Main_End_Function =
     "}\n";
 
-/* ---------- Data Definition Area End ---------- */
+/* ==========Data Definition Area End ==========*/
 
 
 
@@ -77,16 +81,23 @@ const char * gl2_basic_render::gFS_Main_End_Function =
 // complex vertices
 
 gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
-:mAttrVSPosition(0),mIndex(index), mStep(step), mCounter(1), mOGLProgram(0),  mOldTimeStamp(0)
+    :mAttrVSPosition(0),mIndex(index), mStep(step), mCounter(1), mOGLProgram(0),  mOldTimeStamp(0)
 {
-    //FixMe Is it necessaly initialize all class memeber ?
-    hasRocation = false;
+    //FixMe; Is it necessaly initialize all class memeber ?
+    //FixMe; Add config file to select below option
+    //One of below must define
+    hasNothing = true;
+    hasRotation = false;
     hasScale = false;
     hasTranslation = false;
+
     hasLighting = false;
     hasTexureMap = false;
     hasFBO = false;
     hasVBO = false;
+
+    hasPreciMidium = true;       //Must define
+    hasColorDirectPass = true; //Must define
 }
 
 GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
@@ -167,22 +178,31 @@ GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pF
 void gl2_basic_render::polygonShaderSetup()
 {
     //Setup Vertext shader
-    mVertexShader.append(gVS_Header_Attribute_vPosition);
+    mVertexShader.append(gVS_Header_Attribute_vertexPosition);  //We always pass the vertex to the shader
+    if(hasRotation) mVertexShader.append(gVS_Header_Uniform_modelviewMatrix);
+
     mVertexShader.append(gVS_Main_Start_Function);
-    mVertexShader.append(gVS_Function_Direct_Pass_Position);  //FixMe; need to add condition control
+
+    if(hasNothing)  mVertexShader.append(gVS_Function_Direct_Pass_Position);
+    if(hasRotation) mVertexShader.append(gVS_Function_Pass_MV_Multi_Position);
+
     mVertexShader.append(gVS_Main_End_Function);
+
     printf("VertextShader; \n");
     printf("%s\n", mVertexShader.string());
 
+
     //Setup Fragment shader
-    mFramgmentShader.append(gFS_Header_Precision_Mediump_Float);
+    if(hasPreciMidium)mFramgmentShader.append(gFS_Header_Precision_Mediump_Float);
     mFramgmentShader.append(gFS_Main_Start_Function);
-    mFramgmentShader.append(gFS_Function_Direct_Pass_Color);  //FixMe; need to add condition control
+
+    if(hasColorDirectPass)mFramgmentShader.append(gFS_Function_Direct_Pass_Color);
+
     mFramgmentShader.append(gFS_Main_End_Function);
+
     printf("FragmentShader; \n");
     printf("%s\n", mFramgmentShader.string());
 }
-
 
 bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
 {
@@ -193,25 +213,38 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
         {
             return false;
         }
-    mAttrVSPosition= glGetAttribLocation(mOGLProgram, "vPosition");  //FixMe; need to add condition control
+
+    //Retrieve shader paramer information
+    mAttrVSPosition = glGetAttribLocation(mOGLProgram, "vertexPosition");
+
+    if(hasRotation)
+        mUniVSrotateMat = glGetUniformLocation(mOGLProgram, "modelViewMatrix");
 
     glViewport(0, 0, w, h);
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
                  gColorMatrix[mIndex][2], gColorMatrix[mIndex][3]);
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glUseProgram(mOGLProgram);
-    glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
-    glEnableVertexAttribArray(mAttrVSPosition);
 
     return true;
 }
 
 void gl2_basic_render::polygonDraw()
 {
-    glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
-    glEnableVertexAttribArray(mAttrVSPosition);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    /* do transformantion */
+    if(hasRotation)
+        {
+            MatrixTransform::matrixIndentity(&mRotateMatrix);
+            MatrixTransform::matrixRotate(&mRotateMatrix, 45.0f, 1.0, 0.0, 1.0);  //FixMe; Angle need to change dynamically
+            glUniformMatrix4fv(mUniVSrotateMat, 1, GL_FALSE, (GLfloat * )mRotateMatrix.m);
+        }
 
+    /* Data refresh and enable */
+    //polygon vertex data
+    glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices); //Vertex Array
+    glEnableVertexAttribArray(mAttrVSPosition);
+
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     eglSwapBuffers(mEGLDisplay, mEGLSurface);
 }
 
@@ -293,8 +326,8 @@ void* gl2_basic_render::mainRender(void* thisthis)
     */
     thisObject->polygonShaderSetup();
 
-    if(!thisObject->polygonBuildnLink(w, h, 
-        thisObject->mVertexShader.string(), thisObject->mFramgmentShader.string()))
+    if(!thisObject->polygonBuildnLink(w, h,
+                                      thisObject->mVertexShader.string(), thisObject->mFramgmentShader.string()))
         {
             fprintf(stderr, "Could not set up graphics.\n");
             return (void *)0;
