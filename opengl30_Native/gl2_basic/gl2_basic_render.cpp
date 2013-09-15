@@ -10,6 +10,13 @@
 #include <pthread.h>
 #include "gl2_basic_render.h"
 
+#define LOG_ENABLE
+
+#ifdef LOG_ENABLE
+#define LOG printf
+#else
+#define LOG //
+#endif
 
 namespace android
 {
@@ -86,18 +93,22 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     //FixMe; Is it necessaly initialize all class memeber ?
     //FixMe; Add config file to select below option
     //One of below must define
-    hasNothing = true;
-    hasRotation = false;
+    hasNothing = false;
+    hasRotation = true;
     hasScale = false;
     hasTranslation = false;
 
     hasLighting = false;
-    hasTexureMap = false;
+    hasTextureMap = false;
     hasFBO = false;
     hasVBO = false;
+    hasVAO = false;
 
     hasPreciMidium = true;       //Must define
     hasColorDirectPass = true; //Must define
+
+
+    mRotationAngle = 0;
 }
 
 GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
@@ -202,6 +213,30 @@ void gl2_basic_render::polygonShaderSetup()
 
     printf("FragmentShader; \n");
     printf("%s\n", mFramgmentShader.string());
+
+    printf("-Config Print-\n \
+   \t hasColorDirectPass \t%d\n \
+   \t hasPreciMidium \t%d\n  \
+   \t hasNothing \t%d\n   \
+   \t hasRotation \t%d\n  \
+   \t hasScale \t%d\n    \
+   \t hasTranslation %d\n  \
+   \t hasLighting \t%d\n   \
+   \t hasTextureMap \t%d\n  \
+   \t hasFBO \t%d\n  \
+   \t hasVBO \t%d\n  \
+   \t hasVAO \t%d\n",
+    hasColorDirectPass,
+    hasPreciMidium,
+    hasNothing,
+    hasRotation,
+    hasScale,
+    hasTranslation,
+    hasLighting,
+    hasTextureMap,
+    hasFBO,
+    hasVBO,
+    hasVAO);
 }
 
 bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
@@ -223,10 +258,10 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     glViewport(0, 0, w, h);
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
                  gColorMatrix[mIndex][2], gColorMatrix[mIndex][3]);
-    glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glUseProgram(mOGLProgram);
 
-    return true;
+     return true;
 }
 
 void gl2_basic_render::polygonDraw()
@@ -235,12 +270,15 @@ void gl2_basic_render::polygonDraw()
     if(hasRotation)
         {
             MatrixTransform::matrixIndentity(&mRotateMatrix);
-            MatrixTransform::matrixRotate(&mRotateMatrix, 45.0f, 1.0, 0.0, 1.0);  //FixMe; Angle need to change dynamically
+            mRotationAngle += 10; //The step of angle increasing
+            mRotationAngle = mRotationAngle % 360;
+            MatrixTransform::matrixRotate(&mRotateMatrix, (GLfloat)mRotationAngle, 0.0, 0.0, 1.0);
             glUniformMatrix4fv(mUniVSrotateMat, 1, GL_FALSE, (GLfloat * )mRotateMatrix.m);
         }
 
     /* Data refresh and enable */
     //polygon vertex data
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);// FixMe; Just QCT drvier  requirment?
     glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices); //Vertex Array
     glEnableVertexAttribArray(mAttrVSPosition);
 
@@ -267,24 +305,24 @@ void gl2_basic_render::frameControl(int fd, int events, void* data)
                             // Real rendering block
                             thisObject->polygonDraw();
 
-                            printf("TID:%d swap buffers--", gettid());
+                            LOG("TID:%d swap buffers--", gettid());
                         }
                 }
             thisObject->mCounter = 1;
         }
     else
         {
-            printf("TID:%d skip buffers--", gettid());
+            LOG("TID:%d skip buffers--", gettid());
             thisObject->mCounter++;
         }
 
     if (thisObject->mOldTimeStamp)
         {
             float t = float(buffer[0].header.timestamp - thisObject->mOldTimeStamp) / s2ns(1);
-            printf("TID:%d %f ms (%f Hz)--", gettid(), t*1000, 1.0/t);
+            LOG("TID:%d %f ms (%f Hz)--", gettid(), t*1000, 1.0/t);
         }
     thisObject->mOldTimeStamp = buffer[0].header.timestamp;
-    printf("TID:%d Event vsync:count=%d\n",gettid(), buffer[0].vsync.count);
+    LOG("TID:%d Event vsync:count=%d\n",gettid(), buffer[0].vsync.count);
 }
 
 /*

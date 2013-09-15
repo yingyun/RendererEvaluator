@@ -59,7 +59,7 @@ private:
     //Shader for vertex
     static const char * gVS_Header_Attribute_vertexPosition;
     static const char * gVS_Header_Uniform_modelviewMatrix;
-    
+
     static const char * gVS_Main_Start_Function;
     static const char * gVS_Function_Direct_Pass_Position;
     static const char * gVS_Function_Pass_MV_Multi_Position;
@@ -92,6 +92,7 @@ private:
 
 
     /* ------- Rendering options Start, Not it's a class object property------- */
+    /* Note:If add an new item, should also keep with polygonShaderSetup function */
     bool hasColorDirectPass;
     bool hasPreciMidium;
     bool hasNothing;
@@ -99,12 +100,12 @@ private:
     bool hasScale;
     bool hasTranslation;
     bool hasLighting;
-    bool hasTexureMap;
+    bool hasTextureMap;
     bool hasFBO;
     bool hasVBO;
 
     bool hasVAO;//OpenGL3.0 only
-    
+
     /*====== Rendering options End, Not it's a class object property====== */
 
 
@@ -116,7 +117,7 @@ private:
     /* ===== Varous transform matrix   End ======*/
 
 
-    
+
 
     //global shader source, class object property
     String8 mVertexShader;
@@ -136,6 +137,9 @@ private:
     unsigned int mCounter;
     GLuint mOGLProgram;
     nsecs_t mOldTimeStamp;
+
+    //Each transformation specific
+    unsigned int mRotationAngle;
 
     DisplayEventReceiver mDisplayEventReceiver;
     sp<Looper> mLoop;
