@@ -72,7 +72,7 @@ const char * gl2_basic_render::gVS_Header_Uniform_translationMatrix =
 const char * gl2_basic_render::gVS_Main_Start_Function =
     "void main() {\n";
 
-const char * gl2_basic_render::gVS_Function_Direct_Pass_Position = //FixMe; change name
+const char * gl2_basic_render::gVS_Function_Direct_Pass_Position =
     "   gl_Position = vertexPosition;\n";
 const char * gl2_basic_render::gVS_Function_Pass_RO_Multi_Position =
     "   gl_Position = gl_Position * rotationMatrix;\n";
@@ -111,8 +111,8 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     //FixMe; Add config file to select below option
 
     /* model view tranformation */
-    hasRotation = false; //OK
-    hasScale = false;  //OK
+    hasRotation = true; //OK
+    hasScale = true;  //OK
     hasTranslation = true;
 
     /* advanced vertex operation */
@@ -317,6 +317,7 @@ void gl2_basic_render::polygonDraw()
             ++mRotationAngle;
             mRotationAngle = mRotationAngle % 360;//The step of angle increasing
             MatrixTransform::matrixRotate(&mRotateMatrix, (GLfloat)mRotationAngle, 0.0, 0.0, 1.0);
+            MatrixTransform::matrixDump(&mRotateMatrix, "mRotateMatrix");
             glUniformMatrix4fv(mUniVSrotateMat, 1, GL_FALSE, (GLfloat * )mRotateMatrix.m);
         }
     if(hasScale)
@@ -341,16 +342,17 @@ void gl2_basic_render::polygonDraw()
                 }
             MatrixTransform::matrixIndentity(&mScaleMatrix);
             MatrixTransform::matrixScale(&mScaleMatrix, mScaleMagnitude, mScaleMagnitude, mScaleMagnitude);
+            MatrixTransform::matrixDump(&mScaleMatrix, "mScaleMatrix");
             glUniformMatrix4fv(mUniVSscaleMat, 1, GL_FALSE, (GLfloat * )mScaleMatrix.m);
         }
     if(hasTranslation)
         {
             mTranslationMagnitude += 0.1;
-            if (mTranslationMagnitude > 10.0f) mTranslationMagnitude = 0;
+            if (mTranslationMagnitude > 5.0f) mTranslationMagnitude = 0;
 
             MatrixTransform::matrixIndentity(&mTranslateMatrix);
             /* FixMe; matrixTranslate was wrong ?  */
-            MatrixTransform::matrixTranslate(&mTranslateMatrix, 0.0f, mTranslationMagnitude, 0.0f);
+            MatrixTransform::matrixTranslate(&mTranslateMatrix, 0.0f, 0.0, 0.0f);
             MatrixTransform::matrixDump(&mTranslateMatrix, "mTranslateMatrix");
             glUniformMatrix4fv(mUniVStranslateMat, 1, GL_FALSE, (GLfloat * )mTranslateMatrix.m);
 

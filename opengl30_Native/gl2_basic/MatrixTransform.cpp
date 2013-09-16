@@ -13,13 +13,18 @@
 
 namespace android
 {
+//#define LOG_ENABLE
+
+#ifdef LOG_ENABLE
+#define LOG printf
+#else
+#define LOG //
+#endif
 
 /*
 * Cui.YY  FixMe; Need to review equation
 * Detaild equation refer 3D Math primer please
 */
-
-
 #define PI  3.14159265
 
 
@@ -136,20 +141,24 @@ void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLf
 /*FixMe; The essence of 2D array */
 void MatrixTransform::matrixDump(const Matrix44 * mDumped, const char * tag)
 {
-    const Matrix44 * M = mDumped;
-    printf("%s\n " \
+    /*
+    * Use type (* variable_name)[ROW_NUM]; to define the 2D array
+    * in which means, for instance float a[2][5] define we have two what
+    * type as float (* aa)[5] variable, it's also means float[5] type.
+    */
+    const GLfloat (* M)[4] = mDumped->m;
+    LOG("%s\n " \
            "\t %f %f %f %f\n" \
            "\t %f %f %f %f\n" \
            "\t %f %f %f %f\n"\
            "\t %f %f %f %f\n"
            ,tag
-           ,M->m[0][0] ,M->m[0][1] ,M->m[0][2] ,M->m[0][3]
-           ,M->m[1][0] ,M->m[1][1] ,M->m[1][2] ,M->m[1][3]
-           ,M->m[2][0] ,M->m[2][1] ,M->m[2][2] ,M->m[2][3]
-           ,M->m[3][0] ,M->m[3][1] ,M->m[3][2] ,M->m[3][3]
+           ,M[0][0] ,M[0][1] ,M[0][2] ,M[0][3]
+           ,M[1][0] ,M[1][1] ,M[1][2] ,M[1][3]
+           ,M[2][0] ,M[2][1] ,M[2][2] ,M[2][3]
+           ,M[3][0] ,M[3][1] ,M[3][2] ,M[3][3]
           );
 }
-
 void MatrixTransform::vectorDump(const Vector4 * vDumped)
 {
     const GLfloat * V = vDumped->v;
