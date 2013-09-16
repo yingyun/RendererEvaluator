@@ -26,6 +26,11 @@ typedef struct
     GLfloat m[4][4];
 } Matrix44;
 
+typedef struct
+{
+    GLfloat v[4];
+} Vector4;
+
 class MatrixTransform
 {
     //FixMe; Implement RTS firstly
@@ -40,6 +45,9 @@ public:
     static void matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
     static void matrixTranslate(Matrix44 * result, GLfloat x, GLfloat y, GLfloat z);
     static void matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLfloat sz);
+    static void matrixDump(const Matrix44 * M, const char * tag);
+    static void vectorDump(const Vector4 * vDumped);
+
 };
 
 

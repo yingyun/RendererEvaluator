@@ -5,12 +5,15 @@
 *Detailed see class header.
 *
 *
+* TODO:
+* 1: Add error check for gl function
+*
 */
 
 #include <pthread.h>
 #include "gl2_basic_render.h"
 
-#define LOG_ENABLE
+//#define LOG_ENABLE
 
 #ifdef LOG_ENABLE
 #define LOG printf
@@ -33,9 +36,11 @@ GLclampf gl2_basic_render::gColorMatrix[6][4] =
     {1.0, 0.0, 1.0, 1.0}	//Magenta
 };
 
-//simple triangle vertices.
+//simple triangle vertices.    FixMe; Change to Regular Triangle
 GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
-{ 0.0f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f };
+{-0.5f, -0.288675f,    0.0f, 0.57735f,    0.5f, -0.288675f};
+
+
 
 /*
 * Cui.YY
@@ -56,14 +61,26 @@ GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
 //Shader for vertex
 const char * gl2_basic_render::gVS_Header_Attribute_vertexPosition =
     "attribute vec4 vertexPosition;\n";
-const char * gl2_basic_render::gVS_Header_Uniform_modelviewMatrix =
-    "uniform mat4 modelViewMatrix;\n";
+const char * gl2_basic_render::gVS_Header_Uniform_rotationMatrix =
+    "uniform mat4 rotationMatrix;\n";
+const char * gl2_basic_render::gVS_Header_Uniform_scaleMatrix =
+    "uniform mat4 scaleMatrix;\n";
+const char * gl2_basic_render::gVS_Header_Uniform_translationMatrix =
+    "uniform mat4 translationMatrix;\n";
+
+
 const char * gl2_basic_render::gVS_Main_Start_Function =
     "void main() {\n";
-const char * gl2_basic_render::gVS_Function_Pass_MV_Multi_Position =
-    "   gl_Position = vertexPosition * modelViewMatrix; \n";
-const char * gl2_basic_render::gVS_Function_Direct_Pass_Position =
+
+const char * gl2_basic_render::gVS_Function_Direct_Pass_Position = //FixMe; change name
     "   gl_Position = vertexPosition;\n";
+const char * gl2_basic_render::gVS_Function_Pass_RO_Multi_Position =
+    "   gl_Position = gl_Position * rotationMatrix;\n";
+const char * gl2_basic_render::gVS_Function_Pass_SC_Multi_Position =
+    "   gl_Position = gl_Position * scaleMatrix;\n";
+const char * gl2_basic_render::gVS_Function_Pass_TR_Multi_Position =
+    "   gl_Position = gl_Position * translationMatrix;\n";
+
 const char * gl2_basic_render::gVS_Main_End_Function =
     "}\n";
 
@@ -92,23 +109,28 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
 {
     //FixMe; Is it necessaly initialize all class memeber ?
     //FixMe; Add config file to select below option
-    //One of below must define
-    hasNothing = false;
-    hasRotation = true;
-    hasScale = false;
-    hasTranslation = false;
 
+    /* model view tranformation */
+    hasRotation = false; //OK
+    hasScale = false;  //OK
+    hasTranslation = true;
+
+    /* advanced vertex operation */
     hasLighting = false;
     hasTextureMap = false;
     hasFBO = false;
     hasVBO = false;
     hasVAO = false;
 
+    /* fragment shader */
     hasPreciMidium = true;       //Must define
     hasColorDirectPass = true; //Must define
 
-
+    /* specific */
     mRotationAngle = 0;
+    mScaleMagnitude = 0;
+    mScaleIncreasing = true;
+    mTranslationMagnitude = 0;
 }
 
 GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
@@ -190,12 +212,17 @@ void gl2_basic_render::polygonShaderSetup()
 {
     //Setup Vertext shader
     mVertexShader.append(gVS_Header_Attribute_vertexPosition);  //We always pass the vertex to the shader
-    if(hasRotation) mVertexShader.append(gVS_Header_Uniform_modelviewMatrix);
+    if(hasRotation) mVertexShader.append(gVS_Header_Uniform_rotationMatrix);
+    if(hasScale) mVertexShader.append(gVS_Header_Uniform_scaleMatrix);
+    if(hasTranslation) mVertexShader.append(gVS_Header_Uniform_translationMatrix);
+
 
     mVertexShader.append(gVS_Main_Start_Function);
 
-    if(hasNothing)  mVertexShader.append(gVS_Function_Direct_Pass_Position);
-    if(hasRotation) mVertexShader.append(gVS_Function_Pass_MV_Multi_Position);
+    mVertexShader.append(gVS_Function_Direct_Pass_Position);
+    if(hasRotation) mVertexShader.append(gVS_Function_Pass_RO_Multi_Position);
+    if(hasScale) mVertexShader.append(gVS_Function_Pass_SC_Multi_Position);
+    if(hasTranslation) mVertexShader.append(gVS_Function_Pass_TR_Multi_Position);
 
     mVertexShader.append(gVS_Main_End_Function);
 
@@ -217,7 +244,6 @@ void gl2_basic_render::polygonShaderSetup()
     printf("-Config Print-\n \
    \t hasColorDirectPass \t%d\n \
    \t hasPreciMidium \t%d\n  \
-   \t hasNothing \t%d\n   \
    \t hasRotation \t%d\n  \
    \t hasScale \t%d\n    \
    \t hasTranslation %d\n  \
@@ -226,17 +252,16 @@ void gl2_basic_render::polygonShaderSetup()
    \t hasFBO \t%d\n  \
    \t hasVBO \t%d\n  \
    \t hasVAO \t%d\n",
-    hasColorDirectPass,
-    hasPreciMidium,
-    hasNothing,
-    hasRotation,
-    hasScale,
-    hasTranslation,
-    hasLighting,
-    hasTextureMap,
-    hasFBO,
-    hasVBO,
-    hasVAO);
+           hasColorDirectPass,
+           hasPreciMidium,
+           hasRotation,
+           hasScale,
+           hasTranslation,
+           hasLighting,
+           hasTextureMap,
+           hasFBO,
+           hasVBO,
+           hasVAO);
 }
 
 bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
@@ -253,7 +278,11 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     mAttrVSPosition = glGetAttribLocation(mOGLProgram, "vertexPosition");
 
     if(hasRotation)
-        mUniVSrotateMat = glGetUniformLocation(mOGLProgram, "modelViewMatrix");
+        mUniVSrotateMat = glGetUniformLocation(mOGLProgram, "rotationMatrix");
+    if(hasScale)
+        mUniVSscaleMat = glGetUniformLocation(mOGLProgram, "scaleMatrix");
+    if(hasTranslation)
+        mUniVStranslateMat = glGetUniformLocation(mOGLProgram, "translationMatrix");
 
     glViewport(0, 0, w, h);
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
@@ -261,27 +290,73 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glUseProgram(mOGLProgram);
 
-     return true;
+    return true;
 }
 
 void gl2_basic_render::polygonDraw()
 {
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);// FixMe; Just QCT drvier  requirment?
+
+
+    /* polygon vertex data */
+    glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices); //Vertex Array
+    glEnableVertexAttribArray(mAttrVSPosition);
+
     /* do transformantion */
     if(hasRotation)
         {
             MatrixTransform::matrixIndentity(&mRotateMatrix);
-            mRotationAngle += 10; //The step of angle increasing
-            mRotationAngle = mRotationAngle % 360;
+            /*
+            * Cui.YY 20130916
+            * Why (++mRotationAngle) % 360 didn't pass the compiler as it's called undefined behaviour.
+            * The compiler can do re-order feel free, so, cannot ensure the same result in different compiler
+            * even with same compiler with different settings.
+            * So, in C/C++ we can just modify one value in single line, can't modify same value in both
+            * operands.  http://stackoverflow.com/questions/9951993/why-foo-foo-may-be-undefined
+            */
+            ++mRotationAngle;
+            mRotationAngle = mRotationAngle % 360;//The step of angle increasing
             MatrixTransform::matrixRotate(&mRotateMatrix, (GLfloat)mRotationAngle, 0.0, 0.0, 1.0);
             glUniformMatrix4fv(mUniVSrotateMat, 1, GL_FALSE, (GLfloat * )mRotateMatrix.m);
         }
+    if(hasScale)
+        {
+            /* do repeast operation for the change of scale magnitude */
+            if (mScaleIncreasing)
+                {
 
-    /* Data refresh and enable */
-    //polygon vertex data
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);// FixMe; Just QCT drvier  requirment?
-    glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices); //Vertex Array
-    glEnableVertexAttribArray(mAttrVSPosition);
+                    mScaleMagnitude += 0.01;
+                    if (mScaleMagnitude > (GLfloat)2.1)
+                        {
+                            mScaleIncreasing = false;
+                        }
+                }
+            else
+                {
+                    mScaleMagnitude -= 0.01;
+                    if (mScaleMagnitude < (GLfloat)0.0)
+                        {
+                            mScaleIncreasing = 1;
+                        }
+                }
+            MatrixTransform::matrixIndentity(&mScaleMatrix);
+            MatrixTransform::matrixScale(&mScaleMatrix, mScaleMagnitude, mScaleMagnitude, mScaleMagnitude);
+            glUniformMatrix4fv(mUniVSscaleMat, 1, GL_FALSE, (GLfloat * )mScaleMatrix.m);
+        }
+    if(hasTranslation)
+        {
+            mTranslationMagnitude += 0.1;
+            if (mTranslationMagnitude > 10.0f) mTranslationMagnitude = 0;
 
+            MatrixTransform::matrixIndentity(&mTranslateMatrix);
+            /* FixMe; matrixTranslate was wrong ?  */
+            MatrixTransform::matrixTranslate(&mTranslateMatrix, 0.0f, mTranslationMagnitude, 0.0f);
+            MatrixTransform::matrixDump(&mTranslateMatrix, "mTranslateMatrix");
+            glUniformMatrix4fv(mUniVStranslateMat, 1, GL_FALSE, (GLfloat * )mTranslateMatrix.m);
+
+        }
+
+    //TODO: add quat, cube support
     glDrawArrays(GL_TRIANGLES, 0, 3);
     eglSwapBuffers(mEGLDisplay, mEGLSurface);
 }

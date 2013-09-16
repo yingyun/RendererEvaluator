@@ -133,4 +133,27 @@ void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLf
     result->m[2][3] *= sz;
 }
 
+/*FixMe; The essence of 2D array */
+void MatrixTransform::matrixDump(const Matrix44 * mDumped, const char * tag)
+{
+    const Matrix44 * M = mDumped;
+    printf("%s\n " \
+           "\t %f %f %f %f\n" \
+           "\t %f %f %f %f\n" \
+           "\t %f %f %f %f\n"\
+           "\t %f %f %f %f\n"
+           ,tag
+           ,M->m[0][0] ,M->m[0][1] ,M->m[0][2] ,M->m[0][3]
+           ,M->m[1][0] ,M->m[1][1] ,M->m[1][2] ,M->m[1][3]
+           ,M->m[2][0] ,M->m[2][1] ,M->m[2][2] ,M->m[2][3]
+           ,M->m[3][0] ,M->m[3][1] ,M->m[3][2] ,M->m[3][3]
+          );
+}
+
+void MatrixTransform::vectorDump(const Vector4 * vDumped)
+{
+    const GLfloat * V = vDumped->v;
+    printf("%f, %f, %f, %f\n", V[0], V[1], V[2], V[3]);
+}
+
 }

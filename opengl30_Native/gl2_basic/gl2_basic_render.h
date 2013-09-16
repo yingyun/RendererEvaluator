@@ -58,11 +58,15 @@ private:
 
     //Shader for vertex
     static const char * gVS_Header_Attribute_vertexPosition;
-    static const char * gVS_Header_Uniform_modelviewMatrix;
+    static const char * gVS_Header_Uniform_rotationMatrix;
+    static const char * gVS_Header_Uniform_scaleMatrix;
+    static const char * gVS_Header_Uniform_translationMatrix;
 
     static const char * gVS_Main_Start_Function;
     static const char * gVS_Function_Direct_Pass_Position;
-    static const char * gVS_Function_Pass_MV_Multi_Position;
+    static const char * gVS_Function_Pass_RO_Multi_Position;
+    static const char * gVS_Function_Pass_SC_Multi_Position;
+    static const char * gVS_Function_Pass_TR_Multi_Position;
     static const char * gVS_Main_End_Function;
 
     //Shader for fragment
@@ -72,8 +76,6 @@ private:
     static const char * gFS_Main_End_Function;
 
     /* ========= Data Declare Area End, Note it's a global member ========= */
-
-
 
 
     /* --- Attribute, Uniform handler Start, Note it's a class object property --- */
@@ -95,7 +97,6 @@ private:
     /* Note:If add an new item, should also keep with polygonShaderSetup function */
     bool hasColorDirectPass;
     bool hasPreciMidium;
-    bool hasNothing;
     bool hasRotation;
     bool hasScale;
     bool hasTranslation;
@@ -140,6 +141,9 @@ private:
 
     //Each transformation specific
     unsigned int mRotationAngle;
+    GLfloat mScaleMagnitude;
+    bool mScaleIncreasing;
+    GLfloat mTranslationMagnitude;
 
     DisplayEventReceiver mDisplayEventReceiver;
     sp<Looper> mLoop;
