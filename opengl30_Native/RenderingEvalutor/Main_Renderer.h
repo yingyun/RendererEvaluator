@@ -35,6 +35,7 @@
 #include <gui/DisplayEventReceiver.h>
 
 #include "MatrixTransform.h"
+#include "VertexGenerator.h"
 
 namespace android
 {
@@ -53,8 +54,12 @@ private:
 
     //Each frame render color
     static GLclampf gColorMatrix[6][4];
-    //simple Triangle Render
+    /* polygon info*/
     static GLfloat gSimpleTriangleVertices[6];
+    GLfloat * mCubeVertices;
+    GLuint * mCubeIndices;
+    GLuint mCubeNumOfIndex;
+    GLfloat * mBlenderVertices;
 
     //Shader for vertex
     static const char * gVS_Header_Attribute_vertexPosition;
@@ -104,6 +109,10 @@ private:
     bool hasTextureMap;
     bool hasFBO;
     bool hasVBO;
+
+    bool hasSimTriangle;
+    bool hasCube;
+    bool hasBlender;
 
     bool hasVAO;//OpenGL3.0 only
 

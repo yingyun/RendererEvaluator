@@ -24,10 +24,10 @@
  *TODO
  *20130911: Add various effect on the canvas.
  * Goal: Control each frame with different remdering method via command cotnrol.
- *  =>Transformation, RTS
+ *  =>Transformation, RTS  (Done)
  *  =>Texture Mapping
  *  =>Lighting
- *  =>Various Buffer Control
+ *  =>Various Buffer Control (Doing)
  *
  */
 
@@ -35,7 +35,7 @@
 #include <stdio.h>
 
 #include "NativeSurfaceFlingerEGLService.h"
-#include "gl2_basic_render.h"
+#include "Main_Renderer.h"
 
 #define NUMOFSURFACE 6
 

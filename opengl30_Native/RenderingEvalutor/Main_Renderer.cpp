@@ -7,11 +7,11 @@
 *
 * TODO:
 * 1: Add error check for gl function
-*
+* 2: Add lighting
 */
 
 #include <pthread.h>
-#include "gl2_basic_render.h"
+#include "Main_Renderer.h"
 
 //#define LOG_ENABLE
 
@@ -36,13 +36,16 @@ GLclampf gl2_basic_render::gColorMatrix[6][4] =
     {1.0, 0.0, 1.0, 1.0}	//Magenta
 };
 
-//simple triangle vertices.    FixMe; Change to Regular Triangle
+/*
+*   The definition of vertice can describe polygon vertex, color, normal, texCoord
+*/
+
+/* simple triangle vertices.    FixMe; Change to Regular Triangle */
 GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
 {-0.5f, -0.288675f,    0.0f, 0.57735f,    0.5f, -0.288675f};
 
 
-
-/*
+*
 * Cui.YY
 * These constructor idea get from Android HWUI design
 */
@@ -126,11 +129,50 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     hasPreciMidium = true;       //Must define
     hasColorDirectPass = true; //Must define
 
-    /* specific */
+    /* polygon setup */
+    hasSimTriangle = false;
+    hasCube = true;
+    hasBlender = false;
+
+    /* transformation specific */
     mRotationAngle = 0;
     mScaleMagnitude = 0;
     mScaleIncreasing = true;
     mTranslationMagnitude = 0;
+
+    /* polygon specific */
+    mCubeVertices = 0;
+    mCubeIndices = 0;
+    mCubeNumOfIndex = 0;
+    mBlenderVertices = 0;
+
+    printf("-Config Print-\n \
+   \t hasColorDirectPass \t%d\n \
+   \t hasPreciMidium \t%d\n  \
+   \t hasRotation \t%d\n  \
+   \t hasScale \t%d\n    \
+   \t hasTranslation %d\n  \
+   \t hasLighting \t%d\n   \
+   \t hasTextureMap \t%d\n  \
+   \t hasFBO \t%d\n  \
+   \t hasVBO \t%d\n  \
+   \t hasVAO \t%d\n \
+   \t hasSimTriangle %d\n \
+   \t hasCube\t%d\n \
+   \t hasBlender\t%d\n",
+           hasColorDirectPass,
+           hasPreciMidium,
+           hasRotation,
+           hasScale,
+           hasTranslation,
+           hasLighting,
+           hasTextureMap,
+           hasFBO,
+           hasVBO,
+           hasVAO,
+           hasSimTriangle,
+           hasCube,
+           hasBlender);
 }
 
 GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
@@ -241,27 +283,9 @@ void gl2_basic_render::polygonShaderSetup()
     printf("FragmentShader; \n");
     printf("%s\n", mFramgmentShader.string());
 
-    printf("-Config Print-\n \
-   \t hasColorDirectPass \t%d\n \
-   \t hasPreciMidium \t%d\n  \
-   \t hasRotation \t%d\n  \
-   \t hasScale \t%d\n    \
-   \t hasTranslation %d\n  \
-   \t hasLighting \t%d\n   \
-   \t hasTextureMap \t%d\n  \
-   \t hasFBO \t%d\n  \
-   \t hasVBO \t%d\n  \
-   \t hasVAO \t%d\n",
-           hasColorDirectPass,
-           hasPreciMidium,
-           hasRotation,
-           hasScale,
-           hasTranslation,
-           hasLighting,
-           hasTextureMap,
-           hasFBO,
-           hasVBO,
-           hasVAO);
+    /* Do polygon vertex generation */
+    if(hasCube)mCubeNumOfIndex = VertexGenerator::generateCube(1.0, &mCubeVertices, NULL, NULL, &mCubeIndices);
+
 }
 
 bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
@@ -299,7 +323,9 @@ void gl2_basic_render::polygonDraw()
 
 
     /* polygon vertex data */
-    glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices); //Vertex Array
+    if(hasSimTriangle)glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
+    if(hasCube)glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, mCubeVertices); /*FixMe; stride*/
+
     glEnableVertexAttribArray(mAttrVSPosition);
 
     /* do transformantion */
@@ -327,7 +353,7 @@ void gl2_basic_render::polygonDraw()
                 {
 
                     mScaleMagnitude += 0.01;
-                    if (mScaleMagnitude > (GLfloat)2.1)
+                    if (mScaleMagnitude > (GLfloat)1.5)
                         {
                             mScaleIncreasing = false;
                         }
@@ -359,7 +385,8 @@ void gl2_basic_render::polygonDraw()
         }
 
     //TODO: add quat, cube support
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    if(hasSimTriangle)glDrawArrays(GL_TRIANGLES, 0, 3);
+    if(hasCube)glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
     eglSwapBuffers(mEGLDisplay, mEGLSurface);
 }
 
