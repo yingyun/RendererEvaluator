@@ -45,7 +45,7 @@ GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
 {-0.5f, -0.288675f,    0.0f, 0.57735f,    0.5f, -0.288675f};
 
 
-*
+/*
 * Cui.YY
 * These constructor idea get from Android HWUI design
 */
