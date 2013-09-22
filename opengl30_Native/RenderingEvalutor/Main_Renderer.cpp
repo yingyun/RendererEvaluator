@@ -6,11 +6,13 @@
 *
 */
 // TODO: add below operation in the shader
-/* =>1: Add error check for gl function
+/*
+* =>1: Add error check for gl function
 * =>2: Add lighting
-* =>3: Add various buffer object to improve performance 
+* =>3: Add various buffer object to improve performance
 * =>4: Add texture mappting
-* 
+* =>5: Add color
+*
 *
 *  20130918: Study draw command
 *
@@ -28,9 +30,7 @@
 
 namespace android
 {
-
 /* ---------- Data Definition Area Start ---------- */
-
 GLclampf gl2_basic_render::gColorMatrix[6][4] =
 {
     {1.0, 1.0, 1.0, 1.0},	//White
@@ -41,18 +41,15 @@ GLclampf gl2_basic_render::gColorMatrix[6][4] =
     {1.0, 0.0, 1.0, 1.0}	//Magenta
 };
 
-/*
-*   The definition of vertice can describe polygon vertex, color, normal, texCoord
-*/
-
 /* simple triangle vertices.    FixMe; Change to Regular Triangle */
 GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
 {-0.5f, -0.288675f,    0.0f, 0.57735f,    0.5f, -0.288675f};
 
-
 /*
 * Cui.YY
 * These constructor idea get from Android HWUI design
+* Some case will result bad performance of shader as not good-desging
+* shader compiler.
 *
 *   FixMe; Notice while add render command control
 *
@@ -73,6 +70,10 @@ const char * gl2_basic_render::gVS_Header_Uniform_scaleMatrix =
     "uniform mat4 scaleMatrix;\n";
 const char * gl2_basic_render::gVS_Header_Uniform_translationMatrix =
     "uniform mat4 translationMatrix;\n";
+const char * gl2_basic_render::gVS_Header_Attribute_passColor =
+    "attribute vec4 passColor;\n";
+const char * gl2_basic_render::gVS_Header_Varying_colorToFrag =
+    "varying vec4 colorToFrag;\n";
 
 const char * gl2_basic_render::gVS_Main_Start_Function =
     "void main() {\n";
@@ -85,6 +86,8 @@ const char * gl2_basic_render::gVS_Function_Pass_SC_Multi_Position =
     "   gl_Position = gl_Position * scaleMatrix;\n";
 const char * gl2_basic_render::gVS_Function_Pass_TR_Multi_Position =
     "   gl_Position = gl_Position * translationMatrix;\n";
+const char * gl2_basic_render::gVS_Function_Pass_Color_To_Frag =
+    "   colorToFrag = passColor;\n";
 
 const char * gl2_basic_render::gVS_Main_End_Function =
     "}\n";
@@ -92,21 +95,27 @@ const char * gl2_basic_render::gVS_Main_End_Function =
 //Shader for fragment
 const char * gl2_basic_render::gFS_Header_Precision_Mediump_Float =
     "precision mediump float;\n";
+const char * gl2_basic_render::gFS_Header_Varying_colorToFrag =
+    "varying vec4 colorToFrag;\n";
+
 const char * gl2_basic_render::gFS_Main_Start_Function =
     "void main() {\n";
-const char * gl2_basic_render::gFS_Function_Direct_Pass_Color =
+
+const char * gl2_basic_render::gFS_Function_Pass_Constant_Color =
     "  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n";
+const char * gl2_basic_render::gFS_Function_Direct_Pass_Color =
+    "  gl_FragColor = colorToFrag;\n";
+
 const char * gl2_basic_render::gFS_Main_End_Function =
     "}\n";
-
 /* ==========Data Definition Area End ==========*/
 
 gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     :mAttrVSPosition(0),mIndex(index), mStep(step), mCounter(1), mOGLProgram(0),  mOldTimeStamp(0)
 {
     /* model view tranformation */
-    hasRotation = true; //OK
-    hasScale = true;  //OK
+    hasRotation = true; //Done
+    hasScale = true;  //Done
     hasTranslation = true;
 
     /* advanced vertex operation */
@@ -118,7 +127,8 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
 
     /* fragment shader */
     hasPreciMidium = true;       //Must define
-    hasColorDirectPass = true; //Must define
+    hasColorConstantPass = false; //Must define
+    hasColorDirectPass = true;
 
     /* polygon setup */
     hasSimTriangle = false;
@@ -133,11 +143,13 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
 
     /* polygon specific */
     mCubeVertices = 0;
+    mCubeColor = 0;
     mCubeIndices = 0;
     mCubeNumOfIndex = 0;
     mBlenderVertices = 0;
 
     printf("-Config Print-\n \
+   \t hasColorConstantPass \t%d\n \
    \t hasColorDirectPass \t%d\n \
    \t hasPreciMidium \t%d\n  \
    \t hasRotation \t%d\n  \
@@ -151,6 +163,7 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
    \t hasSimTriangle %d\n \
    \t hasCube\t%d\n \
    \t hasBlender\t%d\n",
+           hasColorConstantPass,
            hasColorDirectPass,
            hasPreciMidium,
            hasRotation,
@@ -204,13 +217,11 @@ GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pF
         {
             return 0;
         }
-
     GLuint pixelShader = loadShader(GL_FRAGMENT_SHADER, pFragmentSource);
     if (!pixelShader)
         {
             return 0;
         }
-
     GLuint program = glCreateProgram();
     if (program)
         {
@@ -247,6 +258,8 @@ void gl2_basic_render::polygonShaderSetup()
     if(hasRotation) mVertexShader.append(gVS_Header_Uniform_rotationMatrix);
     if(hasScale) mVertexShader.append(gVS_Header_Uniform_scaleMatrix);
     if(hasTranslation) mVertexShader.append(gVS_Header_Uniform_translationMatrix);
+    if(hasColorDirectPass) mVertexShader.append(gVS_Header_Attribute_passColor);
+    if(hasColorDirectPass) mVertexShader.append(gVS_Header_Varying_colorToFrag);
 
 
     mVertexShader.append(gVS_Main_Start_Function);
@@ -255,27 +268,29 @@ void gl2_basic_render::polygonShaderSetup()
     if(hasRotation) mVertexShader.append(gVS_Function_Pass_RO_Multi_Position);
     if(hasScale) mVertexShader.append(gVS_Function_Pass_SC_Multi_Position);
     if(hasTranslation) mVertexShader.append(gVS_Function_Pass_TR_Multi_Position);
+    if(hasColorDirectPass) mVertexShader.append(gVS_Function_Pass_Color_To_Frag);
 
     mVertexShader.append(gVS_Main_End_Function);
-
     printf("VertextShader; \n");
     printf("%s\n", mVertexShader.string());
 
-
     //Setup Fragment shader
     if(hasPreciMidium)mFramgmentShader.append(gFS_Header_Precision_Mediump_Float);
+    if(hasColorDirectPass)mFramgmentShader.append(gFS_Header_Varying_colorToFrag);
+
     mFramgmentShader.append(gFS_Main_Start_Function);
 
+    if(hasColorConstantPass)mFramgmentShader.append(gFS_Function_Pass_Constant_Color);
     if(hasColorDirectPass)mFramgmentShader.append(gFS_Function_Direct_Pass_Color);
 
     mFramgmentShader.append(gFS_Main_End_Function);
-
     printf("FragmentShader; \n");
     printf("%s\n", mFramgmentShader.string());
 
     /* Do polygon vertex generation */
-    if(hasCube)mCubeNumOfIndex = VertexGenerator::generateCube(1.0, &mCubeVertices, NULL, NULL, &mCubeIndices);
-
+    //generateCube(float scale, float * * vertices, float * * normals, float * * texCoords, float * * colors, unsigned int * * indices)
+    if(hasCube)mCubeNumOfIndex = VertexGenerator::generateCube(1.0, &mCubeVertices,
+                                     NULL, NULL, &mCubeColor, &mCubeIndices);
 }
 
 bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
@@ -296,6 +311,8 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
         mUniVSscaleMat = glGetUniformLocation(mOGLProgram, "scaleMatrix");
     if(hasTranslation)
         mUniVStranslateMat = glGetUniformLocation(mOGLProgram, "translationMatrix");
+    if(hasColorDirectPass)
+        mAttrVSColorPass = glGetAttribLocation(mOGLProgram, "passColor");
 
     glViewport(0, 0, w, h);
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
@@ -312,7 +329,7 @@ void gl2_basic_render::polygonDraw()
 
     /* polygon vertex data */
     if(hasSimTriangle)glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
-    if(hasCube)glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, mCubeVertices); /*FixMe; stride*/
+    if(hasCube)glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, mCubeVertices);
     glEnableVertexAttribArray(mAttrVSPosition);
 
     /* do transformantion */
@@ -367,10 +384,15 @@ void gl2_basic_render::polygonDraw()
             MatrixTransform::matrixTranslate(&mTranslateMatrix, 0.0f, 0.0, 0.0f);
             MatrixTransform::matrixDump(&mTranslateMatrix, "mTranslateMatrix");
             glUniformMatrix4fv(mUniVStranslateMat, 1, GL_FALSE, (GLfloat * )mTranslateMatrix.m);
-
+        }
+    /* Color and Light */
+    if(hasColorDirectPass)
+        {
+            glVertexAttribPointer(mAttrVSColorPass, 4, GL_FLOAT, GL_FALSE, 0, mCubeColor);
+            glEnableVertexAttribArray(mAttrVSColorPass);
         }
 
-    //TODO: add quat, cube support
+    /* Let's cook */
     if(hasSimTriangle)glDrawArrays(GL_TRIANGLES, 0, 3);
     if(hasCube)glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
     eglSwapBuffers(mEGLDisplay, mEGLSurface);
@@ -453,18 +475,15 @@ void* gl2_basic_render::mainRender(void* thisthis)
     */
 
     thisObject->polygonShaderSetup();
-
     if(!thisObject->polygonBuildnLink(w, h,
                                       thisObject->mVertexShader.string(), thisObject->mFramgmentShader.string()))
         {
             fprintf(stderr, "Could not set up graphics.\n");
             return (void *)0;
         }
-
     thisObject->mLoop = new Looper(false);
     thisObject->mLoop->addFd(thisObject->mDisplayEventReceiver.getFd(), 0, ALOOPER_EVENT_INPUT,
                              (ALooper_callbackFunc)gl2_basic_render::frameControl, thisObject);
-
     thisObject->mDisplayEventReceiver.setVsyncRate(1);//Enable vsync forever
     int tid = gettid();
     printf("TID:%d Enable Vsync\n", tid);

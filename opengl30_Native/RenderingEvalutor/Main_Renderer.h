@@ -57,26 +57,33 @@ private:
     /* polygon info*/
     static GLfloat gSimpleTriangleVertices[6];
     GLfloat * mCubeVertices;
+    GLfloat * mCubeColor;
     GLuint * mCubeIndices;
     GLuint mCubeNumOfIndex;
     GLfloat * mBlenderVertices;
 
     //Shader for vertex
-    static const char * gVS_Header_Attribute_vertexPosition;
+    static const char * gVS_Header_Attribute_vertexPosition;  //Header
     static const char * gVS_Header_Uniform_rotationMatrix;
     static const char * gVS_Header_Uniform_scaleMatrix;
     static const char * gVS_Header_Uniform_translationMatrix;
+    static const char * gVS_Header_Attribute_passColor;
+    static const char * gVS_Header_Varying_colorToFrag;
 
-    static const char * gVS_Main_Start_Function;
+    static const char * gVS_Main_Start_Function;  //Body
     static const char * gVS_Function_Direct_Pass_Position;
     static const char * gVS_Function_Pass_RO_Multi_Position;
     static const char * gVS_Function_Pass_SC_Multi_Position;
     static const char * gVS_Function_Pass_TR_Multi_Position;
+    static const char * gVS_Function_Pass_Color_To_Frag;
     static const char * gVS_Main_End_Function;
 
     //Shader for fragment
-    static const char * gFS_Header_Precision_Mediump_Float;
-    static const char * gFS_Main_Start_Function;
+    static const char * gFS_Header_Precision_Mediump_Float;  //Header
+    static const char * gFS_Header_Varying_colorToFrag;
+    
+    static const char * gFS_Main_Start_Function;  //Body
+    static const char * gFS_Function_Pass_Constant_Color;
     static const char * gFS_Function_Direct_Pass_Color;
     static const char * gFS_Main_End_Function;
 
@@ -90,6 +97,7 @@ private:
     GLuint mUniVSrotateMat;
     GLuint mUniVSscaleMat;
     GLuint mUniVStranslateMat;
+    GLuint mAttrVSColorPass;
 
 
     //Shader for fragment
@@ -100,6 +108,7 @@ private:
 
     /* ------- Rendering options Start, Not it's a class object property------- */
     /* Note:If add an new item, should also keep with polygonShaderSetup function */
+    bool hasColorConstantPass;
     bool hasColorDirectPass;
     bool hasPreciMidium;
     bool hasRotation;

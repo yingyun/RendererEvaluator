@@ -18,7 +18,7 @@ class VertexGenerator
 {
 public:
     static int generateCube(float scale, float **vertices, float **normals,
-                                      float **texCoords, unsigned int **indices);
+                                      float **texCoords, float **colors, unsigned int **indices);
 };
 
 }

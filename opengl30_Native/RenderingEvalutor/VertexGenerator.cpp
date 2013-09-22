@@ -9,65 +9,115 @@
 #include "VertexGenerator.h"
 namespace android
 {
-
 /* This function gets from OpenGLES2.0 Programming Guide */
 int VertexGenerator::generateCube(float scale, float **vertices, float **normals,
-                                  float **texCoords, unsigned int **indices)
+                                  float **texCoords, float **colors, unsigned int **indices)
 {
     int i;
     int numVertices = 24;
     int numIndices = 36;
-
     float cubeVerts[] =
-    {   /* 24 vertex,  6 slide * 4 vertex per slide */
+    {
+        /* 24 vertex,  6 slide * 4 vertex per slide */
         -0.5f, -0.5f, -0.5f,
         -0.5f, -0.5f,  0.5f,
         0.5f, -0.5f,  0.5f,
         0.5f, -0.5f, -0.5f,
+
         -0.5f,  0.5f, -0.5f,
         -0.5f,  0.5f,  0.5f,
         0.5f,  0.5f,  0.5f,
         0.5f,  0.5f, -0.5f,
+
         -0.5f, -0.5f, -0.5f,
         -0.5f,  0.5f, -0.5f,
         0.5f,  0.5f, -0.5f,
         0.5f, -0.5f, -0.5f,
+
         -0.5f, -0.5f, 0.5f,
         -0.5f,  0.5f, 0.5f,
         0.5f,  0.5f, 0.5f,
         0.5f, -0.5f, 0.5f,
+
         -0.5f, -0.5f, -0.5f,
         -0.5f, -0.5f,  0.5f,
         -0.5f,  0.5f,  0.5f,
         -0.5f,  0.5f, -0.5f,
+
         0.5f, -0.5f, -0.5f,
         0.5f, -0.5f,  0.5f,
         0.5f,  0.5f,  0.5f,
         0.5f,  0.5f, -0.5f,
     };
 
+    float cubeColor[] =
+    {
+        /* 24 vertex, 6 slide * 4 vertex per slide */
+        1.0f, 0.0f, 0.0f, 1.0f,//Red
+        1.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 0.0f, 1.0f,
+
+        0.0f, 1.0f, 0.0f, 1.0f,//Green
+        0.0f, 1.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+
+        0.0f, 0.0f, 1.0f, 1.0f,//Blue
+        0.0f, 0.0f, 1.0f, 1.0f,
+        0.0f, 0.0f, 1.0f, 1.0f,
+        0.0f, 0.0f, 1.0f, 1.0f,
+        0.0f, 0.0f, 1.0f, 1.0f,
+
+        1.0f, 1.0f, 0.0f, 1.0f,//Yellow
+        1.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 0.0f, 1.0f,
+
+        0.0f, 1.0f, 1.0f, 1.0f,//Cyan
+        0.0f, 1.0f, 1.0f, 1.0f,
+        0.0f, 1.0f, 1.0f, 1.0f,
+        0.0f, 1.0f, 1.0f, 1.0f,
+        0.0f, 1.0f, 1.0f, 1.0f,
+
+        1.0f, 0.0f, 1.0f, 1.0f,//Magenta
+        1.0f, 0.0f, 1.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 1.0f,
+    };
+
     float cubeNormals[] =
-    {   /* 24 normals */
+    {
+        /* 24 normals */
         0.0f, -1.0f, 0.0f,
         0.0f, -1.0f, 0.0f,
         0.0f, -1.0f, 0.0f,
         0.0f, -1.0f, 0.0f,
+
         0.0f, 1.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
+
         0.0f, 0.0f, -1.0f,
         0.0f, 0.0f, -1.0f,
         0.0f, 0.0f, -1.0f,
         0.0f, 0.0f, -1.0f,
+
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
+
         -1.0f, 0.0f, 0.0f,
         -1.0f, 0.0f, 0.0f,
         -1.0f, 0.0f, 0.0f,
         -1.0f, 0.0f, 0.0f,
+
         1.0f, 0.0f, 0.0f,
         1.0f, 0.0f, 0.0f,
         1.0f, 0.0f, 0.0f,
@@ -75,27 +125,33 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
     };
 
     float cubeTex[] =
-    {   /* 24 */
+    {
+        /* 24 */
         0.0f, 0.0f,
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
+
         1.0f, 0.0f,
         1.0f, 1.0f,
         0.0f, 1.0f,
         0.0f, 0.0f,
+
         0.0f, 0.0f,
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
+
         0.0f, 0.0f,
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
+
         0.0f, 0.0f,
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
+
         0.0f, 0.0f,
         0.0f, 1.0f,
         1.0f, 1.0f,
@@ -151,10 +207,4 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
 
     return numIndices;
 }
-
 }
-
-
-
-
-
