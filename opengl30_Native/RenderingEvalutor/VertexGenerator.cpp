@@ -10,7 +10,6 @@
 namespace android
 {
 
-
 /* This function gets from OpenGLES2.0 Programming Guide */
 int VertexGenerator::generateCube(float scale, float **vertices, float **normals,
                                   float **texCoords, unsigned int **indices)
@@ -20,7 +19,7 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
     int numIndices = 36;
 
     float cubeVerts[] =
-    {
+    {   /* 24 vertex,  6 slide * 4 vertex per slide */
         -0.5f, -0.5f, -0.5f,
         -0.5f, -0.5f,  0.5f,
         0.5f, -0.5f,  0.5f,
@@ -48,7 +47,7 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
     };
 
     float cubeNormals[] =
-    {
+    {   /* 24 normals */
         0.0f, -1.0f, 0.0f,
         0.0f, -1.0f, 0.0f,
         0.0f, -1.0f, 0.0f,
@@ -76,7 +75,7 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
     };
 
     float cubeTex[] =
-    {
+    {   /* 24 */
         0.0f, 0.0f,
         0.0f, 1.0f,
         1.0f, 1.0f,
@@ -127,7 +126,6 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
             memcpy( *texCoords, cubeTex, sizeof( cubeTex ) ) ;
         }
 
-
     // Generate the indices
     if ( indices != NULL )
         {
@@ -153,7 +151,6 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
 
     return numIndices;
 }
-
 
 }
 

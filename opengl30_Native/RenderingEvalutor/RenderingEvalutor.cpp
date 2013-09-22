@@ -21,13 +21,7 @@
  *
  *20130901: Render each frame on each vsync event
  *
- *TODO
  *20130911: Add various effect on the canvas.
- * Goal: Control each frame with different remdering method via command cotnrol.
- *  =>Transformation, RTS  (Done)
- *  =>Texture Mapping
- *  =>Lighting
- *  =>Various Buffer Control (Doing)
  *
  */
 
@@ -40,7 +34,6 @@
 #define NUMOFSURFACE 6
 
 using namespace android;
-
 
 void usage()
 {
@@ -62,9 +55,7 @@ int main(int argc, char** argv)
     unsigned int num_of_fps = 1;
     if (argc == 3)
         {
-            //            usage();
-
-            int b = atoi(argv[1]);
+             int b = atoi(argv[1]);
             if((1 <= b) && (b <=6))
                 {
                     num_of_surface = b;
@@ -76,7 +67,7 @@ int main(int argc, char** argv)
                     return 0;
                 }
             int a = atoi(argv[2]);
-            //No protect here
+            /* No protect here */
             num_of_fps = a;
 
             printf("=>Using %d layer(s) from the layer pool\n", num_of_surface);

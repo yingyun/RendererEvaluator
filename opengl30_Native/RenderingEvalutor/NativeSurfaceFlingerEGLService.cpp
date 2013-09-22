@@ -9,6 +9,11 @@
 #include <NativeSurfaceFlingerEGLService.h>
 
 #define NUMOFSURFACE 6
+#define SIZE_PAD 160
+#define POSITION_PAD 80
+#define DEFAULT_ZORDER 0x40000000
+#define TEST_INDEX 3
+#define NUMOFSURFACE 6
 
 namespace android
 {
@@ -48,12 +53,6 @@ bool NativeSurfaceFlingerEGLService::startService()
     *If want to create set center as base position, should make sure what
     *position_pad size half as size_pad.
     */
-#define SIZE_PAD 160
-#define POSITION_PAD 80
-#define DEFAULT_ZORDER 0x40000000
-#define TEST_INDEX 3
-#define NUMOFSURFACE 6
-
     unsigned int ww[NUMOFSURFACE];
     unsigned int hh[NUMOFSURFACE];
 

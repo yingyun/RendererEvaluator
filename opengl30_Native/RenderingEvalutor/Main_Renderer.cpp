@@ -4,21 +4,26 @@
 *The implementation of GLES render.
 *Detailed see class header.
 *
+*/
+// TODO: add below operation in the shader
+/* =>1: Add error check for gl function
+* =>2: Add lighting
+* =>3: Add various buffer object to improve performance 
+* =>4: Add texture mappting
+* 
 *
-* TODO:
-* 1: Add error check for gl function
-* 2: Add lighting
+*  20130918: Study draw command
+*
 */
 
 #include <pthread.h>
 #include "Main_Renderer.h"
 
 //#define LOG_ENABLE
-
 #ifdef LOG_ENABLE
-#define LOG printf
+#define LOG(...) printf(__VA_ARGS__)  //FixMe;  What does VA_ARGS mean?
 #else
-#define LOG //
+#define LOG(...)
 #endif
 
 namespace android
@@ -48,9 +53,7 @@ GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
 /*
 * Cui.YY
 * These constructor idea get from Android HWUI design
-*/
-
-/*
+*
 *   FixMe; Notice while add render command control
 *
 *   Below source will be add/remvoe in the runtume, so in order to
@@ -71,7 +74,6 @@ const char * gl2_basic_render::gVS_Header_Uniform_scaleMatrix =
 const char * gl2_basic_render::gVS_Header_Uniform_translationMatrix =
     "uniform mat4 translationMatrix;\n";
 
-
 const char * gl2_basic_render::gVS_Main_Start_Function =
     "void main() {\n";
 
@@ -87,7 +89,6 @@ const char * gl2_basic_render::gVS_Function_Pass_TR_Multi_Position =
 const char * gl2_basic_render::gVS_Main_End_Function =
     "}\n";
 
-
 //Shader for fragment
 const char * gl2_basic_render::gFS_Header_Precision_Mediump_Float =
     "precision mediump float;\n";
@@ -100,19 +101,9 @@ const char * gl2_basic_render::gFS_Main_End_Function =
 
 /* ==========Data Definition Area End ==========*/
 
-
-
-//TODO:
-// simple quad vertices
-
-// complex vertices
-
 gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     :mAttrVSPosition(0),mIndex(index), mStep(step), mCounter(1), mOGLProgram(0),  mOldTimeStamp(0)
 {
-    //FixMe; Is it necessaly initialize all class memeber ?
-    //FixMe; Add config file to select below option
-
     /* model view tranformation */
     hasRotation = true; //OK
     hasScale = true;  //OK
@@ -249,7 +240,6 @@ GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pF
     return program;
 }
 
-
 void gl2_basic_render::polygonShaderSetup()
 {
     //Setup Vertext shader
@@ -297,7 +287,6 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
         {
             return false;
         }
-
     //Retrieve shader paramer information
     mAttrVSPosition = glGetAttribLocation(mOGLProgram, "vertexPosition");
 
@@ -319,13 +308,11 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
 
 void gl2_basic_render::polygonDraw()
 {
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);// FixMe; Just QCT drvier  requirment?
-
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     /* polygon vertex data */
     if(hasSimTriangle)glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
     if(hasCube)glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, mCubeVertices); /*FixMe; stride*/
-
     glEnableVertexAttribArray(mAttrVSPosition);
 
     /* do transformantion */
@@ -375,7 +362,6 @@ void gl2_basic_render::polygonDraw()
         {
             mTranslationMagnitude += 0.1;
             if (mTranslationMagnitude > 5.0f) mTranslationMagnitude = 0;
-
             MatrixTransform::matrixIndentity(&mTranslateMatrix);
             /* FixMe; matrixTranslate was wrong ?  */
             MatrixTransform::matrixTranslate(&mTranslateMatrix, 0.0f, 0.0, 0.0f);
@@ -460,12 +446,12 @@ void* gl2_basic_render::mainRender(void* thisthis)
     eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_HEIGHT, &h);
     printf("TID:%d Window dimensions: %d x %d\n", gettid(), w, h);
 
-
     /*
     *   1: Generating polygon shader program
     *   2: Build shader and link it
     *   3: Pass control over to Looper to draw each frame
     */
+
     thisObject->polygonShaderSetup();
 
     if(!thisObject->polygonBuildnLink(w, h,
@@ -478,6 +464,7 @@ void* gl2_basic_render::mainRender(void* thisthis)
     thisObject->mLoop = new Looper(false);
     thisObject->mLoop->addFd(thisObject->mDisplayEventReceiver.getFd(), 0, ALOOPER_EVENT_INPUT,
                              (ALooper_callbackFunc)gl2_basic_render::frameControl, thisObject);
+
     thisObject->mDisplayEventReceiver.setVsyncRate(1);//Enable vsync forever
     int tid = gettid();
     printf("TID:%d Enable Vsync\n", tid);
@@ -491,7 +478,7 @@ void* gl2_basic_render::mainRender(void* thisthis)
                         printf("TID:%d Poll wake\n", tid);
                         break;
                     case ALOOPER_POLL_CALLBACK:
-                        //                    printf("TID:%d Poll callback\n", tid);
+                        /* printf("TID:%d Poll callback\n", tid); */
                         break;
                     case ALOOPER_POLL_TIMEOUT:
                         printf("TID:%d Poll timeout\n", tid);

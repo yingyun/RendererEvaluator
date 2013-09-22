@@ -13,12 +13,12 @@
 
 namespace android
 {
-//#define LOG_ENABLE
 
+//#define LOG_ENABLE
 #ifdef LOG_ENABLE
-#define LOG printf
+#define LOG(...) printf(__VA_ARGS__)  //FixMe;  What does VA_ARGS mean?
 #else
-#define LOG //
+#define LOG(...)
 #endif
 
 /*
