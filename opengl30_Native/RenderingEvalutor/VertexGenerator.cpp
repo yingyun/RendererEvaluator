@@ -9,13 +9,13 @@
 #include "VertexGenerator.h"
 namespace android
 {
+    #define NUM_VERTICES 24
+    #define NUM_INDICES 36
+
 /* This function gets from OpenGLES2.0 Programming Guide */
 int VertexGenerator::generateCube(float scale, float **vertices, float **normals,
                                   float **texCoords, float **colors, unsigned int **indices)
 {
-    int i;
-    int numVertices = 24;
-    int numIndices = 36;
     float cubeVerts[] =
     {
         /* 24 vertex,  6 slide * 4 vertex per slide */
@@ -57,10 +57,8 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
         1.0f, 0.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 0.0f, 1.0f,
 
         0.0f, 1.0f, 0.0f, 1.0f,//Green
-        0.0f, 1.0f, 0.0f, 1.0f,
         0.0f, 1.0f, 0.0f, 1.0f,
         0.0f, 1.0f, 0.0f, 1.0f,
         0.0f, 1.0f, 0.0f, 1.0f,
@@ -69,10 +67,8 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
         0.0f, 0.0f, 1.0f, 1.0f,
         0.0f, 0.0f, 1.0f, 1.0f,
         0.0f, 0.0f, 1.0f, 1.0f,
-        0.0f, 0.0f, 1.0f, 1.0f,
 
         1.0f, 1.0f, 0.0f, 1.0f,//Yellow
-        1.0f, 1.0f, 0.0f, 1.0f,
         1.0f, 1.0f, 0.0f, 1.0f,
         1.0f, 1.0f, 0.0f, 1.0f,
         1.0f, 1.0f, 0.0f, 1.0f,
@@ -81,10 +77,8 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
         0.0f, 1.0f, 1.0f, 1.0f,
         0.0f, 1.0f, 1.0f, 1.0f,
         0.0f, 1.0f, 1.0f, 1.0f,
-        0.0f, 1.0f, 1.0f, 1.0f,
 
         1.0f, 0.0f, 1.0f, 1.0f,//Magenta
-        1.0f, 0.0f, 1.0f, 1.0f,
         1.0f, 0.0f, 1.0f, 1.0f,
         1.0f, 0.0f, 1.0f, 1.0f,
         1.0f, 0.0f, 1.0f, 1.0f,
@@ -158,32 +152,35 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
         1.0f, 0.0f,
     };
 
-    // Allocate memory for buffers
-    if ( vertices != NULL )
+    if(vertices != NULL)
         {
-            /* FixMe; Maybe leak here */
-            *vertices = (float *)malloc( sizeof(float) * 3 * numVertices );
-            memcpy( *vertices, cubeVerts, sizeof( cubeVerts ) );
-            for ( i = 0; i < numVertices * 3; i++ )
+            *vertices = (float *)malloc(sizeof(float) * 3 * NUM_VERTICES);//FixMe; Mem leak here
+            memcpy(*vertices, cubeVerts, sizeof(cubeVerts));
+            for(int i = 0; i < NUM_VERTICES * 3; i++)
                 {
                     (*vertices)[i] *= scale;
                 }
         }
 
-    if ( normals != NULL )
+    if(normals != NULL)
         {
-            *normals = (float *)malloc( sizeof(float) * 3 * numVertices );
-            memcpy( *normals, cubeNormals, sizeof( cubeNormals ) );
+            *normals = (float *)malloc(sizeof(float) * 3 * NUM_VERTICES);
+            memcpy(*normals, cubeNormals, sizeof(cubeNormals));
         }
 
-    if ( texCoords != NULL )
+    if(texCoords != NULL)
         {
-            *texCoords = (float *)malloc( sizeof(float) * 2 * numVertices );
-            memcpy( *texCoords, cubeTex, sizeof( cubeTex ) ) ;
+            *texCoords = (float *)malloc(sizeof(float) * 2 * NUM_VERTICES);
+            memcpy(*texCoords, cubeTex, sizeof(cubeTex)) ;
+        }
+    if(colors != NULL)
+        {
+            *colors = (float *)malloc(sizeof(float) * 4 * NUM_VERTICES);
+            memcpy(*colors, cubeColor, sizeof(cubeColor));
         }
 
     // Generate the indices
-    if ( indices != NULL )
+    if(indices != NULL)
         {
             unsigned int cubeIndices[] =
             {
@@ -201,10 +198,10 @@ int VertexGenerator::generateCube(float scale, float **vertices, float **normals
                 20, 22, 21
             };
 
-            *indices = (unsigned int *)malloc( sizeof(unsigned int) * numIndices );
-            memcpy( *indices, cubeIndices, sizeof( cubeIndices ) );
+            *indices = (unsigned int *)malloc(sizeof(unsigned int) * NUM_INDICES);
+            memcpy(*indices, cubeIndices, sizeof(cubeIndices));
         }
 
-    return numIndices;
+    return NUM_INDICES;
 }
 }
