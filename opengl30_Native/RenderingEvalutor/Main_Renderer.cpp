@@ -11,7 +11,7 @@
 * =>2: Add lighting
 * =>3: Add various buffer object to improve performance
 * =>4: Add texture mappting
-* =>5: Add color
+* =>5: Add color                                                                            -Done
 *
 *
 *  20130918: Study draw command
@@ -33,12 +33,12 @@ namespace android
 /* ---------- Data Definition Area Start ---------- */
 GLclampf gl2_basic_render::gColorMatrix[6][4] =
 {
-    {1.0, 1.0, 1.0, 1.0},	//White
+    {0.0, 0.0, 0.0, 0.0},       //Black
     {1.0, 0.0, 0.0, 1.0},	//Red
     {0.0, 1.0, 0.0, 1.0},	//Green
     {1.0, 1.0, 0.0, 1.0},	//Yellow
     {0.0, 0.0, 1.0, 1.0},	//Blue
-    {1.0, 0.0, 1.0, 1.0}	//Magenta
+    {1.0, 1.0, 1.0, 1.0}        //White
 };
 
 /* simple triangle vertices.    FixMe; Change to Regular Triangle */
@@ -115,8 +115,8 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
 {
     /* model view tranformation */
     hasRotation = true; //Done
-    hasScale = true;  //Done
-    hasTranslation = true;
+    hasScale = false;  //Done
+    hasTranslation = false;
 
     /* advanced vertex operation */
     hasLighting = false;
@@ -126,8 +126,8 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     hasVAO = false;
 
     /* fragment shader */
-    hasPreciMidium = true;       //Must define
-    hasColorConstantPass = false; //Must define
+    hasPreciMidium = true;
+    hasColorConstantPass = false;
     hasColorDirectPass = true;
 
     /* polygon setup */
@@ -288,15 +288,13 @@ void gl2_basic_render::polygonShaderSetup()
     printf("%s\n", mFramgmentShader.string());
 
     /* Do polygon vertex generation */
-    //generateCube(float scale, float * * vertices, float * * normals, float * * texCoords, float * * colors, unsigned int * * indices)
-    if(hasCube)mCubeNumOfIndex = VertexGenerator::generateCube(1.0, &mCubeVertices,
+    //generateCube(bool indexMode, float scale, float * * vertices, float * * normals, float * * texCoords, float * * colors, unsigned int * * indices)
+    if(hasCube)mCubeNumOfIndex = VertexGenerator::generateCube(true, 0.5, &mCubeVertices,
                                      NULL, NULL, &mCubeColor, &mCubeIndices);
 }
 
 bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
 {
-    printf("TID:%d simpleTriangleSetup-Done\n", gettid());
-
     mOGLProgram= createProgram(vertexShader, fragmentShader);
     if (!mOGLProgram)
         {
@@ -318,6 +316,13 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
                  gColorMatrix[mIndex][2], gColorMatrix[mIndex][3]);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    //Culling should always be enabled to improve the perf of OpenGL, Culling back and CCW was defualt config
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
     glUseProgram(mOGLProgram);
 
     return true;
@@ -325,7 +330,7 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
 
 void gl2_basic_render::polygonDraw()
 {
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     /* polygon vertex data */
     if(hasSimTriangle)glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
@@ -346,7 +351,7 @@ void gl2_basic_render::polygonDraw()
             */
             ++mRotationAngle;
             mRotationAngle = mRotationAngle % 360;//The step of angle increasing
-            MatrixTransform::matrixRotate(&mRotateMatrix, (GLfloat)mRotationAngle, 0.0, 0.0, 1.0);
+            MatrixTransform::matrixRotate(&mRotateMatrix, (GLfloat)mRotationAngle, 1.0, 1.0, 0.0);
             MatrixTransform::matrixDump(&mRotateMatrix, "mRotateMatrix");
             glUniformMatrix4fv(mUniVSrotateMat, 1, GL_FALSE, (GLfloat * )mRotateMatrix.m);
         }
@@ -378,10 +383,10 @@ void gl2_basic_render::polygonDraw()
     if(hasTranslation)
         {
             mTranslationMagnitude += 0.1;
-            if (mTranslationMagnitude > 5.0f) mTranslationMagnitude = 0;
+            if (mTranslationMagnitude > 1.0f) mTranslationMagnitude = 0;
             MatrixTransform::matrixIndentity(&mTranslateMatrix);
             /* FixMe; matrixTranslate was wrong ?  */
-            MatrixTransform::matrixTranslate(&mTranslateMatrix, 0.0f, 0.0, 0.0f);
+            MatrixTransform::matrixTranslate(&mTranslateMatrix, 0.0f, 0.0f, 0.0f);
             MatrixTransform::matrixDump(&mTranslateMatrix, "mTranslateMatrix");
             glUniformMatrix4fv(mUniVStranslateMat, 1, GL_FALSE, (GLfloat * )mTranslateMatrix.m);
         }
@@ -394,7 +399,8 @@ void gl2_basic_render::polygonDraw()
 
     /* Let's cook */
     if(hasSimTriangle)glDrawArrays(GL_TRIANGLES, 0, 3);
-    if(hasCube)glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
+    if(hasCube)glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices); //Index mode
+    //if(hasCube)glDrawArrays(GL_TRIANGLES, 0, 36);  //No index mode
     eglSwapBuffers(mEGLDisplay, mEGLSurface);
 }
 
@@ -485,8 +491,7 @@ void* gl2_basic_render::mainRender(void* thisthis)
     thisObject->mLoop->addFd(thisObject->mDisplayEventReceiver.getFd(), 0, ALOOPER_EVENT_INPUT,
                              (ALooper_callbackFunc)gl2_basic_render::frameControl, thisObject);
     thisObject->mDisplayEventReceiver.setVsyncRate(1);//Enable vsync forever
-    int tid = gettid();
-    printf("TID:%d Enable Vsync\n", tid);
+    unsigned int tid = gettid();
 
     do
         {
