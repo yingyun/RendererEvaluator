@@ -10,11 +10,17 @@
 * =>1: Add error check for gl function
 * =>2: Add lighting
 * =>3: Add various buffer object to improve performance
+*          In OpenGLES 2.0 we have FBO, VBO
+*Cui.YY: The buffer means the buffer on the Chip but it's means in GPU buffer
+*on the OpenGL concept.Actually, it's depends on OpenGL driver design.
+*Whether desktop or embedded it's all have the embedded memory on
+*the GPU IP to store/load the data to improve/reduce performance/mem bandwitdh.
+*
 * =>4: Add texture mappting
 * =>5: Add color                                                                            -Done
+* =>6: Depth test, How to handle Z-Fighting
 *
 *
-*  20130918: Study draw command
 *
 */
 
@@ -122,7 +128,7 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     hasLighting = false;
     hasTextureMap = false;
     hasFBO = false;
-    hasVBO = false;
+    hasVBO = true;
     hasVAO = false;
 
     /* fragment shader */
@@ -312,6 +318,27 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     if(hasColorDirectPass)
         mAttrVSColorPass = glGetAttribLocation(mOGLProgram, "passColor");
 
+
+    //Create various buffer object
+    if(hasCube && hasVBO)
+        {
+            glGenBuffers(3, mVBOForVI); //Note: This is just used for Index mode rendering
+            //[0] for Vertex
+            glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[0]);
+            glBufferData(GL_ARRAY_BUFFER, VertexGenerator::vertexSizeByte(true),
+                         mCubeVertices, GL_STATIC_DRAW);
+
+            //[1] for color
+            glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[1]);
+            glBufferData(GL_ARRAY_BUFFER, VertexGenerator::colorSizeByte(true),
+                mCubeColor, GL_STATIC_DRAW);
+
+            //[2] for index
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBOForVI[2]);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, 500/*VertexGenerator::indexSizeByte()*/,
+                         mCubeIndices, GL_STATIC_DRAW);
+           }
+
     glViewport(0, 0, w, h);
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
                  gColorMatrix[mIndex][2], gColorMatrix[mIndex][3]);
@@ -334,8 +361,18 @@ void gl2_basic_render::polygonDraw()
 
     /* polygon vertex data */
     if(hasSimTriangle)glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
-    if(hasCube)glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, mCubeVertices);
-    glEnableVertexAttribArray(mAttrVSPosition);
+    if(hasCube && hasVBO)
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[0]);
+            glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, 0);
+            glEnableVertexAttribArray(mAttrVSPosition);
+        }
+    else if(hasCube)
+        {
+            glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, mCubeVertices);
+            glEnableVertexAttribArray(mAttrVSPosition);
+        }
+    //    glEnableVertexAttribArray(mAttrVSPosition);  //FixMe; Maybe Change?
 
     /* do transformantion */
     if(hasRotation)
@@ -391,7 +428,14 @@ void gl2_basic_render::polygonDraw()
             glUniformMatrix4fv(mUniVStranslateMat, 1, GL_FALSE, (GLfloat * )mTranslateMatrix.m);
         }
     /* Color and Light */
-    if(hasColorDirectPass)
+    if(hasColorDirectPass && hasVBO)
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[1]);
+            glVertexAttribPointer(mAttrVSColorPass, 4, GL_FLOAT, GL_FALSE, 0, 0);
+            glEnableVertexAttribArray(mAttrVSColorPass);
+
+        }
+    else if (hasColorDirectPass)
         {
             glVertexAttribPointer(mAttrVSColorPass, 4, GL_FLOAT, GL_FALSE, 0, mCubeColor);
             glEnableVertexAttribArray(mAttrVSColorPass);
@@ -399,7 +443,10 @@ void gl2_basic_render::polygonDraw()
 
     /* Let's cook */
     if(hasSimTriangle)glDrawArrays(GL_TRIANGLES, 0, 3);
-    if(hasCube)glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices); //Index mode
+    if(hasCube && hasVBO)
+        glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, 0);
+    else if(hasCube)
+        glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices); //Index mode
     //if(hasCube)glDrawArrays(GL_TRIANGLES, 0, 36);  //No index mode
     eglSwapBuffers(mEGLDisplay, mEGLSurface);
 }

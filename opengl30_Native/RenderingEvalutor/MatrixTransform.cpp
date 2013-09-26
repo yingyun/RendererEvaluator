@@ -58,6 +58,7 @@ void MatrixTransform::matrixMultiply(Matrix44 *result, Matrix44 *srcA, Matrix44 
     memcpy(result, &tmp, sizeof(Matrix44));
 }
 
+//FixMe;  Wrong matrix ?
 void MatrixTransform::matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
     GLfloat sinAngle;
@@ -112,6 +113,7 @@ void MatrixTransform::matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, 
         }
 }
 
+//FixMe; Wrong Matrix?
 void MatrixTransform::matrixTranslate(Matrix44 * result, GLfloat tx, GLfloat ty, GLfloat tz)
 {
     result->m[3][0] += (result->m[0][0] * tx + result->m[1][0] * ty + result->m[2][0] * tz);
@@ -120,6 +122,7 @@ void MatrixTransform::matrixTranslate(Matrix44 * result, GLfloat tx, GLfloat ty,
     result->m[3][3] += (result->m[0][3] * tx + result->m[1][3] * ty + result->m[2][3] * tz);
 }
 
+//FixMe; Wrong Matrix?
 void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLfloat sz)
 {
     result->m[0][0] *= sx;

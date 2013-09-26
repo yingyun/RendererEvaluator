@@ -1,10 +1,11 @@
 /*
-* Implementation of generator machine
-* Todo:
-* 1: Cube
-* 2: Blender
+*MEIZU Technology. ZHUHAI 2013
+*Cui.YY
+*The implementation of vertex geneartor.
+*
 *
 */
+
 
 #include "VertexGenerator.h"
 namespace android
@@ -314,6 +315,8 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
                 1.0f, 0.0f, 1.0f, 1.0f
             };
 
+            // TODO: implement texcoord and normal
+
             if(vertices != NULL)
                 {
                     *vertices = (float *)malloc(sizeof(float) * 3 * NUM_INDICES);//FixMe; Mem leak here
@@ -332,4 +335,74 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
         }
     return NUM_INDICES;
 }
+
+
+void VertexGenerator::releaseCube(float **vertices, float **normals,
+                                  float **texCoords, float **colors, unsigned int **indices)
+{
+    if(vertices != NULL)
+        {
+            free(*vertices);
+            *vertices = 0;
+        }
+    if(normals != NULL)
+        {
+            free(*normals);
+            *normals = 0;
+        }
+    if(texCoords != NULL)
+        {
+            free(*texCoords);
+            *texCoords = 0;
+        }
+    if(colors != NULL)
+        {
+            free(*colors);
+            *colors = 0;
+        }
+    if(indices != NULL)
+        {
+            free(*indices);
+            *indices = 0;
+        }
+}
+
+
+
+unsigned int VertexGenerator::vertexSizeByte(bool indexMode)
+{
+    unsigned int num = 0;
+    if(indexMode) num = NUM_VERTICES;
+    else num = NUM_INDICES;
+    return sizeof(float) * 3 * num;
+}
+unsigned int VertexGenerator::colorSizeByte(bool indexMode)
+{
+    unsigned int num = 0;
+    if(indexMode) num = NUM_VERTICES;
+    else num = NUM_INDICES;
+    return sizeof(float) * 4 * num;
+
+}
+unsigned int VertexGenerator::texcoordSizeByte(bool indexMode)
+{
+    unsigned int num = 0;
+    if(indexMode) num = NUM_VERTICES;
+    else num = NUM_INDICES;
+    return sizeof(float) * 2 * num;
+
+}
+unsigned int VertexGenerator::normalSizeByte(bool indexMode)
+{
+    unsigned int num = 0;
+    if(indexMode) num = NUM_VERTICES;
+    else num = NUM_INDICES;
+    return sizeof(float) * 3 * num;
+
+}
+unsigned int VertexGenerator::indexSizeByte()
+{
+    return sizeof(unsigned int) * 1 * NUM_INDICES;
+}
+
 }

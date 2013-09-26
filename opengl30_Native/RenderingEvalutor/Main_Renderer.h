@@ -129,6 +129,12 @@ private:
 
 
 
+    /* ------ Various buffer object Start------ */
+    GLuint mVBOForVI[3];
+    /* ===== Varous transform matrix   End ======*/
+
+
+
     /* ------ Various transform matrix  Start------ */
     Matrix44 mRotateMatrix;
     Matrix44 mScaleMatrix;
