@@ -6,23 +6,20 @@
 *
 * TODO: add below operation in the shader
 * =>1: Add error check for gl function
-* =>2: Texturing
+* =>2: Texturing    -Done
 * =>3: Fragment Shader / Operation
 * =>4: FBO/ Advanced Tech
 */
 
 #include <pthread.h>
 #include "Main_Renderer.h"
-
 //#define LOG_ENABLE
 #ifdef LOG_ENABLE
 #define LOG(...) printf(__VA_ARGS__)
 #else
 #define LOG(...)
 #endif
-
 #define error_print(ABC) printf("ERROR %s +%d:"ABC"\n", __func__, __LINE__) //FixMe; Use standard error output
-
 
 namespace android
 {
@@ -248,11 +245,9 @@ void gl2_basic_render::loadTexture(int* width, int* height, void** pixelData)
     FILE * file = NULL;
     file = fopen("/data/M.png", "r");
     if (file == NULL) printf("Open texture was faild!\n");
-
     unsigned int haveReaded = fread(imagePixels, 1, fileSize, file);
-    if(fileSize == haveReaded) printf("Load %d bytes texture data was sucessful!\n", haveReaded);
+    if(fileSize == haveReaded) printf("Load %d bytes texture data was sucessful!", haveReaded);
     fclose(file);
-
     SkMemoryStream stream(imagePixels, fileSize);
     SkImageDecoder* codec = SkImageDecoder::Factory(&stream);
     codec->setDitherImage(false);
@@ -266,19 +261,19 @@ void gl2_basic_render::loadTexture(int* width, int* height, void** pixelData)
         {
             printf("Create codec was faild!\n");
         }
-
     *width = mBitmap.width();
     *height = mBitmap.height();
     *pixelData= mBitmap.getPixels();
     free(imagePixels);
     int p2Width = 1 << (31 - __builtin_clz(*width));
     int p2Height = 1 << (31 - __builtin_clz(*height));
+    printf("   Texture dimension: width %d, height %d\n", *width, *height);
+    
     if(p2Width != *width || p2Height != *height)
         {
             error_print("Non power of 2 size for Texture data!");
             exit(-1);
         }
-
     /*
     -Assume that the texture was the power of 2. Throwing error if it's not-
         int p2Width = 1 << (31 - __builtin_clz(width));
@@ -290,7 +285,6 @@ void gl2_basic_render::loadTexture(int* width, int* height, void** pixelData)
         printf("P2_Width %d, P2_Height %d\n", p2Width, p2Height);
         */
 }
-
 
 GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pFragmentSource)
 {
@@ -356,7 +350,7 @@ void gl2_basic_render::polygonShaderSetup()
     if(hasTexture2D) mVertexShader.append(gVS_Function_Pass_texCoord_To_Frag);
 
     mVertexShader.append(gVS_Main_End_Function);
-    printf("\nVertextShader; \n");
+    printf("\nVertextShader=> \n");
     printf("%s\n", mVertexShader.string());
 
     //Setup Fragment shader header
@@ -373,7 +367,7 @@ void gl2_basic_render::polygonShaderSetup()
     if(hasTexture2D) mFramgmentShader.append(gFS_Function_Direct_Sampler_texCoord);
 
     mFramgmentShader.append(gFS_Main_End_Function);
-    printf("FragmentShader; \n");
+    printf("FragmentShader=> \n");
     printf("%s\n", mFramgmentShader.string());
 
     /* Do polygon vertex generation, Index mode by default
@@ -402,7 +396,6 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
         mUniVStranslateMat = glGetUniformLocation(mOGLProgram, "u_translationMatrix");
     if(hasColorDirectPass)
         mAttrVSColorPass = glGetAttribLocation(mOGLProgram, "a_passColor");
-
     //Create various buffer object
     if(hasCubeWithVBO)
         {
@@ -444,7 +437,6 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
             glBindTexture(GL_TEXTURE_2D, mTexture[0]);
             glUniform1i(mUniFSSampler, 0);
         }
-
     glViewport(0, 0, w, h);
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
                  gColorMatrix[mIndex][2], gColorMatrix[mIndex][3]);
@@ -457,7 +449,6 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     glFrontFace(GL_CCW);
 
     glUseProgram(mOGLProgram);
-
     return true;
 }
 
@@ -554,20 +545,17 @@ void gl2_basic_render::polygonDraw()
             glVertexAttribPointer(mAttrVSColorPass, 4, GL_FLOAT, GL_FALSE, 0, mCubeColor);
             glEnableVertexAttribArray(mAttrVSColorPass);
         }
-
     if(hasTexture2D)
         {
             glVertexAttribPointer(mAttrVSTexCoordPass, 2, GL_FLOAT, GL_FALSE, 0, mCubeTexCoord); /* Enable Texture coordination */
             glEnableVertexAttribArray(mAttrVSTexCoordPass);
         }
-
     /* Let's cook */
     if(hasSimTriangle)glDrawArrays(GL_TRIANGLES, 0, 3);
     if(hasCubeWithVBO)
         glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, 0);
     if(hasCube)
         glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
-
     /*Swap something*/
     eglSwapBuffers(mEGLDisplay, mEGLSurface);
 }
@@ -649,7 +637,6 @@ void* gl2_basic_render::mainRender(void* thisthis)
     *   2: Build shader and link it
     *   3: Pass control over to Looper to draw each frame
     */
-
     thisObject->polygonShaderSetup();
     if(!thisObject->polygonBuildnLink(w, h,
                                       thisObject->mVertexShader.string(), thisObject->mFramgmentShader.string()))
@@ -662,7 +649,6 @@ void* gl2_basic_render::mainRender(void* thisthis)
                              (ALooper_callbackFunc)gl2_basic_render::frameControl, thisObject);
     thisObject->mDisplayEventReceiver.setVsyncRate(1);//Enable vsync forever
     unsigned int tid = gettid();
-
     do
         {
             int ret = thisObject->mLoop->pollOnce(-1);
@@ -686,7 +672,6 @@ void* gl2_basic_render::mainRender(void* thisthis)
                 }
         }
     while(true);
-
     return 0;
 }
 
