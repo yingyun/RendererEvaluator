@@ -1,6 +1,5 @@
 /*
-* FixMe; add comments
-*
+*These affine translation matrix maybe has some bugs
 *
 *
 *

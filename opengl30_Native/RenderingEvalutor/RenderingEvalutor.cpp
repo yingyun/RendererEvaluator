@@ -37,6 +37,7 @@ using namespace android;
 
 void usage()
 {
+    //FixMe; Change the note
     printf("\n");
     printf("Cui.YY Native_gl2_basic_render Ver20130905\n");
     printf("Usage: \"Native_gl2_basic 4 2 1 1 1 1\"\n");
@@ -55,7 +56,7 @@ int main(int argc, char** argv)
     unsigned int num_of_fps = 1;
     if (argc == 3)
         {
-             int b = atoi(argv[1]);
+            int b = atoi(argv[1]);
             if((1 <= b) && (b <=6))
                 {
                     num_of_surface = b;

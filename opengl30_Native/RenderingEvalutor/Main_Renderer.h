@@ -20,6 +20,7 @@
 #include <time.h>
 #include <sched.h>
 #include <pthread.h>
+#include <sys/stat.h>
 
 //TODO: Support GLES1
 #include <EGL/egl.h>
@@ -36,6 +37,10 @@
 
 #include "MatrixTransform.h"
 #include "VertexGenerator.h"
+
+#include <core/SkBitmap.h>
+#include <core/SkStream.h>
+#include <images/SkImageDecoder.h>
 
 namespace android
 {
@@ -58,6 +63,7 @@ private:
     static GLfloat gSimpleTriangleVertices[6];
     GLfloat * mCubeVertices;
     GLfloat * mCubeColor;
+    GLfloat * mCubeTexCoord;
     GLuint * mCubeIndices;
     GLuint mCubeNumOfIndex;
     GLfloat * mBlenderVertices;
@@ -68,7 +74,9 @@ private:
     static const char * gVS_Header_Uniform_scaleMatrix;
     static const char * gVS_Header_Uniform_translationMatrix;
     static const char * gVS_Header_Attribute_passColor;
+    static const char *  gVS_Header_Attribute_texCoord;
     static const char * gVS_Header_Varying_colorToFrag;
+    static const char * gVS_Header_Varying_texCoordToFrag;
 
     static const char * gVS_Main_Start_Function;  //Body
     static const char * gVS_Function_Direct_Pass_Position;
@@ -76,15 +84,19 @@ private:
     static const char * gVS_Function_Pass_SC_Multi_Position;
     static const char * gVS_Function_Pass_TR_Multi_Position;
     static const char * gVS_Function_Pass_Color_To_Frag;
+    static const char * gVS_Function_Pass_texCoord_To_Frag;
     static const char * gVS_Main_End_Function;
 
     //Shader for fragment
     static const char * gFS_Header_Precision_Mediump_Float;  //Header
     static const char * gFS_Header_Varying_colorToFrag;
-    
+    static const char * gFS_Header_Varying_texCoordToFrag;
+    static const char * gFS_Header_Sampler2D;
+
     static const char * gFS_Main_Start_Function;  //Body
     static const char * gFS_Function_Pass_Constant_Color;
     static const char * gFS_Function_Direct_Pass_Color;
+    static const char * gFS_Function_Direct_Sampler_texCoord;
     static const char * gFS_Main_End_Function;
 
     /* ========= Data Declare Area End, Note it's a global member ========= */
@@ -98,6 +110,8 @@ private:
     GLuint mUniVSscaleMat;
     GLuint mUniVStranslateMat;
     GLuint mAttrVSColorPass;
+    GLuint mAttrVSTexCoordPass;
+    GLuint mUniFSSampler;
 
 
     //Shader for fragment
@@ -115,12 +129,23 @@ private:
     bool hasScale;
     bool hasTranslation;
     bool hasLighting;
-    bool hasTextureMap;
+    bool hasTexture2D;
+    bool hasMipMap;
     bool hasFBO;
-    bool hasVBO;
 
     bool hasSimTriangle;
     bool hasCube;
+    bool hasCuebIWTO; /*Cube with index mode without VBO*/
+    bool hasCubeWTO;  /*Cube no index mode without VBO as well*/
+    bool hasCubeWithVBO;
+    /*Must combine used with haCubeWithVBO and hasColorDirectPass
+    *Reason: If we use VBO as data  source, so should use all of the data from
+    *the VBO buffer, include Vertex, Normal, Color, TexCoord...
+    *ColorDirectPassCombineVBO depends on some ColorDirectPass shader
+    *code and configuration.
+    */
+    bool hasColorDirectPassCombimeVBO;
+
     bool hasBlender;
 
     bool hasVAO;//OpenGL3.0 only
@@ -131,6 +156,7 @@ private:
 
     /* ------ Various buffer object Start------ */
     GLuint mVBOForVI[3];
+    GLuint mTexture[1];
     /* ===== Varous transform matrix   End ======*/
 
 
@@ -162,6 +188,7 @@ private:
     unsigned int mCounter;
     GLuint mOGLProgram;
     nsecs_t mOldTimeStamp;
+    SkBitmap mBitmap;
 
     //Each transformation specific
     unsigned int mRotationAngle;
@@ -176,6 +203,7 @@ private:
 
     //Used to setup basic rendering environment
     GLuint loadShader(GLenum shaderType, const char* pSource);
+    void loadTexture(int* width, int* height, void** pixelData);
     GLuint createProgram(const char* pVertexSource, const char* pFragmentSource);
     static void frameControl(int fd, int events, void* data);  //static for function callback
 

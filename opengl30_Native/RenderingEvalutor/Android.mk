@@ -15,7 +15,8 @@ LOCAL_SHARED_LIBRARIES := \
     libGLESv2 \
     libui \
     libgui \
-    libbinder
+    libbinder \
+    libskia
 
 LOCAL_MODULE:= RenderingEvalutor
 

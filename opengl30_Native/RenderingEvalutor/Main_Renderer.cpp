@@ -4,24 +4,11 @@
 *The implementation of GLES render.
 *Detailed see class header.
 *
-*/
-// TODO: add below operation in the shader
-/*
+* TODO: add below operation in the shader
 * =>1: Add error check for gl function
-* =>2: Add lighting
-* =>3: Add various buffer object to improve performance
-*          In OpenGLES 2.0 we have FBO, VBO
-*Cui.YY: The buffer means the buffer on the Chip but it's means in GPU buffer
-*on the OpenGL concept.Actually, it's depends on OpenGL driver design.
-*Whether desktop or embedded it's all have the embedded memory on
-*the GPU IP to store/load the data to improve/reduce performance/mem bandwitdh.
-*
-* =>4: Add texture mappting
-* =>5: Add color                                                                            -Done
-* =>6: Depth test, How to handle Z-Fighting
-*
-*
-*
+* =>2: Texturing
+* =>3: Fragment Shader / Operation
+* =>4: FBO/ Advanced Tech
 */
 
 #include <pthread.h>
@@ -29,10 +16,13 @@
 
 //#define LOG_ENABLE
 #ifdef LOG_ENABLE
-#define LOG(...) printf(__VA_ARGS__)  //FixMe;  What does VA_ARGS mean?
+#define LOG(...) printf(__VA_ARGS__)
 #else
 #define LOG(...)
 #endif
+
+#define error_print(ABC) printf("ERROR %s +%d:"ABC"\n", __func__, __LINE__) //FixMe; Use standard error output
+
 
 namespace android
 {
@@ -69,31 +59,37 @@ GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
 
 //Shader for vertex
 const char * gl2_basic_render::gVS_Header_Attribute_vertexPosition =
-    "attribute vec4 vertexPosition;\n";
+    "attribute vec4 a_vertexPosition;\n";
 const char * gl2_basic_render::gVS_Header_Uniform_rotationMatrix =
-    "uniform mat4 rotationMatrix;\n";
+    "uniform mat4 u_rotationMatrix;\n";
 const char * gl2_basic_render::gVS_Header_Uniform_scaleMatrix =
-    "uniform mat4 scaleMatrix;\n";
+    "uniform mat4 u_scaleMatrix;\n";
 const char * gl2_basic_render::gVS_Header_Uniform_translationMatrix =
-    "uniform mat4 translationMatrix;\n";
+    "uniform mat4 u_translationMatrix;\n";
 const char * gl2_basic_render::gVS_Header_Attribute_passColor =
-    "attribute vec4 passColor;\n";
+    "attribute vec4 a_passColor;\n";
+const char *gl2_basic_render::gVS_Header_Attribute_texCoord =
+    "attribute vec2 a_texCoord;\n";
 const char * gl2_basic_render::gVS_Header_Varying_colorToFrag =
-    "varying vec4 colorToFrag;\n";
+    "varying vec4 v_colorToFrag;\n";
+const char * gl2_basic_render::gVS_Header_Varying_texCoordToFrag =
+    "varying vec2 v_tcToFrag;\n";
 
 const char * gl2_basic_render::gVS_Main_Start_Function =
     "void main() {\n";
 
 const char * gl2_basic_render::gVS_Function_Direct_Pass_Position =
-    "   gl_Position = vertexPosition;\n";
+    "   gl_Position = a_vertexPosition;\n";
 const char * gl2_basic_render::gVS_Function_Pass_RO_Multi_Position =
-    "   gl_Position = gl_Position * rotationMatrix;\n";
+    "   gl_Position = gl_Position * u_rotationMatrix;\n";
 const char * gl2_basic_render::gVS_Function_Pass_SC_Multi_Position =
-    "   gl_Position = gl_Position * scaleMatrix;\n";
+    "   gl_Position = gl_Position * u_scaleMatrix;\n";
 const char * gl2_basic_render::gVS_Function_Pass_TR_Multi_Position =
-    "   gl_Position = gl_Position * translationMatrix;\n";
+    "   gl_Position = gl_Position * u_translationMatrix;\n";
 const char * gl2_basic_render::gVS_Function_Pass_Color_To_Frag =
-    "   colorToFrag = passColor;\n";
+    "   v_colorToFrag = a_passColor;\n";
+const char * gl2_basic_render::gVS_Function_Pass_texCoord_To_Frag =
+    "   v_tcToFrag = a_texCoord;\n";
 
 const char * gl2_basic_render::gVS_Main_End_Function =
     "}\n";
@@ -102,15 +98,21 @@ const char * gl2_basic_render::gVS_Main_End_Function =
 const char * gl2_basic_render::gFS_Header_Precision_Mediump_Float =
     "precision mediump float;\n";
 const char * gl2_basic_render::gFS_Header_Varying_colorToFrag =
-    "varying vec4 colorToFrag;\n";
+    "varying vec4 v_colorToFrag;\n";
+const char * gl2_basic_render::gFS_Header_Varying_texCoordToFrag =
+    "varying vec2 v_tcToFrag;\n";
+const char * gl2_basic_render::gFS_Header_Sampler2D =
+    "uniform sampler2D u_samplerTexture;\n";
 
 const char * gl2_basic_render::gFS_Main_Start_Function =
     "void main() {\n";
 
 const char * gl2_basic_render::gFS_Function_Pass_Constant_Color =
-    "  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n";
+    "  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n";
 const char * gl2_basic_render::gFS_Function_Direct_Pass_Color =
-    "  gl_FragColor = colorToFrag;\n";
+    "  gl_FragColor = v_colorToFrag;\n";
+const char * gl2_basic_render::gFS_Function_Direct_Sampler_texCoord =
+    "  gl_FragColor = texture2D( u_samplerTexture, v_tcToFrag );\n";
 
 const char * gl2_basic_render::gFS_Main_End_Function =
     "}\n";
@@ -126,15 +128,17 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
 
     /* advanced vertex operation */
     hasLighting = false;
-    hasTextureMap = false;
+    hasTexture2D = true;
+    hasMipMap = true;
     hasFBO = false;
-    hasVBO = true;
+    hasCubeWithVBO = false;
+    hasColorDirectPassCombimeVBO = false;
     hasVAO = false;
 
     /* fragment shader */
     hasPreciMidium = true;
     hasColorConstantPass = false;
-    hasColorDirectPass = true;
+    hasColorDirectPass = false;
 
     /* polygon setup */
     hasSimTriangle = false;
@@ -157,31 +161,35 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     printf("-Config Print-\n \
    \t hasColorConstantPass \t%d\n \
    \t hasColorDirectPass \t%d\n \
+   \t hasColorDirectPassCombimeVBO %d\n \
    \t hasPreciMidium \t%d\n  \
    \t hasRotation \t%d\n  \
    \t hasScale \t%d\n    \
    \t hasTranslation %d\n  \
    \t hasLighting \t%d\n   \
-   \t hasTextureMap \t%d\n  \
+   \t hasTexture2D \t%d\n  \
+   \t hasMipMap \t%d\n \
    \t hasFBO \t%d\n  \
-   \t hasVBO \t%d\n  \
    \t hasVAO \t%d\n \
    \t hasSimTriangle %d\n \
    \t hasCube\t%d\n \
+   \t hasCubeWithVBO\t%d\n \
    \t hasBlender\t%d\n",
            hasColorConstantPass,
            hasColorDirectPass,
+           hasColorDirectPassCombimeVBO,
            hasPreciMidium,
            hasRotation,
            hasScale,
            hasTranslation,
            hasLighting,
-           hasTextureMap,
+           hasTexture2D,
+           hasMipMap,
            hasFBO,
-           hasVBO,
            hasVAO,
            hasSimTriangle,
            hasCube,
+           hasCubeWithVBO,
            hasBlender);
 }
 
@@ -215,6 +223,74 @@ GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
         }
     return shader;
 }
+
+void gl2_basic_render::loadTexture(int* width, int* height, void** pixelData)
+{
+    /*
+    *M.png was the PNG32 format under the /data/ directory.
+    *Assume that we just support 8888 format for now
+    *SkBitmap::kARGB_8888_Config:
+    */
+    const char* fileName = "/data/M.png";
+    struct stat dest;
+    if(stat(fileName, &dest) < 0)
+        {
+            error_print("Get the texture file size failed!");
+            exit(-1);
+        }
+    unsigned int fileSize =  dest.st_size;
+    void * imagePixels = malloc(fileSize);
+    if(imagePixels == NULL)
+        {
+            error_print("imagePixels OOM!");
+            exit(-1);
+        }
+    FILE * file = NULL;
+    file = fopen("/data/M.png", "r");
+    if (file == NULL) printf("Open texture was faild!\n");
+
+    unsigned int haveReaded = fread(imagePixels, 1, fileSize, file);
+    if(fileSize == haveReaded) printf("Load %d bytes texture data was sucessful!\n", haveReaded);
+    fclose(file);
+
+    SkMemoryStream stream(imagePixels, fileSize);
+    SkImageDecoder* codec = SkImageDecoder::Factory(&stream);
+    codec->setDitherImage(false);
+    if(codec)
+        {
+            codec->decode(&stream, &mBitmap, SkBitmap::kARGB_8888_Config, SkImageDecoder::kDecodePixels_Mode);
+            delete codec;
+            codec = NULL;
+        }
+    else
+        {
+            printf("Create codec was faild!\n");
+        }
+
+    *width = mBitmap.width();
+    *height = mBitmap.height();
+    *pixelData= mBitmap.getPixels();
+    free(imagePixels);
+    int p2Width = 1 << (31 - __builtin_clz(*width));
+    int p2Height = 1 << (31 - __builtin_clz(*height));
+    if(p2Width != *width || p2Height != *height)
+        {
+            error_print("Non power of 2 size for Texture data!");
+            exit(-1);
+        }
+
+    /*
+    -Assume that the texture was the power of 2. Throwing error if it's not-
+        int p2Width = 1 << (31 - __builtin_clz(width));
+        int p2Height = 1 << (31 - __builtin_clz(height));
+        if(p2Width < width) p2Width = p2Width << 1;
+        if(p2Height < height) p2Height = p2Height << 1;
+
+        printf("Width %d, Height %d\n", width, height);
+        printf("P2_Width %d, P2_Height %d\n", p2Width, p2Height);
+        */
+}
+
 
 GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pFragmentSource)
 {
@@ -259,15 +335,17 @@ GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pF
 
 void gl2_basic_render::polygonShaderSetup()
 {
-    //Setup Vertext shader
+    //Setup Vertext shader header
     mVertexShader.append(gVS_Header_Attribute_vertexPosition);  //We always pass the vertex to the shader
     if(hasRotation) mVertexShader.append(gVS_Header_Uniform_rotationMatrix);
     if(hasScale) mVertexShader.append(gVS_Header_Uniform_scaleMatrix);
     if(hasTranslation) mVertexShader.append(gVS_Header_Uniform_translationMatrix);
     if(hasColorDirectPass) mVertexShader.append(gVS_Header_Attribute_passColor);
     if(hasColorDirectPass) mVertexShader.append(gVS_Header_Varying_colorToFrag);
+    if(hasTexture2D) mVertexShader.append(gVS_Header_Attribute_texCoord);
+    if(hasTexture2D) mVertexShader.append(gVS_Header_Varying_texCoordToFrag);
 
-
+    //Setup Vertex shader main body
     mVertexShader.append(gVS_Main_Start_Function);
 
     mVertexShader.append(gVS_Function_Direct_Pass_Position);
@@ -275,28 +353,36 @@ void gl2_basic_render::polygonShaderSetup()
     if(hasScale) mVertexShader.append(gVS_Function_Pass_SC_Multi_Position);
     if(hasTranslation) mVertexShader.append(gVS_Function_Pass_TR_Multi_Position);
     if(hasColorDirectPass) mVertexShader.append(gVS_Function_Pass_Color_To_Frag);
+    if(hasTexture2D) mVertexShader.append(gVS_Function_Pass_texCoord_To_Frag);
 
     mVertexShader.append(gVS_Main_End_Function);
-    printf("VertextShader; \n");
+    printf("\nVertextShader; \n");
     printf("%s\n", mVertexShader.string());
 
-    //Setup Fragment shader
+    //Setup Fragment shader header
     if(hasPreciMidium)mFramgmentShader.append(gFS_Header_Precision_Mediump_Float);
     if(hasColorDirectPass)mFramgmentShader.append(gFS_Header_Varying_colorToFrag);
+    if(hasTexture2D) mFramgmentShader.append(gFS_Header_Varying_texCoordToFrag);
+    if(hasTexture2D) mFramgmentShader.append(gFS_Header_Sampler2D);
 
+    //Setup Fragment shader main body
     mFramgmentShader.append(gFS_Main_Start_Function);
 
     if(hasColorConstantPass)mFramgmentShader.append(gFS_Function_Pass_Constant_Color);
     if(hasColorDirectPass)mFramgmentShader.append(gFS_Function_Direct_Pass_Color);
+    if(hasTexture2D) mFramgmentShader.append(gFS_Function_Direct_Sampler_texCoord);
 
     mFramgmentShader.append(gFS_Main_End_Function);
     printf("FragmentShader; \n");
     printf("%s\n", mFramgmentShader.string());
 
-    /* Do polygon vertex generation */
+    /* Do polygon vertex generation, Index mode by default
+    * TODO: add cube index mode and non index mode switch
+    */
     //generateCube(bool indexMode, float scale, float * * vertices, float * * normals, float * * texCoords, float * * colors, unsigned int * * indices)
-    if(hasCube)mCubeNumOfIndex = VertexGenerator::generateCube(true, 0.5, &mCubeVertices,
-                                     NULL, NULL, &mCubeColor, &mCubeIndices);
+    if(hasCube || hasCubeWithVBO)
+        mCubeNumOfIndex = VertexGenerator::generateCube(true, 0.5, &mCubeVertices,
+                          NULL, &mCubeTexCoord, &mCubeColor, &mCubeIndices);
 }
 
 bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
@@ -307,20 +393,18 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
             return false;
         }
     //Retrieve shader paramer information
-    mAttrVSPosition = glGetAttribLocation(mOGLProgram, "vertexPosition");
-
+    mAttrVSPosition = glGetAttribLocation(mOGLProgram, "a_vertexPosition");
     if(hasRotation)
-        mUniVSrotateMat = glGetUniformLocation(mOGLProgram, "rotationMatrix");
+        mUniVSrotateMat = glGetUniformLocation(mOGLProgram, "u_rotationMatrix");
     if(hasScale)
-        mUniVSscaleMat = glGetUniformLocation(mOGLProgram, "scaleMatrix");
+        mUniVSscaleMat = glGetUniformLocation(mOGLProgram, "u_scaleMatrix");
     if(hasTranslation)
-        mUniVStranslateMat = glGetUniformLocation(mOGLProgram, "translationMatrix");
+        mUniVStranslateMat = glGetUniformLocation(mOGLProgram, "u_translationMatrix");
     if(hasColorDirectPass)
-        mAttrVSColorPass = glGetAttribLocation(mOGLProgram, "passColor");
-
+        mAttrVSColorPass = glGetAttribLocation(mOGLProgram, "a_passColor");
 
     //Create various buffer object
-    if(hasCube && hasVBO)
+    if(hasCubeWithVBO)
         {
             glGenBuffers(3, mVBOForVI); //Note: This is just used for Index mode rendering
             //[0] for Vertex
@@ -331,13 +415,35 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
             //[1] for color
             glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[1]);
             glBufferData(GL_ARRAY_BUFFER, VertexGenerator::colorSizeByte(true),
-                mCubeColor, GL_STATIC_DRAW);
+                         mCubeColor, GL_STATIC_DRAW);
 
             //[2] for index
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBOForVI[2]);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, 500/*VertexGenerator::indexSizeByte()*/,
                          mCubeIndices, GL_STATIC_DRAW);
-           }
+        }
+    if(hasTexture2D)
+        {
+            int width = 0, height =0;
+            void* pixelData;
+            glGenTextures(1, mTexture);
+            glBindTexture(GL_TEXTURE_2D, mTexture[0]);
+            loadTexture( &width, &height, &pixelData);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            if(hasMipMap)
+                {
+                    glGenerateMipmap(GL_TEXTURE_2D);
+                }
+            mAttrVSTexCoordPass = glGetAttribLocation(mOGLProgram, "a_texCoord");  /*Texture coordination for VS */
+            mUniFSSampler = glGetUniformLocation(mOGLProgram, "u_samplerTexture"); /*Sampler unit for FS */
+            glActiveTexture(GL_TEXTURE0);                                   /* Enable Texutre sampler unit */
+            glBindTexture(GL_TEXTURE_2D, mTexture[0]);
+            glUniform1i(mUniFSSampler, 0);
+        }
 
     glViewport(0, 0, w, h);
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
@@ -361,19 +467,17 @@ void gl2_basic_render::polygonDraw()
 
     /* polygon vertex data */
     if(hasSimTriangle)glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
-    if(hasCube && hasVBO)
+    if(hasCubeWithVBO)
         {
             glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[0]);
             glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, 0);
             glEnableVertexAttribArray(mAttrVSPosition);
         }
-    else if(hasCube)
+    if(hasCube)
         {
             glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, mCubeVertices);
             glEnableVertexAttribArray(mAttrVSPosition);
         }
-    //    glEnableVertexAttribArray(mAttrVSPosition);  //FixMe; Maybe Change?
-
     /* do transformantion */
     if(hasRotation)
         {
@@ -428,30 +532,49 @@ void gl2_basic_render::polygonDraw()
             glUniformMatrix4fv(mUniVStranslateMat, 1, GL_FALSE, (GLfloat * )mTranslateMatrix.m);
         }
     /* Color and Light */
-    if(hasColorDirectPass && hasVBO)
+
+    /*
+    *hasColorDirectPass can use as standalone, but if want to use VBO version, should alwasy mark has-
+    ColorDirectPassCombineVBO as true. Not allow only hasColorDirectPassCombineVBO condition as true.
+    */
+    if(hasColorDirectPassCombimeVBO && !hasColorDirectPass)
+        {
+            error_print("Wrong configucation, Not allow!");
+            exit(-1);
+        }
+    if(hasColorDirectPassCombimeVBO && hasColorDirectPass)  //Here, we depend on DirectPass shader ability
         {
             glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[1]);
             glVertexAttribPointer(mAttrVSColorPass, 4, GL_FLOAT, GL_FALSE, 0, 0);
             glEnableVertexAttribArray(mAttrVSColorPass);
 
         }
-    else if (hasColorDirectPass)
+    if (!hasColorDirectPassCombimeVBO && hasColorDirectPass)
         {
             glVertexAttribPointer(mAttrVSColorPass, 4, GL_FLOAT, GL_FALSE, 0, mCubeColor);
             glEnableVertexAttribArray(mAttrVSColorPass);
         }
 
+    if(hasTexture2D)
+        {
+            glVertexAttribPointer(mAttrVSTexCoordPass, 2, GL_FLOAT, GL_FALSE, 0, mCubeTexCoord); /* Enable Texture coordination */
+            glEnableVertexAttribArray(mAttrVSTexCoordPass);
+        }
+
     /* Let's cook */
     if(hasSimTriangle)glDrawArrays(GL_TRIANGLES, 0, 3);
-    if(hasCube && hasVBO)
+    if(hasCubeWithVBO)
         glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, 0);
-    else if(hasCube)
-        glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices); //Index mode
-    //if(hasCube)glDrawArrays(GL_TRIANGLES, 0, 36);  //No index mode
+    if(hasCube)
+        glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
+
+    /*Swap something*/
     eglSwapBuffers(mEGLDisplay, mEGLSurface);
 }
+/*if(hasCube)glDrawArrays(GL_TRIANGLES, 0, 36);  //No index mode*/
 
 /*
+
 *   Note: This is Static member function
 */
 void gl2_basic_render::frameControl(int fd, int events, void* data)

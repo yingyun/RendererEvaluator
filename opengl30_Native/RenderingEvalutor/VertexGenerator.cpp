@@ -336,7 +336,6 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
     return NUM_INDICES;
 }
 
-
 void VertexGenerator::releaseCube(float **vertices, float **normals,
                                   float **texCoords, float **colors, unsigned int **indices)
 {
@@ -367,8 +366,6 @@ void VertexGenerator::releaseCube(float **vertices, float **normals,
         }
 }
 
-
-
 unsigned int VertexGenerator::vertexSizeByte(bool indexMode)
 {
     unsigned int num = 0;
@@ -376,6 +373,7 @@ unsigned int VertexGenerator::vertexSizeByte(bool indexMode)
     else num = NUM_INDICES;
     return sizeof(float) * 3 * num;
 }
+
 unsigned int VertexGenerator::colorSizeByte(bool indexMode)
 {
     unsigned int num = 0;
@@ -384,6 +382,7 @@ unsigned int VertexGenerator::colorSizeByte(bool indexMode)
     return sizeof(float) * 4 * num;
 
 }
+
 unsigned int VertexGenerator::texcoordSizeByte(bool indexMode)
 {
     unsigned int num = 0;
@@ -392,6 +391,7 @@ unsigned int VertexGenerator::texcoordSizeByte(bool indexMode)
     return sizeof(float) * 2 * num;
 
 }
+
 unsigned int VertexGenerator::normalSizeByte(bool indexMode)
 {
     unsigned int num = 0;
@@ -400,6 +400,7 @@ unsigned int VertexGenerator::normalSizeByte(bool indexMode)
     return sizeof(float) * 3 * num;
 
 }
+
 unsigned int VertexGenerator::indexSizeByte()
 {
     return sizeof(unsigned int) * 1 * NUM_INDICES;
