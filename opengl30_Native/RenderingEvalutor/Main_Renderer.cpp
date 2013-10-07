@@ -447,6 +447,11 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     //Culling should always be enabled to improve the perf of OpenGL, Culling back and CCW was defualt config
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+    
+    /*
+    *MSAA enabled by default
+    *glEnable(GL_MULTISAMPLE);
+    */
 
     glUseProgram(mOGLProgram);
     return true;
