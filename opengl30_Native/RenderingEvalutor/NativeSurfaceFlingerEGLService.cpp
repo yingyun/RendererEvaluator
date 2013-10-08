@@ -68,7 +68,6 @@ bool NativeSurfaceFlingerEGLService::startService()
             SurfaceComposerClient::closeGlobalTransaction();
             mSurface[a] = mSurfaceControl[a]->getSurface();
             printf("NSFES: Surface-%d, w:%d, h:%d, ZOrder:0x%x \n", a, ww[a], hh[a], DEFAULT_ZORDER + SIZE_PAD*a);
-
         }
     mSurfaceComposerClient = composerClient;
     return true;
