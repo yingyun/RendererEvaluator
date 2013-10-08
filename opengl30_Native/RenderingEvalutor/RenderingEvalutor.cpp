@@ -80,7 +80,7 @@ int main(int argc, char** argv)
             usage();
             return 0;
         }
-
+    //TODO: Create buffer as requested!
     sp<NativeSurfaceFlingerEGLService> surface = new NativeSurfaceFlingerEGLService();
     surface->startService();//Create EGL surface
 

@@ -11,7 +11,6 @@
 * =>4: FBO/ Advanced Tech
 */
 
-#include <pthread.h>
 #include "Main_Renderer.h"
 //#define LOG_ENABLE
 #ifdef LOG_ENABLE
@@ -19,14 +18,16 @@
 #else
 #define LOG(...)
 #endif
-#define error_print(ABC) printf("ERROR %s +%d:"ABC"\n", __func__, __LINE__) //FixMe; Use standard error output
+#define error_print(ABC) fprintf(stderr, "ERROR %s +%d:"ABC"\n", __func__, __LINE__) //FixMe; Use standard error output
+#define PHY_SCREEN_WIDTH 1080
+#define PHY_SCREEN_HIGHT 1800
 
 namespace android
 {
 /* ---------- Data Definition Area Start ---------- */
 GLclampf gl2_basic_render::gColorMatrix[6][4] =
 {
-    {0.0, 0.0, 0.0, 0.0},       //Black
+    {0.2, 0.6, 0.4, 1.0},       //DeepGreen
     {1.0, 0.0, 0.0, 1.0},	//Red
     {0.0, 1.0, 0.0, 1.0},	//Green
     {1.0, 1.0, 0.0, 1.0},	//Yellow
@@ -225,7 +226,7 @@ void gl2_basic_render::loadTexture(int* width, int* height, void** pixelData)
 {
     /*
     *M.png was the PNG32 format under the /data/ directory.
-    *Assume that we just support 8888 format for now
+    *Assume that we just support 8888 format for now and must be an NonOfPower size.
     *SkBitmap::kARGB_8888_Config:
     */
     const char* fileName = "/data/M.png";
@@ -268,7 +269,6 @@ void gl2_basic_render::loadTexture(int* width, int* height, void** pixelData)
     int p2Width = 1 << (31 - __builtin_clz(*width));
     int p2Height = 1 << (31 - __builtin_clz(*height));
     printf("   Texture dimension: width %d, height %d\n", *width, *height);
-    
     if(p2Width != *width || p2Height != *height)
         {
             error_print("Non power of 2 size for Texture data!");
@@ -437,7 +437,29 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
             glBindTexture(GL_TEXTURE_2D, mTexture[0]);
             glUniform1i(mUniFSSampler, 0);
         }
-    glViewport(0, 0, w, h);
+
+    /*
+    *Cui. YY 20131008:W=window width, H=window height by default
+    *As the NDC->WC formular, if w, h doesn't match as the same value in here,
+    *It will be generate the stretch gemotry
+    *
+    *Ox = (x + w)/2
+    *Oy = (y + h)/2
+    *
+    *Xw = (w/2)Xd + Ox
+    *Yw = (h/2)Yd + Oy
+    *Zw = ((f-n)/2)Zd + (n + f)/2
+    *
+    *In order to keep geometry on the centre, keep the view post dimension as the same.
+    *Note that the origin in view post was that left-botton based on each specific EGL surface.
+    */
+    glViewport(0, (h-w)/2, w, w);
+    //glViewport(0, 0, 120, 120);   // Just for fun
+    /*
+    *N=0.0, F=1.0 by default
+    *If set this as (0, 0), as the formulal there is no Z value will be considered while rasterization.
+    */
+    glDepthRangef(0, 1);
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
                  gColorMatrix[mIndex][2], gColorMatrix[mIndex][3]);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -562,7 +584,6 @@ void gl2_basic_render::polygonDraw()
 /*if(hasCube)glDrawArrays(GL_TRIANGLES, 0, 36);  //No index mode*/
 
 /*
-
 *   Note: This is Static member function
 */
 void gl2_basic_render::frameControl(int fd, int events, void* data)
