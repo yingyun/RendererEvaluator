@@ -7,7 +7,7 @@
 * TODO: add below operation in the shader
 * =>1: Add error check for gl function
 * =>2: Texturing    -Done
-* =>3: Fragment Shader / Operation
+* =>3: Fragment Shader / Operation    -Almost Done
 * =>4: FBO/ Advanced Tech
 */
 
@@ -141,7 +141,13 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     /* polygon setup */
     hasSimTriangle = false;
     hasCube = true;
-    hasBlender = false;
+    hasBlenderObjectModel = false;
+    hasScissor = false;
+    hasStencilOpe = false;
+    hasDepthTest = false;
+    hasBlendingOpe = false;
+    hasDithering = false;
+    hasMSAA = false;
 
     /* transformation specific */
     mRotationAngle = 0;
@@ -172,7 +178,13 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
    \t hasSimTriangle %d\n \
    \t hasCube\t%d\n \
    \t hasCubeWithVBO\t%d\n \
-   \t hasBlender\t%d\n",
+   \t hasBlenderObjectModel\t%d\n  \
+   \t hasScissor\t%d\n  \
+   \t hasStencilOpe\t%d\n  \
+   \t hasDepthTest\t%d\n  \
+   \t hasMSAA\t%d\n  \
+   \t hasBlendingOpe\t%d\n  \
+   \t hasDithering\t%d\n",
            hasColorConstantPass,
            hasColorDirectPass,
            hasColorDirectPassCombimeVBO,
@@ -188,7 +200,13 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
            hasSimTriangle,
            hasCube,
            hasCubeWithVBO,
-           hasBlender);
+           hasBlenderObjectModel,
+           hasScissor,
+           hasStencilOpe,
+           hasDepthTest,
+           hasMSAA,
+           hasBlendingOpe,
+           hasDithering);
 }
 
 GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
@@ -218,6 +236,10 @@ GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
                             shader = 0;
                         }
                 }
+        }
+    else
+        {
+            error_print("Create shader error!\n");
         }
     return shader;
 }
@@ -469,7 +491,7 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     //Culling should always be enabled to improve the perf of OpenGL, Culling back and CCW was defualt config
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
-    
+
     /*
     *MSAA enabled by default
     *glEnable(GL_MULTISAMPLE);

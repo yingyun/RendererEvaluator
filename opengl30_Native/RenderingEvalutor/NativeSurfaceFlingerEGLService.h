@@ -68,7 +68,7 @@ class NativeSurfaceFlingerEGLService:public IBinder::DeathRecipient
 {
 public:
     NativeSurfaceFlingerEGLService();
-    bool startService();
+    bool startService(unsigned int numOfSurface);
     void threadPool();
     bool stopService();
     //Derived frome DeathRecipient pure virtual class

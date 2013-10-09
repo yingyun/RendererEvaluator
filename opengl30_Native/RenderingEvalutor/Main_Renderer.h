@@ -145,10 +145,15 @@ private:
     *code and configuration.
     */
     bool hasColorDirectPassCombimeVBO;
-
-    bool hasBlender;
-
+    bool hasBlenderObjectModel;
     bool hasVAO;//OpenGL3.0 only
+    bool hasScissor;
+    bool hasStencilOpe;
+    bool hasDepthTest;
+    bool hasMSAA;
+    bool hasBlendingOpe;
+    bool hasDithering;
+
 
     /*====== Rendering options End, Not it's a class object property====== */
 

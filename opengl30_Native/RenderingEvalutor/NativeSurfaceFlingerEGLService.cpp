@@ -22,10 +22,14 @@ NativeSurfaceFlingerEGLService::NativeSurfaceFlingerEGLService()
 {
 }
 
-bool NativeSurfaceFlingerEGLService::startService()
+bool NativeSurfaceFlingerEGLService::startService(unsigned int numOfSurface)
 {
     printf("Strat Native SurfaceFlinger EGL Service!\n");
-
+    if(!( (1<=numOfSurface) && (numOfSurface<=NUMOFSURFACE)))
+        {
+            printf("Can't support out of range of 1 <= num of surfaces <= 6!\n");
+            return false;
+        }
     //Create Binder connection
     sp<ProcessState> proc(ProcessState::self());
     ProcessState::self()->startThreadPool();
@@ -56,7 +60,7 @@ bool NativeSurfaceFlingerEGLService::startService()
     unsigned int ww[NUMOFSURFACE];
     unsigned int hh[NUMOFSURFACE];
 
-    for(unsigned int a =0; a < NUMOFSURFACE; a++)
+    for(unsigned int a =0; a < numOfSurface; a++)
         {
             ww[a] = dinfo.w - SIZE_PAD*a;
             hh[a] = dinfo.h - SIZE_PAD*a;
