@@ -147,7 +147,7 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     hasDepthTest = false;
     hasBlendingOpe = false;
     hasDithering = false;
-    hasMSAA = false;
+    hasMSAA = true;
 
     /* transformation specific */
     mRotationAngle = 0;
@@ -492,10 +492,12 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    /*
-    *MSAA enabled by default
-    *glEnable(GL_MULTISAMPLE);
-    */
+   /*
+   *if(hasMSAA) glEnable(GL_MULTISAMPLE);
+   *
+   *MSAA was enabled by default in ES version of OpenGL
+   *
+   */
 
     glUseProgram(mOGLProgram);
     return true;
@@ -660,10 +662,17 @@ void* gl2_basic_render::mainRender(void* thisthis)
     EGLConfig myConfig = {0};
     EGLint numConfigs;
     EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
+    /*
+    *Cui.YY 20131013; Decide to go to the Shanghai :-)
+    *More detailed refer below link
+    *http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglChooseConfig.html
+    */
     EGLint s_configAttribs[] =
     {
         EGL_SURFACE_TYPE,        EGL_WINDOW_BIT,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+        EGL_SAMPLE_BUFFERS, 1, //Enable MSAA
+        EGL_SAMPLES, 4,                //MSAA X4
         EGL_NONE
     };
     EGLint majorVersion;
