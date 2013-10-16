@@ -211,6 +211,7 @@ private:
     void loadTexture(int* width, int* height, void** pixelData);
     GLuint createProgram(const char* pVertexSource, const char* pFragmentSource);
     static void frameControl(int fd, int events, void* data);  //static for function callback
+    void printOpenGLDriverInformation();
 
 };
 

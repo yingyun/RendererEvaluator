@@ -18,7 +18,7 @@
 #else
 #define LOG(...)
 #endif
-#define error_print(ABC) fprintf(stderr, "ERROR %s +%d:"ABC"\n", __func__, __LINE__) //FixMe; Use standard error output
+#define error_print(ABC) fprintf(stderr, "ERROR %s +%d:"ABC"\n", __func__, __LINE__)
 #define PHY_SCREEN_WIDTH 1080
 #define PHY_SCREEN_HIGHT 1800
 
@@ -207,6 +207,53 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
            hasMSAA,
            hasBlendingOpe,
            hasDithering);
+}
+
+void gl2_basic_render::printOpenGLDriverInformation()
+{
+    /*
+    * glGetString was used to get the implementation basic information
+    */
+    char* vender = (char*)glGetString(GL_VENDOR);
+    char* version =(char*)glGetString(GL_VERSION);
+    char* glrenderer =(char*)glGetString(GL_RENDERER);
+    char* glsl_version =(char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+    char* extensions =(char*)glGetString(GL_EXTENSIONS);
+    printf("OpenGL Vender: %s\n", vender);
+    printf("Version: %s\n", version);
+    printf("Renderer: %s\n", glrenderer);
+    printf("%s\n", glsl_version);
+    printf("%s\n", extensions);
+
+    int integer4[4] = {0, 0, 0 , 0};
+    float float4[4] = {0.0, 0.0, 0.0, 0.0};
+    bool bool4[4] = {0, 0, 0, 0};
+    glGetIntegerv(GL_VIEWPORT, integer4);
+    printf("ViewPort: %d, %d, %d, %d\n", integer4[0], integer4[1], integer4[2], integer4[3]);
+    glGetIntegerv(GL_MAX_VIEWPORT_DIMS, integer4);
+    printf("Max ViewPort: %d, %d, %d, %d\n", integer4[0], integer4[1], integer4[2], integer4[3]);
+    glGetFloatv(GL_DEPTH_RANGE, float4);
+    printf("Depth Range: (%f - %f)\n", float4[0], float4[1]);
+
+    /*
+    *CullFaceMode
+    *#define GL_FRONT                                      0x0404
+    *#define GL_BACK                                        0x0405
+    *#define GL_FRONT_AND_BACK                 0x0408
+    */
+    glGetIntegerv(GL_CULL_FACE_MODE, integer4);
+    printf("Cull face mode 0x%x\n", integer4[0]); 
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, integer4);
+    printf("Max texture size: %d\n", integer4[0]);
+    glGetIntegerv(GL_RED_BITS, integer4);                       printf("Red_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_GREEN_BITS, integer4);                  printf("Green_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_BLUE_BITS, integer4);                     printf("Blue_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_ALPHA_BITS, integer4);                  printf("Alpha_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_DEPTH_BITS, integer4);                  printf("Depth_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_DEPTH_BUFFER_BIT, integer4);     printf("Depthbuffer_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_STENCIL_BITS, integer4);               printf("Stencil_Bits:%d \n", integer4[0]);
+
+    
 }
 
 GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
@@ -492,12 +539,12 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-   /*
-   *if(hasMSAA) glEnable(GL_MULTISAMPLE);
-   *
-   *MSAA was enabled by default in ES version of OpenGL
-   *
-   */
+    /*
+    *if(hasMSAA) glEnable(GL_MULTISAMPLE);
+    *
+    *MSAA was enabled by default in ES version of OpenGL
+    *
+    */
 
     glUseProgram(mOGLProgram);
     return true;
@@ -701,6 +748,7 @@ void* gl2_basic_render::mainRender(void* thisthis)
             fprintf(stderr, "Could not set up graphics.\n");
             return (void *)0;
         }
+    thisObject->printOpenGLDriverInformation();
     thisObject->mLoop = new Looper(false);
     thisObject->mLoop->addFd(thisObject->mDisplayEventReceiver.getFd(), 0, ALOOPER_EVENT_INPUT,
                              (ALooper_callbackFunc)gl2_basic_render::frameControl, thisObject);
