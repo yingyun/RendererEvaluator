@@ -74,7 +74,7 @@ private:
     static const char * gVS_Header_Uniform_scaleMatrix;
     static const char * gVS_Header_Uniform_translationMatrix;
     static const char * gVS_Header_Attribute_passColor;
-    static const char *  gVS_Header_Attribute_texCoord;
+    static const char * gVS_Header_Attribute_texCoord;
     static const char * gVS_Header_Varying_colorToFrag;
     static const char * gVS_Header_Varying_texCoordToFrag;
 
@@ -85,6 +85,7 @@ private:
     static const char * gVS_Function_Pass_TR_Multi_Position;
     static const char * gVS_Function_Pass_Color_To_Frag;
     static const char * gVS_Function_Pass_texCoord_To_Frag;
+    static const char * gVS_Function_Gaussian_Blur;
     static const char * gVS_Main_End_Function;
 
     //Shader for fragment
@@ -97,6 +98,7 @@ private:
     static const char * gFS_Function_Pass_Constant_Color;
     static const char * gFS_Function_Direct_Pass_Color;
     static const char * gFS_Function_Direct_Sampler_texCoord;
+    static const char * gFS_Function_Gaussian_Blur;
     static const char * gFS_Main_End_Function;
 
     /* ========= Data Declare Area End, Note it's a global member ========= */
@@ -153,6 +155,7 @@ private:
     bool hasMSAA;
     bool hasBlendingOpe;
     bool hasDithering;
+    bool hasGaussianBlur;
 
 
     /*====== Rendering options End, Not it's a class object property====== */
