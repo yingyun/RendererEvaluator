@@ -64,8 +64,9 @@ bool NativeSurfaceFlingerEGLService::startService(unsigned int numOfSurface)
         {
             ww[a] = dinfo.w - SIZE_PAD*a;
             hh[a] = dinfo.h - SIZE_PAD*a;
+            /*Read format was determined by EGL Context Create*/
             mSurfaceControl[a] = composerClient->createSurface(String8::format("Surface-%d", a),
-                                 ww[a], hh[a], PIXEL_FORMAT_RGBA_8888/*PIXEL_FORMAT_RGB_565*/, eFXSurfaceNormal);
+                                 ww[a], hh[a], PIXEL_FORMAT_RGBA_8888, eFXSurfaceNormal);
             SurfaceComposerClient::openGlobalTransaction();
             mSurfaceControl[a]->setLayer(DEFAULT_ZORDER + SIZE_PAD*a);
             mSurfaceControl[a]->setPosition(POSITION_PAD * a, POSITION_PAD*a);
