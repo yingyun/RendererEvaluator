@@ -158,12 +158,12 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     hasCube = true;
     hasBlenderObjectModel = false;
     hasScissor = false;
-    hasStencilOpe = false;
-    hasDepthTest = false;
+    hasStencilOpe = true;
+    hasDepthTest = true;
     hasBlendingOpe = false;
-    hasDithering = false;
     hasMSAA = true;
-    hasGaussianBlur = true;
+    hasGaussianBlur = false;
+    hasCullFace = true;
 
     /* transformation specific */
     mRotationAngle = 0;
@@ -200,8 +200,8 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
    \t hasDepthTest\t%d\n  \
    \t hasMSAA\t%d\n  \
    \t hasBlendingOpe\t%d\n  \
-   \t hasGaussianBlur\t%d\n  \
-   \t hasDithering\t%d\n",
+   \t hasGaussianBlur\t%d\n   \
+   \t hasCullFace\t%d\n",
            hasColorConstantPass,
            hasColorDirectPass,
            hasColorDirectPassCombimeVBO,
@@ -224,7 +224,8 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
            hasMSAA,
            hasBlendingOpe,
            hasGaussianBlur,
-           hasDithering);
+           hasCullFace
+          );
 }
 
 void gl2_basic_render::printOpenGLDriverInformation()
@@ -241,11 +242,12 @@ void gl2_basic_render::printOpenGLDriverInformation()
     printf("Version: %s\n", version);
     printf("Renderer: %s\n", glrenderer);
     printf("%s\n", glsl_version);
-    printf("%s\n", extensions);
+    //printf("%s\n", extensions);
 
     int integer4[4] = {0, 0, 0 , 0};
     float float4[4] = {0.0, 0.0, 0.0, 0.0};
     bool bool4[4] = {0, 0, 0, 0};
+    printf("-----Current EGL Configuration-----\n");
     glGetIntegerv(GL_VIEWPORT, integer4);
     printf("ViewPort: %d, %d, %d, %d\n", integer4[0], integer4[1], integer4[2], integer4[3]);
     glGetIntegerv(GL_MAX_VIEWPORT_DIMS, integer4);
@@ -263,13 +265,89 @@ void gl2_basic_render::printOpenGLDriverInformation()
     printf("Cull face mode 0x%x\n", integer4[0]);
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, integer4);
     printf("Max texture size: %d\n", integer4[0]);
-    glGetIntegerv(GL_RED_BITS, integer4);                       printf("Red_Bits:%d   ", integer4[0]);
-    glGetIntegerv(GL_GREEN_BITS, integer4);                  printf("Green_Bits:%d   ", integer4[0]);
-    glGetIntegerv(GL_BLUE_BITS, integer4);                     printf("Blue_Bits:%d   ", integer4[0]);
-    glGetIntegerv(GL_ALPHA_BITS, integer4);                  printf("Alpha_Bits:%d   ", integer4[0]);
-    glGetIntegerv(GL_DEPTH_BITS, integer4);                  printf("Depth_Bits:%d   ", integer4[0]);
-    glGetIntegerv(GL_DEPTH_BUFFER_BIT, integer4);     printf("Depthbuffer_Bits:%d   ", integer4[0]);
-    glGetIntegerv(GL_STENCIL_BITS, integer4);               printf("Stencil_Bits:%d \n", integer4[0]);
+    glGetIntegerv(GL_RED_BITS, integer4);
+    printf("Red_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_GREEN_BITS, integer4);
+    printf("Green_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_BLUE_BITS, integer4);
+    printf("Blue_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_ALPHA_BITS, integer4);
+    printf("Alpha_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_DEPTH_BITS, integer4);
+    printf("Depth_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_DEPTH_BUFFER_BIT, integer4);
+    printf("Depthbuffer_Bits:%d   ", integer4[0]);
+    glGetIntegerv(GL_STENCIL_BITS, integer4);
+    printf("Stencil_Bits:%d \n", integer4[0]);
+
+    EGLint numOfConfigs = -1;
+    eglGetConfigs(mEGLDisplay, NULL, 0, &numOfConfigs);
+    printf("-----Number of EGL configs :%d-----\n", numOfConfigs);
+    EGLConfig* configData = new EGLConfig[numOfConfigs];
+    eglGetConfigs(mEGLDisplay, configData, numOfConfigs, &numOfConfigs);
+    for(int i = 0; i < numOfConfigs; i++)
+        {
+            //printEGLConfigInformation(configData[i]);
+        }
+
+}
+
+void gl2_basic_render::printEGLConfigInformation(EGLConfig config)
+{
+#define X(VAL) {VAL, #VAL}
+    struct
+    {
+        EGLint attribute;
+        const char* name;
+    } names[] =
+    {
+        X(EGL_BUFFER_SIZE),
+        X(EGL_RED_SIZE),
+        X(EGL_GREEN_SIZE),
+        X(EGL_BLUE_SIZE),
+        X(EGL_ALPHA_SIZE),
+        X(EGL_DEPTH_SIZE),
+        X(EGL_STENCIL_SIZE),
+        X(EGL_SAMPLES),
+        X(EGL_SAMPLE_BUFFERS),
+        X(EGL_SURFACE_TYPE),
+        X(EGL_COLOR_BUFFER_TYPE),
+        X(EGL_RENDERABLE_TYPE),
+        X(EGL_CONFIG_CAVEAT),
+        X(EGL_CONFIG_ID),
+        X(EGL_LEVEL),
+        X(EGL_MAX_PBUFFER_HEIGHT),
+        X(EGL_MAX_PBUFFER_PIXELS),
+        X(EGL_MAX_PBUFFER_WIDTH),
+        X(EGL_NATIVE_RENDERABLE),
+        X(EGL_NATIVE_VISUAL_ID),
+        X(EGL_NATIVE_VISUAL_TYPE),
+        X(EGL_TRANSPARENT_TYPE),
+        X(EGL_TRANSPARENT_RED_VALUE),
+        X(EGL_TRANSPARENT_GREEN_VALUE),
+        X(EGL_TRANSPARENT_BLUE_VALUE),
+        X(EGL_BIND_TO_TEXTURE_RGB),
+        X(EGL_BIND_TO_TEXTURE_RGBA),
+        X(EGL_MIN_SWAP_INTERVAL),
+        X(EGL_MAX_SWAP_INTERVAL),
+        X(EGL_LUMINANCE_SIZE),
+        X(EGL_ALPHA_MASK_SIZE),
+        X(EGL_CONFORMANT)
+    };
+#undef X
+    printf("-----Configuration we have choosed!-----\n");
+    for (size_t j = 0; j < sizeof(names) / sizeof(names[0]); j++)
+        {
+            EGLint value = -1;
+            EGLint returnVal = eglGetConfigAttrib(mEGLDisplay, config, names[j].attribute, &value);
+            EGLint error = eglGetError();
+            if (returnVal && error == EGL_SUCCESS)
+                {
+                    printf(" %s: ", names[j].name);
+                    printf("%d (0x%x)\n", value, value);
+                }
+        }
+    printf("\n");
 }
 
 GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
@@ -522,7 +600,6 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
             glBindTexture(GL_TEXTURE_2D, mTexture[0]);
             glUniform1i(mUniFSSampler, 0);
         }
-
     /*
     *Cui. YY 20131008:W=window width, H=window height by default
     *As the NDC->WC formular, if w, h doesn't match as the same value in here,
@@ -535,32 +612,55 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     *Yw = (h/2)Yd + Oy
     *Zw = ((f-n)/2)Zd + (n + f)/2
     *
+    *N=0.0, F=1.0 by default
+    *If set this as (0, 0), as the formulal there is no Z value will be considered while rasterization.
     *In order to keep geometry on the centre, keep the view post dimension as the same.
     *Note that the origin in view post was that left-botton based on each specific EGL surface.
     */
+
+    /* ViewPort Setting */
     glViewport(0, (h-w)/2, w, w);
-    //glViewport(0, 0, 120, 120);   // Just for fun
-    /*
-    *N=0.0, F=1.0 by default
-    *If set this as (0, 0), as the formulal there is no Z value will be considered while rasterization.
-    */
     glDepthRangef(0, 1);
+
+    /* Buffer Clear */
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
                  gColorMatrix[mIndex][2], gColorMatrix[mIndex][3]);
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    glClearDepthf(0);
+    glClearStencil(0);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    //Culling should always be enabled to improve the perf of OpenGL, Culling back and CCW was defualt config
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    /* Scissor Test */
+    if(hasScissor)
+        {
+            glScissor(0, (h-w)/2, w, w/2);
+            glEnable(GL_SCISSOR_TEST);
+        }
 
-    /*
-    *if(hasMSAA) glEnable(GL_MULTISAMPLE);
-    *
-    *MSAA was enabled by default in ES version of OpenGL
-    *
-    */
+    /* Cull Face Test Culling should always be enabled to improve the perf of OpenGL, Culling back and CCW was defualt config */
+    if(hasCullFace)
+        {
+            glCullFace(GL_BACK);
+            glFrontFace(GL_CCW);
+            glEnable(GL_CULL_FACE);
+        }
+    /* Stencil Test */
+    if(hasStencilOpe)
+        {
+            glStencilMask(0xFF);
+            glEnable(GL_STENCIL_TEST);
+        }
+    /* Depth Test */
+    if(hasDepthTest)
+        {
+        }
+    /* Blending Test */
+    if(hasBlendingOpe)
+        {
+        }
+    /* Dithering Test */
+    if(hasMSAA)
+        {
+        }
 
     glUseProgram(mOGLProgram);
     return true;
@@ -636,6 +736,12 @@ void gl2_basic_render::polygonDraw()
             MatrixTransform::matrixDump(&mTranslateMatrix, "mTranslateMatrix");
             glUniformMatrix4fv(mUniVStranslateMat, 1, GL_FALSE, (GLfloat * )mTranslateMatrix.m);
         }
+    if(hasStencilOpe)  /* Stencil Test */
+        {
+            glStencilFunc(GL_EQUAL, 0, 0x7);
+            glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+            glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
+        }
     /* Color and Light */
 
     /*
@@ -665,11 +771,25 @@ void gl2_basic_render::polygonDraw()
             glEnableVertexAttribArray(mAttrVSTexCoordPass);
         }
     /* Let's cook */
-    if(hasSimTriangle)glDrawArrays(GL_TRIANGLES, 0, 3);
+    if(hasSimTriangle)
+        {
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
     if(hasCubeWithVBO)
-        glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, 0);
+        {
+             glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, 0);
+        }
     if(hasCube)
-        glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
+        {
+            /* Stencil Test */
+            if(hasStencilOpe)
+                {
+                    glStencilFunc(GL_EQUAL, 1, 0x7);
+                    glStencilOp(GL_KEEP, GL_DECR, GL_DECR);
+                }
+            glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
+        }
+
     /*Swap something*/
     eglSwapBuffers(mEGLDisplay, mEGLSurface);
 }
@@ -723,7 +843,7 @@ void* gl2_basic_render::mainRender(void* thisthis)
     printf("TID:%d Create render\n", gettid());
     EGLBoolean returnValue;
     EGLConfig myConfig = {0};
-    EGLint numConfigs;
+    EGLint numConfigs = 0;
     EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
     /*
     *Cui.YY 20131013; Decide to go to the Shanghai :-)
@@ -737,8 +857,8 @@ void* gl2_basic_render::mainRender(void* thisthis)
         EGL_RED_SIZE,                   8,
         EGL_GREEN_SIZE,               8,
         EGL_BLUE_SIZE,                  8,
-        EGL_ALPHA_SIZE,               8,
-        EGL_DEPTH_SIZE,               8,
+        EGL_ALPHA_SIZE,               0,
+        EGL_DEPTH_SIZE,               24,
         EGL_STENCIL_SIZE,            8,
         EGL_SAMPLE_BUFFERS, 1, //Enable MSAA
         EGL_SAMPLES, 4,                //MSAA X4
@@ -751,6 +871,8 @@ void* gl2_basic_render::mainRender(void* thisthis)
     thisObject->mEGLDisplay= eglGetDisplay(EGL_DEFAULT_DISPLAY);
     returnValue = eglInitialize(thisObject->mEGLDisplay, &majorVersion, &minorVersion);
     eglChooseConfig(thisObject->mEGLDisplay, s_configAttribs, &myConfig, 1, &numConfigs);
+    printf("---We match %d number config(s)-----\n", numConfigs);
+    thisObject->printEGLConfigInformation(myConfig);
     thisObject-> mEGLSurface= eglCreateWindowSurface(thisObject->mEGLDisplay, myConfig, thisObject->windowSurface, NULL);
     context = eglCreateContext(thisObject->mEGLDisplay, myConfig, EGL_NO_CONTEXT, context_attribs);
     returnValue = eglMakeCurrent(thisObject->mEGLDisplay, thisObject->mEGLSurface, thisObject->mEGLSurface, context);

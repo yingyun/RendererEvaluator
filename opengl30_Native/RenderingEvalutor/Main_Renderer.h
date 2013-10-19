@@ -154,8 +154,8 @@ private:
     bool hasDepthTest;
     bool hasMSAA;
     bool hasBlendingOpe;
-    bool hasDithering;
     bool hasGaussianBlur;
+    bool hasCullFace;
 
 
     /*====== Rendering options End, Not it's a class object property====== */
@@ -215,6 +215,7 @@ private:
     GLuint createProgram(const char* pVertexSource, const char* pFragmentSource);
     static void frameControl(int fd, int events, void* data);  //static for function callback
     void printOpenGLDriverInformation();
+    void printEGLConfigInformation(EGLConfig config);
 
 };
 
