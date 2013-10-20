@@ -242,7 +242,7 @@ void gl2_basic_render::printOpenGLDriverInformation()
     printf("Version: %s\n", version);
     printf("Renderer: %s\n", glrenderer);
     printf("%s\n", glsl_version);
-    //printf("%s\n", extensions);
+//    printf("%s\n", extensions);
 
     int integer4[4] = {0, 0, 0 , 0};
     float float4[4] = {0.0, 0.0, 0.0, 0.0};
@@ -661,6 +661,33 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     if(hasMSAA)
         {
         }
+    /* FBO, FBO what ?  color? texture? depth? stencil? */
+    if(hasFBO)
+        {
+            int rboMaxSize;
+            GLuint FBO;
+            GLuint RBO;
+            glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &rboMaxSize);
+            printf("-----Maxium renderbuffer size :%d\n", rboMaxSize);
+            glGenFramebuffers(1, &FBO);
+            glGenRenderbuffers(1, &RBO);
+
+            glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, 512, 512);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+            //glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+
+            if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+                {
+                    /*
+                    *
+                    *Do something with this framebuffer
+                    *
+                    */
+                }
+        }
 
     glUseProgram(mOGLProgram);
     return true;
@@ -770,6 +797,7 @@ void gl2_basic_render::polygonDraw()
             glVertexAttribPointer(mAttrVSTexCoordPass, 2, GL_FLOAT, GL_FALSE, 0, mCubeTexCoord); /* Enable Texture coordination */
             glEnableVertexAttribArray(mAttrVSTexCoordPass);
         }
+
     /* Let's cook */
     if(hasSimTriangle)
         {
@@ -777,7 +805,7 @@ void gl2_basic_render::polygonDraw()
         }
     if(hasCubeWithVBO)
         {
-             glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, 0);
         }
     if(hasCube)
         {
