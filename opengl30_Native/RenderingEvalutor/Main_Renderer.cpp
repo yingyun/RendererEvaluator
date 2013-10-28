@@ -28,7 +28,7 @@ namespace android
 GLclampf gl2_basic_render::gColorMatrix[6][4] =
 {
     {0.2, 0.6, 0.4, 1.0},      //DeepGreen
-    {0.0, 0.0, 0.0, 0.0},	//Black
+    {0.0, 0.0, 0.0, 1.0},	//Black
     {0.1, 0.6, 0.1, 1.0},	//Green
     {0.8, 0.8, 0.4, 1.0},	//Yellow
     {0.3, 0.2, 0.6, 1.0},	//Blue
