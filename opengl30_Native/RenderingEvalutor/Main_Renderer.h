@@ -40,7 +40,7 @@
 
 #include <core/SkBitmap.h>
 #include <core/SkStream.h>
-#include <images/SkImageDecoder.h>
+#include <core/SkImageDecoder.h>
 
 namespace android
 {
