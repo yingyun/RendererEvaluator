@@ -815,6 +815,9 @@ void gl2_basic_render::polygonDraw()
                     glStencilFunc(GL_EQUAL, 1, 0x7);
                     glStencilOp(GL_KEEP, GL_DECR, GL_DECR);
                 }
+            /*
+            *glDrawElements will run faster than glDrawArray for many reasons.
+            */
             glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
         }
 
