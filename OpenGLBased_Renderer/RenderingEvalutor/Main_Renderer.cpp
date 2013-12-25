@@ -6,9 +6,12 @@
 *
 * TODO: add below operation in the shader
 * =>1: Add error check for gl function
-* =>2: Texturing    -Done
-* =>3: Fragment Shader / Operation    -Almost Done
-* =>4: FBO/ Advanced Tech
+* =>2: Post-processing : Gamma, Contrast, Saturation, Hue and so on
+* =>3: Projection * position operation in vertex shader
+* =>4: Objective model import //???
+* =>5: various texture mapping
+* =>6: Add GPU composing Evaluator, Refer ANDROID/frameworks/native/cmd/flatland
+* =>7: Google test framework used for SurfaceTexture testing.
 */
 
 #include "Main_Renderer.h"
@@ -143,7 +146,7 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     hasLighting = false;
     hasTexture2D = true;
     hasMipMap = true;
-    hasFBO = false;
+    hasBasicCubeFBO = false;
     hasCubeWithVBO = false;
     hasColorDirectPassCombimeVBO = false;
     hasVAO = false;
@@ -158,10 +161,10 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
     hasCube = true;
     hasBlenderObjectModel = false;
     hasScissor = false;
-    hasStencilOpe = true;
-    hasDepthTest = true;
-    hasBlendingOpe = false;
-    hasMSAA = true;
+    hasBasicStencilOpe = false;
+    hasBasicDepthTest = false;
+    hasBasicBlendingOpe = false;
+    hasBasicMSAA = true;
     hasGaussianBlur = false;
     hasCullFace = true;
 
@@ -189,17 +192,17 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
    \t hasLighting \t%d\n   \
    \t hasTexture2D \t%d\n  \
    \t hasMipMap \t%d\n \
-   \t hasFBO \t%d\n  \
+   \t hasBasicCubeFBO \t%d\n  \
    \t hasVAO \t%d\n \
    \t hasSimTriangle %d\n \
    \t hasCube\t%d\n \
    \t hasCubeWithVBO\t%d\n \
    \t hasBlenderObjectModel\t%d\n  \
    \t hasScissor\t%d\n  \
-   \t hasStencilOpe\t%d\n  \
-   \t hasDepthTest\t%d\n  \
-   \t hasMSAA\t%d\n  \
-   \t hasBlendingOpe\t%d\n  \
+   \t hasBasicStencilOpe\t%d\n  \
+   \t hasBasicDepthTest\t%d\n  \
+   \t hasBasicMSAA\t%d\n  \
+   \t hasBasicBlendingOpe\t%d\n  \
    \t hasGaussianBlur\t%d\n   \
    \t hasCullFace\t%d\n",
            hasColorConstantPass,
@@ -212,17 +215,17 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
            hasLighting,
            hasTexture2D,
            hasMipMap,
-           hasFBO,
+           hasBasicCubeFBO,
            hasVAO,
            hasSimTriangle,
            hasCube,
            hasCubeWithVBO,
            hasBlenderObjectModel,
            hasScissor,
-           hasStencilOpe,
-           hasDepthTest,
-           hasMSAA,
-           hasBlendingOpe,
+           hasBasicStencilOpe,
+           hasBasicDepthTest,
+           hasBasicMSAA,
+           hasBasicBlendingOpe,
            hasGaussianBlur,
            hasCullFace
           );
@@ -644,25 +647,25 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
             glEnable(GL_CULL_FACE);
         }
     /* Stencil Test */
-    if(hasStencilOpe)
+    if(hasBasicStencilOpe)
         {
             glStencilMask(0xFF);
             glEnable(GL_STENCIL_TEST);
         }
     /* Depth Test */
-    if(hasDepthTest)
+    if(hasBasicDepthTest)
         {
         }
     /* Blending Test */
-    if(hasBlendingOpe)
+    if(hasBasicBlendingOpe)
         {
         }
     /* Dithering Test */
-    if(hasMSAA)
+    if(hasBasicMSAA)
         {
         }
     /* FBO, FBO what ?  color? texture? depth? stencil? */
-    if(hasFBO)
+    if(hasBasicCubeFBO)
         {
             int rboMaxSize;
             GLuint FBO;
@@ -763,7 +766,7 @@ void gl2_basic_render::polygonDraw()
             MatrixTransform::matrixDump(&mTranslateMatrix, "mTranslateMatrix");
             glUniformMatrix4fv(mUniVStranslateMat, 1, GL_FALSE, (GLfloat * )mTranslateMatrix.m);
         }
-    if(hasStencilOpe)  /* Stencil Test */
+    if(hasBasicStencilOpe)  /* Stencil Test */
         {
             glStencilFunc(GL_EQUAL, 0, 0x7);
             glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
@@ -810,7 +813,7 @@ void gl2_basic_render::polygonDraw()
     if(hasCube)
         {
             /* Stencil Test */
-            if(hasStencilOpe)
+            if(hasBasicStencilOpe)
                 {
                     glStencilFunc(GL_EQUAL, 1, 0x7);
                     glStencilOp(GL_KEEP, GL_DECR, GL_DECR);

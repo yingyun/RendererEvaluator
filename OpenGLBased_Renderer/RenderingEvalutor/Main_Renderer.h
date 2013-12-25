@@ -133,7 +133,7 @@ private:
     bool hasLighting;
     bool hasTexture2D;
     bool hasMipMap;
-    bool hasFBO;
+    bool hasBasicCubeFBO;
 
     bool hasSimTriangle;
     bool hasCube;
@@ -150,13 +150,23 @@ private:
     bool hasBlenderObjectModel;
     bool hasVAO;//OpenGL3.0 only
     bool hasScissor;
-    bool hasStencilOpe;
-    bool hasDepthTest;
-    bool hasMSAA;
-    bool hasBlendingOpe;
+    bool hasBasicStencilOpe;
+    bool hasBasicDepthTest;
+    bool hasBasicMSAA;
+    bool hasBasicBlendingOpe;
     bool hasGaussianBlur;
     bool hasCullFace;
 
+    /* Various post-processing shader effect */
+    bool hasHuePP;
+    bool hasContrastPP;
+    bool hasBrightnessPP;
+    /* bool hasGammaPP; */  //Is it possible in software side ?
+    bool hasSaturationPP;
+
+    /* Various Testing/Evaluate function */
+    bool hasGoogleTest;
+    bool hasGPUEvaluation;
 
     /*====== Rendering options End, Not it's a class object property====== */
 
