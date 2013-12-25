@@ -28,7 +28,7 @@
 namespace android
 {
 /* ---------- Data Definition Area Start ---------- */
-GLclampf gl2_basic_render::gColorMatrix[6][4] =
+GLclampf RenderMachine::gColorMatrix[6][4] =
 {
     {0.2, 0.6, 0.4, 1.0},      //DeepGreen
     {0.0, 0.0, 0.0, 1.0},	//Black
@@ -39,7 +39,7 @@ GLclampf gl2_basic_render::gColorMatrix[6][4] =
 };
 
 /* simple triangle vertices.    FixMe; Change to Regular Triangle */
-GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
+GLfloat RenderMachine::gSimpleTriangleVertices[6] =
 {-0.5f, -0.288675f,    0.0f, 0.57735f,    0.5f, -0.288675f};
 
 /*
@@ -59,37 +59,37 @@ GLfloat gl2_basic_render::gSimpleTriangleVertices[6] =
 */
 
 //Shader for vertex
-const char * gl2_basic_render::gVS_Header_Attribute_vertexPosition =
+const char * RenderMachine::gVS_Header_Attribute_vertexPosition =
     "attribute vec4 a_vertexPosition;\n";
-const char * gl2_basic_render::gVS_Header_Uniform_rotationMatrix =
+const char * RenderMachine::gVS_Header_Uniform_rotationMatrix =
     "uniform mat4 u_rotationMatrix;\n";
-const char * gl2_basic_render::gVS_Header_Uniform_scaleMatrix =
+const char * RenderMachine::gVS_Header_Uniform_scaleMatrix =
     "uniform mat4 u_scaleMatrix;\n";
-const char * gl2_basic_render::gVS_Header_Uniform_translationMatrix =
+const char * RenderMachine::gVS_Header_Uniform_translationMatrix =
     "uniform mat4 u_translationMatrix;\n";
-const char * gl2_basic_render::gVS_Header_Attribute_passColor =
+const char * RenderMachine::gVS_Header_Attribute_passColor =
     "attribute vec4 a_passColor;\n";
-const char *gl2_basic_render::gVS_Header_Attribute_texCoord =
+const char *RenderMachine::gVS_Header_Attribute_texCoord =
     "attribute vec2 a_texCoord;\n";
-const char * gl2_basic_render::gVS_Header_Varying_colorToFrag =
+const char * RenderMachine::gVS_Header_Varying_colorToFrag =
     "varying vec4 v_colorToFrag;\n";
-const char * gl2_basic_render::gVS_Header_Varying_texCoordToFrag =
+const char * RenderMachine::gVS_Header_Varying_texCoordToFrag =
     "varying vec2 v_tcToFrag;\n";
 
-const char * gl2_basic_render::gVS_Main_Start_Function =
+const char * RenderMachine::gVS_Main_Start_Function =
     "void main() {\n";
 
-const char * gl2_basic_render::gVS_Function_Direct_Pass_Position =
+const char * RenderMachine::gVS_Function_Direct_Pass_Position =
     "   gl_Position = a_vertexPosition;\n";
-const char * gl2_basic_render::gVS_Function_Pass_RO_Multi_Position =
+const char * RenderMachine::gVS_Function_Pass_RO_Multi_Position =
     "   gl_Position = gl_Position * u_rotationMatrix;\n";
-const char * gl2_basic_render::gVS_Function_Pass_SC_Multi_Position =
+const char * RenderMachine::gVS_Function_Pass_SC_Multi_Position =
     "   gl_Position = gl_Position * u_scaleMatrix;\n";
-const char * gl2_basic_render::gVS_Function_Pass_TR_Multi_Position =
+const char * RenderMachine::gVS_Function_Pass_TR_Multi_Position =
     "   gl_Position = gl_Position * u_translationMatrix;\n";
-const char * gl2_basic_render::gVS_Function_Pass_Color_To_Frag =
+const char * RenderMachine::gVS_Function_Pass_Color_To_Frag =
     "   v_colorToFrag = a_passColor;\n";
-const char * gl2_basic_render::gVS_Function_Pass_texCoord_To_Frag =
+const char * RenderMachine::gVS_Function_Pass_texCoord_To_Frag =
     "   v_tcToFrag = a_texCoord;\n";
 
 /* WikiPedia
@@ -101,40 +101,40 @@ direction. In the second pass, another one-dimensional kernel is used to blur in
 remaining direction. The resulting effect is the same as convolving with a two-dimensional
 kernel in a single pass, but requires fewer calculations.
 */
-const char * gl2_basic_render::gVS_Function_Gaussian_Blur =
+const char * RenderMachine::gVS_Function_Gaussian_Blur =
     "";
 
-const char * gl2_basic_render::gVS_Main_End_Function =
+const char * RenderMachine::gVS_Main_End_Function =
     "}\n";
 
 //Shader for fragment
-const char * gl2_basic_render::gFS_Header_Precision_Mediump_Float =
+const char * RenderMachine::gFS_Header_Precision_Mediump_Float =
     "precision mediump float;\n";
-const char * gl2_basic_render::gFS_Header_Varying_colorToFrag =
+const char * RenderMachine::gFS_Header_Varying_colorToFrag =
     "varying vec4 v_colorToFrag;\n";
-const char * gl2_basic_render::gFS_Header_Varying_texCoordToFrag =
+const char * RenderMachine::gFS_Header_Varying_texCoordToFrag =
     "varying vec2 v_tcToFrag;\n";
-const char * gl2_basic_render::gFS_Header_Sampler2D =
+const char * RenderMachine::gFS_Header_Sampler2D =
     "uniform sampler2D u_samplerTexture;\n";
 
-const char * gl2_basic_render::gFS_Main_Start_Function =
+const char * RenderMachine::gFS_Main_Start_Function =
     "void main() {\n";
 
-const char * gl2_basic_render::gFS_Function_Pass_Constant_Color =
+const char * RenderMachine::gFS_Function_Pass_Constant_Color =
     "  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n";
-const char * gl2_basic_render::gFS_Function_Direct_Pass_Color =
+const char * RenderMachine::gFS_Function_Direct_Pass_Color =
     "  gl_FragColor = v_colorToFrag;\n";
-const char * gl2_basic_render::gFS_Function_Direct_Sampler_texCoord =
+const char * RenderMachine::gFS_Function_Direct_Sampler_texCoord =
     "  gl_FragColor = texture2D( u_samplerTexture, v_tcToFrag );\n";
 
-const char * gl2_basic_render::gFS_Function_Gaussian_Blur =
+const char * RenderMachine::gFS_Function_Gaussian_Blur =
     "";
 
-const char * gl2_basic_render::gFS_Main_End_Function =
+const char * RenderMachine::gFS_Main_End_Function =
     "}\n";
 /* ==========Data Definition Area End ==========*/
 
-gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
+RenderMachine::RenderMachine(unsigned int index, unsigned int step)
     :mAttrVSPosition(0),mIndex(index), mStep(step), mCounter(1), mOGLProgram(0),
      mOldTimeStamp(0)
 {
@@ -232,7 +232,7 @@ gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
           );
 }
 
-void gl2_basic_render::printOpenGLDriverInformation()
+void RenderMachine::printOpenGLDriverInformation()
 {
     /*
     * glGetString was used to get the implementation basic information
@@ -296,7 +296,7 @@ void gl2_basic_render::printOpenGLDriverInformation()
 
 }
 
-void gl2_basic_render::printEGLConfigInformation(EGLConfig config)
+void RenderMachine::printEGLConfigInformation(EGLConfig config)
 {
 #define X(VAL) {VAL, #VAL}
     struct
@@ -354,7 +354,7 @@ void gl2_basic_render::printEGLConfigInformation(EGLConfig config)
     printf("\n");
 }
 
-GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
+GLuint RenderMachine::loadShader(GLenum shaderType, const char* pSource)
 {
     GLuint shader = glCreateShader(shaderType);
     if (shader)
@@ -389,7 +389,7 @@ GLuint gl2_basic_render::loadShader(GLenum shaderType, const char* pSource)
     return shader;
 }
 
-void gl2_basic_render::loadTexture(int* width, int* height, void** pixelData)
+void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
 {
     /*
     *M.png was the PNG32 format under the /data/ directory.
@@ -453,7 +453,7 @@ void gl2_basic_render::loadTexture(int* width, int* height, void** pixelData)
         */
 }
 
-GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pFragmentSource)
+GLuint RenderMachine::createProgram(const char* pVertexSource, const char* pFragmentSource)
 {
     GLuint vertexShader = loadShader(GL_VERTEX_SHADER, pVertexSource);
     if (!vertexShader)
@@ -494,7 +494,7 @@ GLuint gl2_basic_render::createProgram(const char* pVertexSource, const char* pF
     return program;
 }
 
-void gl2_basic_render::polygonShaderSetup()
+void RenderMachine::polygonShaderSetup()
 {
     //Setup Vertext shader header
     mVertexShader.append(gVS_Header_Attribute_vertexPosition);  //We always pass the vertex to the shader
@@ -546,7 +546,7 @@ void gl2_basic_render::polygonShaderSetup()
                           NULL, &mCubeTexCoord, &mCubeColor, &mCubeIndices);
 }
 
-bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
+bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
 {
     mOGLProgram= createProgram(vertexShader, fragmentShader);
     if (!mOGLProgram)
@@ -697,7 +697,7 @@ bool gl2_basic_render::polygonBuildnLink(int w, int h, const char vertexShader[]
     return true;
 }
 
-void gl2_basic_render::polygonDraw()
+void RenderMachine::polygonDraw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -833,9 +833,9 @@ void gl2_basic_render::polygonDraw()
 /*
 *   Note: This is Static member function
 */
-void gl2_basic_render::frameControl(int fd, int events, void* data)
+void RenderMachine::frameControl(int fd, int events, void* data)
 {
-    gl2_basic_render* thisObject = (gl2_basic_render*)data;
+    RenderMachine* thisObject = (RenderMachine*)data;
     ssize_t num_event;
     DisplayEventReceiver::Event buffer[1];
     num_event = thisObject->mDisplayEventReceiver.getEvents(buffer, 1);
@@ -872,9 +872,9 @@ void gl2_basic_render::frameControl(int fd, int events, void* data)
 /*
 *   Note: This is Static member function
 */
-void* gl2_basic_render::mainRender(void* thisthis)
+void* RenderMachine::mainRender(void* thisthis)
 {
-    gl2_basic_render * thisObject = (gl2_basic_render*)thisthis;
+    RenderMachine * thisObject = (RenderMachine*)thisthis;
     printf("TID:%d Create render\n", gettid());
     EGLBoolean returnValue;
     EGLConfig myConfig = {0};
@@ -930,7 +930,7 @@ void* gl2_basic_render::mainRender(void* thisthis)
     thisObject->printOpenGLDriverInformation();
     thisObject->mLoop = new Looper(false);
     thisObject->mLoop->addFd(thisObject->mDisplayEventReceiver.getFd(), 0, ALOOPER_EVENT_INPUT,
-                             (ALooper_callbackFunc)gl2_basic_render::frameControl, thisObject);
+                             (ALooper_callbackFunc)RenderMachine::frameControl, thisObject);
     thisObject->mDisplayEventReceiver.setVsyncRate(1);//Enable vsync forever
     unsigned int tid = gettid();
     do
@@ -959,7 +959,7 @@ void* gl2_basic_render::mainRender(void* thisthis)
     return 0;
 }
 
-void gl2_basic_render::startRender(EGLNativeWindowType window,
+void RenderMachine::startRender(EGLNativeWindowType window,
                                    sp<SurfaceComposerClient> composerClient,
                                    sp<SurfaceControl> control, int identity)
 {
@@ -968,7 +968,7 @@ void gl2_basic_render::startRender(EGLNativeWindowType window,
     mSurfaceComposerClient = composerClient;
     mSurfaceControl = control;
     mId = identity;
-    pthread_create(&thread_status, NULL, gl2_basic_render::mainRender, (void*)(this));
+    pthread_create(&thread_status, NULL, RenderMachine::mainRender, (void*)(this));
 }
 
 }

@@ -39,7 +39,7 @@ void usage()
 {
     //FixMe; Change the note
     printf("\n");
-    printf("Cui.YY Native_gl2_basic_render Ver20130905\n");
+    printf("Cui.YY Native_RenderMachine Ver20130905\n");
     printf("Usage: \"Native_gl2_basic 4 2 1 1 1 1\"\n");
     printf("4: means create 4 layes, the range from 1 to 6.\n");
     printf("2: means render each frame on each 2 vsync was triggered.\n ");
@@ -82,10 +82,10 @@ int main(int argc, char** argv)
         }
     sp<NativeSurfaceFlingerEGLService> surface = new NativeSurfaceFlingerEGLService();
     surface->startService(num_of_surface);//Create EGL surface
-    sp<gl2_basic_render> render[NUMOFSURFACE]= {0};
+    sp<RenderMachine> render[NUMOFSURFACE]= {0};
     for(unsigned int a =0; a < num_of_surface; a++)
         {
-            render[a] = new gl2_basic_render(a, num_of_fps);
+            render[a] = new RenderMachine(a, num_of_fps);
             render[a]->startRender(surface->mSurface[a].get(), surface->mSurfaceComposerClient,
                                    surface->mSurfaceControl[a], surface->mIDs[a]);
             sleep(1);
