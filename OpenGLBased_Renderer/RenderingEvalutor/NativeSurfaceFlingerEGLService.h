@@ -77,6 +77,7 @@ public:
     sp<SurfaceComposerClient>  mSurfaceComposerClient;
     sp<SurfaceControl> mSurfaceControl[NUMOFSURFACE];
     sp<Surface> mSurface[NUMOFSURFACE];
+    int mIDs[NUMOFSURFACE];
 };
 
 }//Namespace of android

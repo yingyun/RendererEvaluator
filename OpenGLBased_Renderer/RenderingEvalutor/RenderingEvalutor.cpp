@@ -86,7 +86,8 @@ int main(int argc, char** argv)
     for(unsigned int a =0; a < num_of_surface; a++)
         {
             render[a] = new gl2_basic_render(a, num_of_fps);
-            render[a]->startRender(surface->mSurface[a].get());
+            render[a]->startRender(surface->mSurface[a].get(), surface->mSurfaceComposerClient,
+                                   surface->mSurfaceControl[a], surface->mIDs[a]);
             sleep(1);
         }
     surface->threadPool();

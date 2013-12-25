@@ -135,7 +135,8 @@ const char * gl2_basic_render::gFS_Main_End_Function =
 /* ==========Data Definition Area End ==========*/
 
 gl2_basic_render::gl2_basic_render(unsigned int index, unsigned int step)
-    :mAttrVSPosition(0),mIndex(index), mStep(step), mCounter(1), mOGLProgram(0),  mOldTimeStamp(0)
+    :mAttrVSPosition(0),mIndex(index), mStep(step), mCounter(1), mOGLProgram(0),
+     mOldTimeStamp(0)
 {
     /* model view tranformation */
     hasRotation = true; //Done
@@ -958,10 +959,15 @@ void* gl2_basic_render::mainRender(void* thisthis)
     return 0;
 }
 
-void gl2_basic_render::startRender(EGLNativeWindowType window)
+void gl2_basic_render::startRender(EGLNativeWindowType window,
+                                   sp<SurfaceComposerClient> composerClient,
+                                   sp<SurfaceControl> control, int identity)
 {
     pthread_t thread_status;
     windowSurface = window;
+    mSurfaceComposerClient = composerClient;
+    mSurfaceControl = control;
+    mId = identity;
     pthread_create(&thread_status, NULL, gl2_basic_render::mainRender, (void*)(this));
 }
 

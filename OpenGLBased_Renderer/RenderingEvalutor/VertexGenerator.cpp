@@ -23,6 +23,41 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
             float cubeVerts[] =
             {
                 /* 24 vertex,  6 slide * 4 vertex per slide */
+                #if 1
+                /* Full size */
+                -1.0f, -1.0f, -1.0f,
+                -1.0f, -1.0f,  1.0f,
+                1.0f, -1.0f,  1.0f,
+                1.0f, -1.0f, -1.0f,
+
+                -1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f,  1.0f,
+                1.0f,  1.0f,  1.0f,
+                1.0f,  1.0f, -1.0f,
+
+                -1.0f, -1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f,
+                1.0f,  1.0f, -1.0f,
+                1.0f, -1.0f, -1.0f,
+
+                -1.0f, -1.0f, 1.0f,
+                -1.0f,  1.0f, 1.0f,
+                1.0f,  1.0f, 1.0f,
+                1.0f, -1.0f, 1.0f,
+
+                -1.0f, -1.0f, -1.0f,
+                -1.0f, -1.0f,  1.0f,
+                -1.0f,  1.0f,  1.0f,
+                -1.0f,  1.0f, -1.0f,
+
+                1.0f, -1.0f, -1.0f,
+                1.0f, -1.0f,  1.0f,
+                1.0f,  1.0f,  1.0f,
+                1.0f,  1.0f, -1.0f,
+                #endif
+
+                #if 0
+                /* Half size */
                 -0.5f, -0.5f, -0.5f,
                 -0.5f, -0.5f,  0.5f,
                 0.5f, -0.5f,  0.5f,
@@ -52,6 +87,7 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
                 0.5f, -0.5f,  0.5f,
                 0.5f,  0.5f,  0.5f,
                 0.5f,  0.5f, -0.5f,
+                #endif
             };
 
             float cubeColor[] =

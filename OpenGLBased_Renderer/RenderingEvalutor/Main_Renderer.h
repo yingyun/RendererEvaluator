@@ -34,6 +34,9 @@
 
 #include <ui/FramebufferNativeWindow.h>
 #include <gui/DisplayEventReceiver.h>
+#include <gui/Surface.h>
+#include <gui/SurfaceComposerClient.h>
+#include <gui/ISurfaceComposer.h>
 
 #include "MatrixTransform.h"
 #include "VertexGenerator.h"
@@ -47,10 +50,15 @@ namespace android
 class gl2_basic_render:public virtual RefBase
 {
 public:
-    EGLNativeWindowType windowSurface;
+    EGLNativeWindowType windowSurface; /* ANativeWindow* */
+    sp<SurfaceComposerClient> mSurfaceComposerClient;
+    sp<SurfaceControl> mSurfaceControl;
+    int mId;
 
     gl2_basic_render(unsigned int index, unsigned int step);
-    void startRender(EGLNativeWindowType windowSurface);
+    void startRender(EGLNativeWindowType window,
+                     sp<SurfaceComposerClient> composerClient,
+                     sp<SurfaceControl> control, int identity);
     static void* mainRender(void* windowSurface);   //static for function callback
 
 private:
