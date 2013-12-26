@@ -876,10 +876,12 @@ void* RenderMachine::mainRender(void* thisthis)
 {
     RenderMachine * thisObject = (RenderMachine*)thisthis;
     printf("TID:%d Create render\n", gettid());
+
     EGLBoolean returnValue;
     EGLConfig myConfig = {0};
     EGLint numConfigs = 0;
     EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
+
     /*
     *Cui.YY 20131013; Decide to go to the Shanghai :-)
     *More detailed refer below link
@@ -903,14 +905,23 @@ void* RenderMachine::mainRender(void* thisthis)
     EGLint minorVersion;
     EGLContext context;
     EGLint w, h;
+
+    /* EGL init*/
     thisObject->mEGLDisplay= eglGetDisplay(EGL_DEFAULT_DISPLAY);
     returnValue = eglInitialize(thisObject->mEGLDisplay, &majorVersion, &minorVersion);
+
+    /* EGL Choose our configuration context */
     eglChooseConfig(thisObject->mEGLDisplay, s_configAttribs, &myConfig, 1, &numConfigs);
     printf("---We match %d number config(s)-----\n", numConfigs);
     thisObject->printEGLConfigInformation(myConfig);
+
+    /* EGL Create window surface and Context */
     thisObject-> mEGLSurface= eglCreateWindowSurface(thisObject->mEGLDisplay, myConfig, thisObject->windowSurface, NULL);
     context = eglCreateContext(thisObject->mEGLDisplay, myConfig, EGL_NO_CONTEXT, context_attribs);
+
+    /* EGL Make current as available */
     returnValue = eglMakeCurrent(thisObject->mEGLDisplay, thisObject->mEGLSurface, thisObject->mEGLSurface, context);
+
     eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_WIDTH, &w);
     eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_HEIGHT, &h);
     printf("TID:%d Window dimensions: %d x %d\n", gettid(), w, h);
@@ -921,17 +932,23 @@ void* RenderMachine::mainRender(void* thisthis)
     *   3: Pass control over to Looper to draw each frame
     */
     thisObject->polygonShaderSetup();
+
     if(!thisObject->polygonBuildnLink(w, h,
                                       thisObject->mVertexShader.string(), thisObject->mFramgmentShader.string()))
         {
             fprintf(stderr, "Could not set up graphics.\n");
             return (void *)0;
         }
+
     thisObject->printOpenGLDriverInformation();
+
+    /* Create loop to handle event */
     thisObject->mLoop = new Looper(false);
     thisObject->mLoop->addFd(thisObject->mDisplayEventReceiver.getFd(), 0, ALOOPER_EVENT_INPUT,
                              (ALooper_callbackFunc)RenderMachine::frameControl, thisObject);
+
     thisObject->mDisplayEventReceiver.setVsyncRate(1);//Enable vsync forever
+
     unsigned int tid = gettid();
     do
         {
@@ -964,10 +981,12 @@ void RenderMachine::startRender(EGLNativeWindowType window,
                                    sp<SurfaceControl> control, int identity)
 {
     pthread_t thread_status;
+
     windowSurface = window;
     mSurfaceComposerClient = composerClient;
     mSurfaceControl = control;
     mId = identity;
+
     pthread_create(&thread_status, NULL, RenderMachine::mainRender, (void*)(this));
 }
 
