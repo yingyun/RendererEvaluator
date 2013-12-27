@@ -37,7 +37,7 @@ using namespace android;
 
 void usage()
 {
-    //FixMe; Change the note
+    /* FixMe; TODO: Change the note accordingly */
     printf("\n");
     printf("Cui.YY Native_RenderMachine Ver20130905\n");
     printf("Usage: \"Native_gl2_basic 4 2 1 1 1 1\"\n");
@@ -54,6 +54,7 @@ int main(int argc, char** argv)
 {
     unsigned int num_of_surface = NUMOFSURFACE;
     unsigned int num_of_fps = 1;
+
     if (argc == 3)
         {
             int b = atoi(argv[1]);
@@ -80,9 +81,11 @@ int main(int argc, char** argv)
             usage();
             return 0;
         }
+
     sp<NativeSurfaceFlingerEGLService> surface = new NativeSurfaceFlingerEGLService();
     surface->startService(num_of_surface);//Create EGL surface
     sp<RenderMachine> render[NUMOFSURFACE]= {0};
+
     for(unsigned int a =0; a < num_of_surface; a++)
         {
             render[a] = new RenderMachine(a, num_of_fps);
@@ -90,7 +93,9 @@ int main(int argc, char** argv)
                                    surface->mSurfaceControl[a], surface->mIDs[a]);
             sleep(1);
         }
+
     surface->threadPool();
     surface->stopService();
+
     return 0;
 }
