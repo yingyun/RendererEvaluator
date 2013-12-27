@@ -109,7 +109,6 @@ private:
     static const char * gFS_Function_Gaussian_Blur;
     static const char * gFS_Main_End_Function;
 
-    /* ========= Data Declare Area End, Note it's a global member ========= */
 
 
     /* --- Attribute, Uniform handler Start, Note it's a class object property --- */
@@ -125,9 +124,7 @@ private:
 
 
     //Shader for fragment
-
-    /* === Attribute, Uniform handler End, Note it's a class object property ===  */
-
+ 
 
 
     /* ------- Rendering options Start, Not it's a class object property------- */
@@ -176,25 +173,14 @@ private:
     bool hasGoogleTest;
     bool hasGPUEvaluation;
 
-    /*====== Rendering options End, Not it's a class object property====== */
-
-
-
     /* ------ Various buffer object Start------ */
     GLuint mVBOForVI[3];
     GLuint mTexture[1];
-    /* ===== Varous transform matrix   End ======*/
-
-
 
     /* ------ Various transform matrix  Start------ */
     Matrix44 mRotateMatrix;
     Matrix44 mScaleMatrix;
     Matrix44 mTranslateMatrix;
-    /* ===== Varous transform matrix   End ======*/
-
-
-
 
     //global shader source, class object property
     String8 mVertexShader;
@@ -205,10 +191,10 @@ private:
     bool polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[]);
     void polygonDraw();
 
-
     /*Cui.YY
-    static constexpr GLclampf gColorMatrix[6][4];  in class static member initialization,
-    just only available in C++11 standard, must combine used with constexpr keyword*/
+     * static constexpr GLclampf gColorMatrix[6][4];  in class static member initialization,
+     * just only available in C++11 standard, must combine used with constexpr keyword
+     */
     unsigned int mIndex;
     unsigned int mStep;
     unsigned int mCounter;
@@ -230,8 +216,10 @@ private:
     //Used to setup basic rendering environment
     GLuint loadShader(GLenum shaderType, const char* pSource);
     void loadTexture(int* width, int* height, void** pixelData);
+
     GLuint createProgram(const char* pVertexSource, const char* pFragmentSource);
     static void frameControl(int fd, int events, void* data);  //static for function callback
+
     void printOpenGLDriverInformation();
     void printEGLConfigInformation(EGLConfig config);
 

@@ -293,7 +293,6 @@ void RenderMachine::printOpenGLDriverInformation()
         {
             //printEGLConfigInformation(configData[i]);
         }
-
 }
 
 void RenderMachine::printEGLConfigInformation(EGLConfig config)
@@ -396,6 +395,8 @@ void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
     *Assume that we just support 8888 format for now and must be an NonOfPower size.
     *SkBitmap::kARGB_8888_Config:
     */
+
+    /* Address and alloc the memory for pixel */
     const char* fileName = "/data/M.png";
     struct stat dest;
     if(stat(fileName, &dest) < 0)
@@ -403,6 +404,7 @@ void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
             error_print("Get the texture file size failed!");
             exit(-1);
         }
+
     unsigned int fileSize =  dest.st_size;
     void * imagePixels = malloc(fileSize);
     if(imagePixels == NULL)
@@ -410,12 +412,15 @@ void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
             error_print("imagePixels OOM!");
             exit(-1);
         }
+
     FILE * file = NULL;
     file = fopen("/data/M.png", "r");
     if (file == NULL) printf("Open texture was faild!\n");
     unsigned int haveReaded = fread(imagePixels, 1, fileSize, file);
     if(fileSize == haveReaded) printf("Load %d bytes texture data was sucessful!", haveReaded);
     fclose(file);
+
+    /* Encode */
     SkMemoryStream stream(imagePixels, fileSize);
     SkImageDecoder* codec = SkImageDecoder::Factory(&stream);
     codec->setDitherImage(false);
@@ -429,28 +434,21 @@ void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
         {
             printf("Create codec was faild!\n");
         }
+
     *width = mBitmap.width();
     *height = mBitmap.height();
     *pixelData= mBitmap.getPixels();
     free(imagePixels);
+
     int p2Width = 1 << (31 - __builtin_clz(*width));
     int p2Height = 1 << (31 - __builtin_clz(*height));
     printf("   Texture dimension: width %d, height %d\n", *width, *height);
+
     if(p2Width != *width || p2Height != *height)
         {
             error_print("Non power of 2 size for Texture data!");
             exit(-1);
         }
-    /*
-    -Assume that the texture was the power of 2. Throwing error if it's not-
-        int p2Width = 1 << (31 - __builtin_clz(width));
-        int p2Height = 1 << (31 - __builtin_clz(height));
-        if(p2Width < width) p2Width = p2Width << 1;
-        if(p2Height < height) p2Height = p2Height << 1;
-
-        printf("Width %d, Height %d\n", width, height);
-        printf("P2_Width %d, P2_Height %d\n", p2Width, p2Height);
-        */
 }
 
 GLuint RenderMachine::createProgram(const char* pVertexSource, const char* pFragmentSource)
@@ -460,17 +458,21 @@ GLuint RenderMachine::createProgram(const char* pVertexSource, const char* pFrag
         {
             return 0;
         }
+
     GLuint pixelShader = loadShader(GL_FRAGMENT_SHADER, pFragmentSource);
     if (!pixelShader)
         {
             return 0;
         }
+
     GLuint program = glCreateProgram();
     if (program)
         {
             glAttachShader(program, vertexShader);
             glAttachShader(program, pixelShader);
+
             glLinkProgram(program);
+
             GLint linkStatus = GL_FALSE;
             glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
             if (linkStatus != GL_TRUE)
@@ -487,6 +489,7 @@ GLuint RenderMachine::createProgram(const char* pVertexSource, const char* pFrag
                                     free(buf);
                                 }
                         }
+
                     glDeleteProgram(program);
                     program = 0;
                 }
@@ -496,7 +499,7 @@ GLuint RenderMachine::createProgram(const char* pVertexSource, const char* pFrag
 
 void RenderMachine::polygonShaderSetup()
 {
-    //Setup Vertext shader header
+    /* Setup Vertext shader header */
     mVertexShader.append(gVS_Header_Attribute_vertexPosition);  //We always pass the vertex to the shader
     if(hasRotation) mVertexShader.append(gVS_Header_Uniform_rotationMatrix);
     if(hasScale) mVertexShader.append(gVS_Header_Uniform_scaleMatrix);
@@ -506,7 +509,7 @@ void RenderMachine::polygonShaderSetup()
     if(hasTexture2D) mVertexShader.append(gVS_Header_Attribute_texCoord);
     if(hasTexture2D) mVertexShader.append(gVS_Header_Varying_texCoordToFrag);
 
-    //Setup Vertex shader main body
+    /* Setup Vertex shader main body */
     mVertexShader.append(gVS_Main_Start_Function);
 
     mVertexShader.append(gVS_Function_Direct_Pass_Position);
@@ -520,13 +523,13 @@ void RenderMachine::polygonShaderSetup()
     printf("\nVertextShader=> \n");
     printf("%s\n", mVertexShader.string());
 
-    //Setup Fragment shader header
+    /* Setup Fragment shader header */
     if(hasPreciMidium)mFramgmentShader.append(gFS_Header_Precision_Mediump_Float);
     if(hasColorDirectPass)mFramgmentShader.append(gFS_Header_Varying_colorToFrag);
     if(hasTexture2D) mFramgmentShader.append(gFS_Header_Varying_texCoordToFrag);
     if(hasTexture2D) mFramgmentShader.append(gFS_Header_Sampler2D);
 
-    //Setup Fragment shader main body
+    /* Setup Fragment shader main body */
     mFramgmentShader.append(gFS_Main_Start_Function);
 
     if(hasColorConstantPass)mFramgmentShader.append(gFS_Function_Pass_Constant_Color);
@@ -553,17 +556,23 @@ bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], c
         {
             return false;
         }
-    //Retrieve shader paramer information
+
+    /* Retrieve shader paramer information */
     mAttrVSPosition = glGetAttribLocation(mOGLProgram, "a_vertexPosition");
+
     if(hasRotation)
         mUniVSrotateMat = glGetUniformLocation(mOGLProgram, "u_rotationMatrix");
+
     if(hasScale)
         mUniVSscaleMat = glGetUniformLocation(mOGLProgram, "u_scaleMatrix");
+
     if(hasTranslation)
         mUniVStranslateMat = glGetUniformLocation(mOGLProgram, "u_translationMatrix");
+
     if(hasColorDirectPass)
         mAttrVSColorPass = glGetAttribLocation(mOGLProgram, "a_passColor");
-    //Create various buffer object
+
+    /* Create various buffer object */
     if(hasCubeWithVBO)
         {
             glGenBuffers(3, mVBOForVI); //Note: This is just used for Index mode rendering
@@ -582,12 +591,15 @@ bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], c
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, 500/*VertexGenerator::indexSizeByte()*/,
                          mCubeIndices, GL_STATIC_DRAW);
         }
+
     if(hasTexture2D)
         {
             int width = 0, height =0;
             void* pixelData;
+
             glGenTextures(1, mTexture);
             glBindTexture(GL_TEXTURE_2D, mTexture[0]);
+
             loadTexture( &width, &height, &pixelData);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -598,8 +610,10 @@ bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], c
                 {
                     glGenerateMipmap(GL_TEXTURE_2D);
                 }
+
             mAttrVSTexCoordPass = glGetAttribLocation(mOGLProgram, "a_texCoord");  /*Texture coordination for VS */
             mUniFSSampler = glGetUniformLocation(mOGLProgram, "u_samplerTexture"); /*Sampler unit for FS */
+
             glActiveTexture(GL_TEXTURE0);                                   /* Enable Texutre sampler unit */
             glBindTexture(GL_TEXTURE_2D, mTexture[0]);
             glUniform1i(mUniFSSampler, 0);
@@ -629,6 +643,7 @@ bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], c
     /* Buffer Clear */
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
                  gColorMatrix[mIndex][2], gColorMatrix[mIndex][3]);
+
     glClearDepthf(0);
     glClearStencil(0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -703,17 +718,20 @@ void RenderMachine::polygonDraw()
 
     /* polygon vertex data */
     if(hasSimTriangle)glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
+
     if(hasCubeWithVBO)
         {
             glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[0]);
             glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, 0);
             glEnableVertexAttribArray(mAttrVSPosition);
         }
+
     if(hasCube)
         {
             glVertexAttribPointer(mAttrVSPosition, 3, GL_FLOAT, GL_FALSE, 0, mCubeVertices);
             glEnableVertexAttribArray(mAttrVSPosition);
         }
+
     /* do transformantion */
     if(hasRotation)
         {
@@ -732,6 +750,7 @@ void RenderMachine::polygonDraw()
             MatrixTransform::matrixDump(&mRotateMatrix, "mRotateMatrix");
             glUniformMatrix4fv(mUniVSrotateMat, 1, GL_FALSE, (GLfloat * )mRotateMatrix.m);
         }
+
     if(hasScale)
         {
             /* do repeast operation for the change of scale magnitude */
@@ -757,6 +776,7 @@ void RenderMachine::polygonDraw()
             MatrixTransform::matrixDump(&mScaleMatrix, "mScaleMatrix");
             glUniformMatrix4fv(mUniVSscaleMat, 1, GL_FALSE, (GLfloat * )mScaleMatrix.m);
         }
+
     if(hasTranslation)
         {
             mTranslationMagnitude += 0.1;
@@ -767,13 +787,18 @@ void RenderMachine::polygonDraw()
             MatrixTransform::matrixDump(&mTranslateMatrix, "mTranslateMatrix");
             glUniformMatrix4fv(mUniVStranslateMat, 1, GL_FALSE, (GLfloat * )mTranslateMatrix.m);
         }
+
     if(hasBasicStencilOpe)  /* Stencil Test */
         {
             glStencilFunc(GL_EQUAL, 0, 0x7);
             glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
             glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
         }
-    /* Color and Light */
+
+    /*
+     * FixMe; TODO: Color and Light
+     */
+
 
     /*
     *hasColorDirectPass can use as standalone, but if want to use VBO version, should alwasy mark has-
@@ -784,6 +809,7 @@ void RenderMachine::polygonDraw()
             error_print("Wrong configucation, Not allow!");
             exit(-1);
         }
+
     if(hasColorDirectPassCombimeVBO && hasColorDirectPass)  //Here, we depend on DirectPass shader ability
         {
             glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[1]);
@@ -791,11 +817,13 @@ void RenderMachine::polygonDraw()
             glEnableVertexAttribArray(mAttrVSColorPass);
 
         }
+
     if (!hasColorDirectPassCombimeVBO && hasColorDirectPass)
         {
             glVertexAttribPointer(mAttrVSColorPass, 4, GL_FLOAT, GL_FALSE, 0, mCubeColor);
             glEnableVertexAttribArray(mAttrVSColorPass);
         }
+
     if(hasTexture2D)
         {
             glVertexAttribPointer(mAttrVSTexCoordPass, 2, GL_FLOAT, GL_FALSE, 0, mCubeTexCoord); /* Enable Texture coordination */
@@ -807,10 +835,12 @@ void RenderMachine::polygonDraw()
         {
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
+
     if(hasCubeWithVBO)
         {
             glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, 0);
         }
+
     if(hasCube)
         {
             /* Stencil Test */
@@ -876,10 +906,12 @@ void* RenderMachine::mainRender(void* thisthis)
 {
     RenderMachine * thisObject = (RenderMachine*)thisthis;
     printf("TID:%d Create render\n", gettid());
+
     EGLBoolean returnValue;
     EGLConfig myConfig = {0};
     EGLint numConfigs = 0;
     EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
+
     /*
     *Cui.YY 20131013; Decide to go to the Shanghai :-)
     *More detailed refer below link
@@ -903,14 +935,23 @@ void* RenderMachine::mainRender(void* thisthis)
     EGLint minorVersion;
     EGLContext context;
     EGLint w, h;
+
+    /* EGL init*/
     thisObject->mEGLDisplay= eglGetDisplay(EGL_DEFAULT_DISPLAY);
     returnValue = eglInitialize(thisObject->mEGLDisplay, &majorVersion, &minorVersion);
+
+    /* EGL Choose our configuration context */
     eglChooseConfig(thisObject->mEGLDisplay, s_configAttribs, &myConfig, 1, &numConfigs);
     printf("---We match %d number config(s)-----\n", numConfigs);
     thisObject->printEGLConfigInformation(myConfig);
+
+    /* EGL Create window surface and Context */
     thisObject-> mEGLSurface= eglCreateWindowSurface(thisObject->mEGLDisplay, myConfig, thisObject->windowSurface, NULL);
     context = eglCreateContext(thisObject->mEGLDisplay, myConfig, EGL_NO_CONTEXT, context_attribs);
+
+    /* EGL Make current as available */
     returnValue = eglMakeCurrent(thisObject->mEGLDisplay, thisObject->mEGLSurface, thisObject->mEGLSurface, context);
+
     eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_WIDTH, &w);
     eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_HEIGHT, &h);
     printf("TID:%d Window dimensions: %d x %d\n", gettid(), w, h);
@@ -921,17 +962,23 @@ void* RenderMachine::mainRender(void* thisthis)
     *   3: Pass control over to Looper to draw each frame
     */
     thisObject->polygonShaderSetup();
+
     if(!thisObject->polygonBuildnLink(w, h,
                                       thisObject->mVertexShader.string(), thisObject->mFramgmentShader.string()))
         {
             fprintf(stderr, "Could not set up graphics.\n");
             return (void *)0;
         }
+
     thisObject->printOpenGLDriverInformation();
+
+    /* Create loop to handle event */
     thisObject->mLoop = new Looper(false);
     thisObject->mLoop->addFd(thisObject->mDisplayEventReceiver.getFd(), 0, ALOOPER_EVENT_INPUT,
                              (ALooper_callbackFunc)RenderMachine::frameControl, thisObject);
+
     thisObject->mDisplayEventReceiver.setVsyncRate(1);//Enable vsync forever
+
     unsigned int tid = gettid();
     do
         {
@@ -964,10 +1011,12 @@ void RenderMachine::startRender(EGLNativeWindowType window,
                                    sp<SurfaceControl> control, int identity)
 {
     pthread_t thread_status;
+
     windowSurface = window;
     mSurfaceComposerClient = composerClient;
     mSurfaceControl = control;
     mId = identity;
+
     pthread_create(&thread_status, NULL, RenderMachine::mainRender, (void*)(this));
 }
 
