@@ -1,9 +1,7 @@
 /*
+*  201231228 Cui.Yingyun
+*
 *   Used to generate vertex, e.g. Cube, read Blender output...
-*
-*
-*
-*
 */
 
 #ifndef  VERTEXGENERATOR_H
@@ -35,6 +33,6 @@ public:
 
 };
 
-}
+} //namespace android end
 
 #endif
