@@ -13,7 +13,15 @@ namespace android
 #define NUM_VERTICES 24
 #define NUM_INDICES 36
 
-/* This function gets from OpenGLES2.0 Programming Guide */
+/*
+*This function gets from OpenGLES2.0 Programming Guide
+*
+*20131229 Cui.Yingyun
+*Note: This generating will get the result of NDC(Normailized Coordination) verticles.
+*It means that you can't use this combine with the operation of projection matrix.
+* TODO: Do generate the verticle based on screen coordination. Let's us easy to use it with
+* projection matrix.
+*/
 int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices, float **normals,
                                   float **texCoords, float **colors, unsigned int **indices)
 {
@@ -23,7 +31,7 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
             float cubeVerts[] =
             {
                 /* 24 vertex,  6 slide * 4 vertex per slide */
-                #if 1
+#if 1
                 /* Full size */
                 -1.0f, -1.0f, -1.0f,
                 -1.0f, -1.0f,  1.0f,
@@ -54,9 +62,9 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
                 1.0f, -1.0f,  1.0f,
                 1.0f,  1.0f,  1.0f,
                 1.0f,  1.0f, -1.0f,
-                #endif
+#endif
 
-                #if 0
+#if 0
                 /* Half size */
                 -0.5f, -0.5f, -0.5f,
                 -0.5f, -0.5f,  0.5f,
@@ -87,7 +95,7 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
                 0.5f, -0.5f,  0.5f,
                 0.5f,  0.5f,  0.5f,
                 0.5f,  0.5f, -0.5f,
-                #endif
+#endif
             };
 
             float cubeColor[] =
@@ -303,52 +311,52 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
             float cubeColor[] =
             {
                 // Front face (red)
-                1.0f, 0.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, .0f,
+                1.0f, 0.0f, 0.0f, .0f,
+                1.0f, 0.0f, 0.0f, .0f,
+                1.0f, 0.0f, 0.0f, .0f,
+                1.0f, 0.0f, 0.0f, .0f,
+                1.0f, 0.0f, 0.0f, .0f,
 
                 // Right face (green)
-                0.0f, 1.0f, 0.0f, 1.0f,
-                0.0f, 1.0f, 0.0f, 1.0f,
-                0.0f, 1.0f, 0.0f, 1.0f,
-                0.0f, 1.0f, 0.0f, 1.0f,
-                0.0f, 1.0f, 0.0f, 1.0f,
-                0.0f, 1.0f, 0.0f, 1.0f,
+                0.0f, 1.0f, 0.0f, .0f,
+                0.0f, 1.0f, 0.0f, .0f,
+                0.0f, 1.0f, 0.0f, .0f,
+                0.0f, 1.0f, 0.0f, .0f,
+                0.0f, 1.0f, 0.0f, .0f,
+                0.0f, 1.0f, 0.0f, .0f,
 
                 // Back face (blue)
-                0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, 0.0f, 1.0f, .0f,
+                0.0f, 0.0f, 1.0f, .0f,
+                0.0f, 0.0f, 1.0f, .0f,
+                0.0f, 0.0f, 1.0f, .0f,
+                0.0f, 0.0f, 1.0f, .0f,
+                0.0f, 0.0f, 1.0f, .0f,
 
                 // Left face (yellow)
-                1.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 1.0f, 0.0f, 1.0f,
+                1.0f, 1.0f, 0.0f, .0f,
+                1.0f, 1.0f, 0.0f, .0f,
+                1.0f, 1.0f, 0.0f, .0f,
+                1.0f, 1.0f, 0.0f, .0f,
+                1.0f, 1.0f, 0.0f, .0f,
+                1.0f, 1.0f, 0.0f, .0f,
 
                 // Top face (cyan)
-                0.0f, 1.0f, 1.0f, 1.0f,
-                0.0f, 1.0f, 1.0f, 1.0f,
-                0.0f, 1.0f, 1.0f, 1.0f,
-                0.0f, 1.0f, 1.0f, 1.0f,
-                0.0f, 1.0f, 1.0f, 1.0f,
-                0.0f, 1.0f, 1.0f, 1.0f,
+                0.0f, 1.0f, 1.0f, .0f,
+                0.0f, 1.0f, 1.0f, .0f,
+                0.0f, 1.0f, 1.0f, .0f,
+                0.0f, 1.0f, 1.0f, .0f,
+                0.0f, 1.0f, 1.0f, .0f,
+                0.0f, 1.0f, 1.0f, .0f,
 
                 // Bottom face (magenta)
-                1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, 0.0f, 1.0f, 1.0f
+                1.0f, 0.0f, 1.0f, .0f,
+                1.0f, 0.0f, 1.0f, .0f,
+                1.0f, 0.0f, 1.0f, .0f,
+                1.0f, 0.0f, 1.0f, .0f,
+                1.0f, 0.0f, 1.0f, .0f,
+                1.0f, 0.0f, 1.0f, .0f
             };
 
             // TODO: implement texcoord and normal
@@ -402,7 +410,7 @@ void VertexGenerator::releaseCube(float **vertices, float **normals,
         }
 }
 
-unsigned int VertexGenerator::vertexSizeByte(bool indexMode)
+unsigned int VertexGenerator::vertexCubeSizeByte(bool indexMode)
 {
     unsigned int num = 0;
     if(indexMode) num = NUM_VERTICES;
@@ -410,7 +418,7 @@ unsigned int VertexGenerator::vertexSizeByte(bool indexMode)
     return sizeof(float) * 3 * num;
 }
 
-unsigned int VertexGenerator::colorSizeByte(bool indexMode)
+unsigned int VertexGenerator::colorCubeSizeByte(bool indexMode)
 {
     unsigned int num = 0;
     if(indexMode) num = NUM_VERTICES;
@@ -419,7 +427,7 @@ unsigned int VertexGenerator::colorSizeByte(bool indexMode)
 
 }
 
-unsigned int VertexGenerator::texcoordSizeByte(bool indexMode)
+unsigned int VertexGenerator::texcoordCubeSizeByte(bool indexMode)
 {
     unsigned int num = 0;
     if(indexMode) num = NUM_VERTICES;
@@ -428,7 +436,7 @@ unsigned int VertexGenerator::texcoordSizeByte(bool indexMode)
 
 }
 
-unsigned int VertexGenerator::normalSizeByte(bool indexMode)
+unsigned int VertexGenerator::normalCubeSizeByte(bool indexMode)
 {
     unsigned int num = 0;
     if(indexMode) num = NUM_VERTICES;
@@ -437,9 +445,60 @@ unsigned int VertexGenerator::normalSizeByte(bool indexMode)
 
 }
 
-unsigned int VertexGenerator::indexSizeByte()
+unsigned int VertexGenerator::indexCubeSizeByte()
 {
     return sizeof(unsigned int) * 1 * NUM_INDICES;
+}
+
+
+void VertexGenerator::generateRectangle(float p0_x, float p0_y, float p1_x, float p1_y,
+                                        float p2_x, float p2_y, float p3_x, float p3_y,
+                                        float ** vertices, float ** texCoords)
+{
+    if(vertices != NULL)
+        {
+            *vertices = (float *)malloc(sizeof(float) * 2 * 4);
+            (*vertices)[0] = p0_x;
+            (*vertices)[1] = p0_y; //left-top
+            (*vertices)[2] = p1_x;
+            (*vertices)[3] = p1_y; //left-bottom
+            (*vertices)[4] = p2_x;
+            (*vertices)[5] = p2_y; //right-bottom
+            (*vertices)[6] = p3_x;
+            (*vertices)[7] = p3_y; //right-top
+        }
+    else
+        {
+            printf("ERROR: Wrong pointer %s:%d", __func__, __LINE__);
+        }
+
+    if(texCoords != NULL)
+        {
+            *texCoords = (float *)malloc(sizeof(float) * 2 * 4);
+            (*texCoords)[0] = 0.0f;
+            (*texCoords)[1] = 1.0f; //left-top
+            (*texCoords)[2] = 0.0f;
+            (*texCoords)[3] = 0.0f; //left-bottom
+            (*texCoords)[4] = 1.0f;
+            (*texCoords)[5] = 0.0f ;//right-bottom
+            (*texCoords)[6] = 1.0f;
+            (*texCoords)[7] = 1.0f; //right-top
+        }
+    else
+        {
+            printf("ERROR: Wrong pointer %s:%d", __func__, __LINE__);
+        }
+}
+
+void VertexGenerator::releaseRectangle(float ** vertices, float ** texCoords)
+{
+    if(vertices == 0 || texCoords == 0)
+        {
+            printf("ERROR: Wrong pointer %s:%d", __func__, __LINE__);
+        }
+
+    free(*vertices);
+    free(*texCoords);
 }
 
 }

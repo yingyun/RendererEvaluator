@@ -1,7 +1,6 @@
 /*
-*These affine translation matrix maybe has some bugs
-*
-*
+* Cui.Yingyun 20131228
+* Note: These affine translation matrix maybe has some bugs
 *
 */
 
@@ -139,6 +138,18 @@ void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLf
     result->m[2][2] *= sz;
     result->m[2][3] *= sz;
 }
+
+//Orthoprojection matrix
+void MatrixTransform::matrixOrthoProjection(Matrix44 * result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far)
+{
+    result->m[0][0] =  2 / (right - left);
+    result->m[1][1] =  2 / (top   - bottom);
+    result->m[2][2] = -2 / (far   - near);
+    result->m[3][0] = -(right + left)   / (right - left);
+    result->m[3][1] = -(top   + bottom) / (top   - bottom);
+    result->m[3][2] = -(far   + near)   / (far   - near);
+}
+
 
 /*FixMe; The essence of 2D array */
 void MatrixTransform::matrixDump(const Matrix44 * mDumped, const char * tag)

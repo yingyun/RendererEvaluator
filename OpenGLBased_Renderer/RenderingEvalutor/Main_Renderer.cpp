@@ -7,11 +7,13 @@
 * TODO: add below operation in the shader
 * =>1: Add error check for gl function
 * =>2: Post-processing : Gamma, Contrast, Saturation, Hue and so on
-* =>3: Projection * position operation in vertex shader
+* =>3: Gaussian Blur
 * =>4: Objective model import //???
 * =>5: various texture mapping
 * =>6: Add GPU composing Evaluator, Refer ANDROID/frameworks/native/cmd/flatland
 * =>7: Google test framework used for SurfaceTexture testing.
+* =>8: Change the strategy for surface size and viewport
+* =>9: Specify the texture file via program argument
 */
 
 #include "Main_Renderer.h"
@@ -67,6 +69,8 @@ const char * RenderMachine::gVS_Header_Uniform_scaleMatrix =
     "uniform mat4 u_scaleMatrix;\n";
 const char * RenderMachine::gVS_Header_Uniform_translationMatrix =
     "uniform mat4 u_translationMatrix;\n";
+const char * RenderMachine::gVS_Header_Uniform_OrthoProjcMatrix =
+    "uniform mat4 u_orthoProjecMatrix;\n";
 const char * RenderMachine::gVS_Header_Attribute_passColor =
     "attribute vec4 a_passColor;\n";
 const char *RenderMachine::gVS_Header_Attribute_texCoord =
@@ -82,11 +86,13 @@ const char * RenderMachine::gVS_Main_Start_Function =
 const char * RenderMachine::gVS_Function_Direct_Pass_Position =
     "   gl_Position = a_vertexPosition;\n";
 const char * RenderMachine::gVS_Function_Pass_RO_Multi_Position =
-    "   gl_Position = gl_Position * u_rotationMatrix;\n";
+    "   gl_Position = u_rotationMatrix * gl_Position;\n";
 const char * RenderMachine::gVS_Function_Pass_SC_Multi_Position =
-    "   gl_Position = gl_Position * u_scaleMatrix;\n";
+    "   gl_Position = u_scaleMatrix * gl_Position;\n";
 const char * RenderMachine::gVS_Function_Pass_TR_Multi_Position =
-    "   gl_Position = gl_Position * u_translationMatrix;\n";
+    "   gl_Position = u_translationMatrix * gl_Position;\n";
+const char * RenderMachine::gVS_Function_OrthoProjection_Multi_Position =
+    "   gl_Position = u_orthoProjecMatrix * gl_Position;\n";
 const char * RenderMachine::gVS_Function_Pass_Color_To_Frag =
     "   v_colorToFrag = a_passColor;\n";
 const char * RenderMachine::gVS_Function_Pass_texCoord_To_Frag =
@@ -134,14 +140,15 @@ const char * RenderMachine::gFS_Main_End_Function =
     "}\n";
 /* ==========Data Definition Area End ==========*/
 
-RenderMachine::RenderMachine(unsigned int index, unsigned int step)
-    :mAttrVSPosition(0),mIndex(index), mStep(step), mCounter(1), mOGLProgram(0),
-     mOldTimeStamp(0)
+RenderMachine::RenderMachine(unsigned int index, unsigned int step):
+    mIndex(index), mStep(step), mCounter(1), mOGLProgram(0), mOldTimeStamp(0)
 {
     /* model view tranformation */
-    hasRotation = true; //Done
-    hasScale = false;  //Done
+    hasRotation = false;
+    hasScale = false;
     hasTranslation = false;
+    hasOrthoProjection = true;
+    hasNDCVerticle = false;
 
     /* advanced vertex operation */
     hasLighting = false;
@@ -149,6 +156,7 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step)
     hasMipMap = true;
     hasBasicCubeFBO = false;
     hasCubeWithVBO = false;
+    hasCubeIndexModeWithoutVBO= false;
     hasColorDirectPassCombimeVBO = false;
     hasVAO = false;
 
@@ -159,7 +167,8 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step)
 
     /* polygon setup */
     hasSimTriangle = false;
-    hasCube = true;
+    hasRectangle = true;
+    hasCube = false;
     hasBlenderObjectModel = false;
     hasScissor = false;
     hasBasicStencilOpe = false;
@@ -167,7 +176,7 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step)
     hasBasicBlendingOpe = false;
     hasBasicMSAA = true;
     hasGaussianBlur = false;
-    hasCullFace = true;
+    hasCullFace = false;
 
     /* transformation specific */
     mRotationAngle = 0;
@@ -176,36 +185,54 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step)
     mTranslationMagnitude = 0;
 
     /* polygon specific */
+    mRectangleVertices = 0;
     mCubeVertices = 0;
     mCubeColor = 0;
     mCubeIndices = 0;
     mCubeNumOfIndex = 0;
     mBlenderVertices = 0;
 
-    printf("-Config Print-\n \
+    printf("-Render Configuration-\n \
+   \t ===== Color pass ===== \n \
    \t hasColorConstantPass \t%d\n \
    \t hasColorDirectPass \t%d\n \
    \t hasColorDirectPassCombimeVBO %d\n \
    \t hasPreciMidium \t%d\n  \
-   \t hasRotation \t%d\n  \
-   \t hasScale \t%d\n    \
-   \t hasTranslation %d\n  \
+   \n\
+   \t ===== Affine transform ===== \n \
+   \t hasRotation \t\t%d\n  \
+   \t hasScale \t\t%d\n    \
+   \t hasTranslation \t%d\n  \
+   \t hasOrthoProjection \t%d\n \
+   \t hasNDCVerticle \t%d\n \
+   \n\
+   \t ===== Light and texture ===== \n \
    \t hasLighting \t%d\n   \
    \t hasTexture2D \t%d\n  \
    \t hasMipMap \t%d\n \
+   \n\
+   \t ===== Buffer object ===== \n \
    \t hasBasicCubeFBO \t%d\n  \
-   \t hasVAO \t%d\n \
-   \t hasSimTriangle %d\n \
+   \t hasVAO \t\t%d\n \
+   \n\
+   \t ===== Polygon setup =====\n \
+   \t hasSimTriangle \t%d\n \
+   \t hasRectangle \t%d\n \
    \t hasCube\t%d\n \
    \t hasCubeWithVBO\t%d\n \
-   \t hasBlenderObjectModel\t%d\n  \
-   \t hasScissor\t%d\n  \
+   \t hasCubeIndexModeWithoutVBO %d\n \
+   \t hasBlenderObjectModel \t%d\n  \
+   \n\
+   \t ===== Fragment backend operation ===== \n \
+   \t hasScissor\t\t%d\n  \
    \t hasBasicStencilOpe\t%d\n  \
    \t hasBasicDepthTest\t%d\n  \
-   \t hasBasicMSAA\t%d\n  \
+   \t hasBasicMSAA\t\t%d\n  \
    \t hasBasicBlendingOpe\t%d\n  \
-   \t hasGaussianBlur\t%d\n   \
-   \t hasCullFace\t%d\n",
+   \t hasCullFace\t\t%d\n \
+   \n\
+   \t ===== Image post-processing ===== \n \
+   \t hasGaussianBlur\t%d\n\n",
            hasColorConstantPass,
            hasColorDirectPass,
            hasColorDirectPassCombimeVBO,
@@ -213,22 +240,26 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step)
            hasRotation,
            hasScale,
            hasTranslation,
+           hasOrthoProjection,
+           hasNDCVerticle,
            hasLighting,
            hasTexture2D,
            hasMipMap,
            hasBasicCubeFBO,
            hasVAO,
            hasSimTriangle,
+           hasRectangle,
            hasCube,
            hasCubeWithVBO,
+           hasCubeIndexModeWithoutVBO,
            hasBlenderObjectModel,
            hasScissor,
            hasBasicStencilOpe,
            hasBasicDepthTest,
            hasBasicMSAA,
            hasBasicBlendingOpe,
-           hasGaussianBlur,
-           hasCullFace
+           hasCullFace,
+           hasGaussianBlur
           );
 }
 
@@ -246,7 +277,7 @@ void RenderMachine::printOpenGLDriverInformation()
     printf("Version: %s\n", version);
     printf("Renderer: %s\n", glrenderer);
     printf("%s\n", glsl_version);
-//    printf("%s\n", extensions);
+    //    printf("%s\n", extensions);
 
     int integer4[4] = {0, 0, 0 , 0};
     float float4[4] = {0.0, 0.0, 0.0, 0.0};
@@ -397,7 +428,8 @@ void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
     */
 
     /* Address and alloc the memory for pixel */
-    const char* fileName = "/data/M.png";
+    //const char* fileName = "/data/M.png";
+    const char* fileName = "/data/DesertTreeCloud.png";
     struct stat dest;
     if(stat(fileName, &dest) < 0)
         {
@@ -414,10 +446,10 @@ void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
         }
 
     FILE * file = NULL;
-    file = fopen("/data/M.png", "r");
+    file = fopen(fileName, "r");
     if (file == NULL) printf("Open texture was faild!\n");
     unsigned int haveReaded = fread(imagePixels, 1, fileSize, file);
-    if(fileSize == haveReaded) printf("Load %d bytes texture data was sucessful!", haveReaded);
+    if(fileSize == haveReaded) printf("Load %d bytes texture data was sucessful!\n", haveReaded);
     fclose(file);
 
     /* Encode */
@@ -447,7 +479,11 @@ void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
     if(p2Width != *width || p2Height != *height)
         {
             error_print("Non power of 2 size for Texture data!");
-            exit(-1);
+            /*
+            *As the traditional OpenGL spec said,  Spec didn't support non-power of 2 texture size , but vairous implementation
+            * can support it via his own extensions, So, we keep the maxium texture siza as screen size (e.g. 2013Nexus 7)
+            */
+            //exit(-1);
         }
 }
 
@@ -504,6 +540,7 @@ void RenderMachine::polygonShaderSetup()
     if(hasRotation) mVertexShader.append(gVS_Header_Uniform_rotationMatrix);
     if(hasScale) mVertexShader.append(gVS_Header_Uniform_scaleMatrix);
     if(hasTranslation) mVertexShader.append(gVS_Header_Uniform_translationMatrix);
+    if(hasOrthoProjection) mVertexShader.append(gVS_Header_Uniform_OrthoProjcMatrix);
     if(hasColorDirectPass) mVertexShader.append(gVS_Header_Attribute_passColor);
     if(hasColorDirectPass) mVertexShader.append(gVS_Header_Varying_colorToFrag);
     if(hasTexture2D) mVertexShader.append(gVS_Header_Attribute_texCoord);
@@ -516,6 +553,7 @@ void RenderMachine::polygonShaderSetup()
     if(hasRotation) mVertexShader.append(gVS_Function_Pass_RO_Multi_Position);
     if(hasScale) mVertexShader.append(gVS_Function_Pass_SC_Multi_Position);
     if(hasTranslation) mVertexShader.append(gVS_Function_Pass_TR_Multi_Position);
+    if(hasOrthoProjection) mVertexShader.append(gVS_Function_OrthoProjection_Multi_Position);
     if(hasColorDirectPass) mVertexShader.append(gVS_Function_Pass_Color_To_Frag);
     if(hasTexture2D) mVertexShader.append(gVS_Function_Pass_texCoord_To_Frag);
 
@@ -540,16 +578,27 @@ void RenderMachine::polygonShaderSetup()
     printf("FragmentShader=> \n");
     printf("%s\n", mFramgmentShader.string());
 
-    /* Do polygon vertex generation, Index mode by default
-    * TODO: add cube index mode and non index mode switch
-    */
-    //generateCube(bool indexMode, float scale, float * * vertices, float * * normals, float * * texCoords, float * * colors, unsigned int * * indices)
     if(hasCube || hasCubeWithVBO)
-        mCubeNumOfIndex = VertexGenerator::generateCube(true, 0.5, &mCubeVertices,
-                          NULL, &mCubeTexCoord, &mCubeColor, &mCubeIndices);
+        {
+            if(hasNDCVerticle)//Note: generateCube() will generate NDC based verticle
+                {
+                    mCubeNumOfIndex = VertexGenerator::generateCube(hasCubeIndexModeWithoutVBO ? true : false, 0.3,
+                                      &mCubeVertices, NULL, &mCubeTexCoords, &mCubeColor, &mCubeIndices);
+                }
+            else
+                {
+                    error_print("Wrong configucation, Not allow!");
+                    exit(-1);
+                }
+        }
+
+    if(hasRectangle)//Note; generateRectangle will generate ScreenCoord based verticle
+        VertexGenerator::generateRectangle(0.0f, surfaceHeight, 0.0f, 0.0f,
+                                           surfaceWidth, 0.0f, surfaceWidth, surfaceHeight,
+                                           &mRectangleVertices, &mRectangleTexCoords);
 }
 
-bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[])
+bool RenderMachine::polygonBuildnLink(const char vertexShader[], const char fragmentShader[])
 {
     mOGLProgram= createProgram(vertexShader, fragmentShader);
     if (!mOGLProgram)
@@ -569,6 +618,9 @@ bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], c
     if(hasTranslation)
         mUniVStranslateMat = glGetUniformLocation(mOGLProgram, "u_translationMatrix");
 
+    if(hasOrthoProjection)
+        mUniVSorthoprojecMat = glGetUniformLocation(mOGLProgram, "u_orthoProjecMatrix");
+
     if(hasColorDirectPass)
         mAttrVSColorPass = glGetAttribLocation(mOGLProgram, "a_passColor");
 
@@ -578,17 +630,17 @@ bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], c
             glGenBuffers(3, mVBOForVI); //Note: This is just used for Index mode rendering
             //[0] for Vertex
             glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[0]);
-            glBufferData(GL_ARRAY_BUFFER, VertexGenerator::vertexSizeByte(true),
+            glBufferData(GL_ARRAY_BUFFER, VertexGenerator::vertexCubeSizeByte(true),
                          mCubeVertices, GL_STATIC_DRAW);
 
             //[1] for color
             glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[1]);
-            glBufferData(GL_ARRAY_BUFFER, VertexGenerator::colorSizeByte(true),
+            glBufferData(GL_ARRAY_BUFFER, VertexGenerator::colorCubeSizeByte(true),
                          mCubeColor, GL_STATIC_DRAW);
 
             //[2] for index
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBOForVI[2]);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, 500/*VertexGenerator::indexSizeByte()*/,
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, 500/*VertexGenerator::indexCubeSizeByte()*/,
                          mCubeIndices, GL_STATIC_DRAW);
         }
 
@@ -620,7 +672,7 @@ bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], c
         }
     /*
     *Cui. YY 20131008:W=window width, H=window height by default
-    *As the NDC->WC formular, if w, h doesn't match as the same value in here,
+    *As the NDC->SC formular, if w, h doesn't match as the same value in here,
     *It will be generate the stretch gemotry
     *
     *Ox = (x + w)/2
@@ -637,8 +689,11 @@ bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], c
     */
 
     /* ViewPort Setting */
-    glViewport(0, (h-w)/2, w, w);
-    glDepthRangef(0, 1);
+    if(hasCube)//FixMe; TODO Will be remvoed in the future while NDC verticle was deprecated
+        {
+            glViewport(0, (surfaceHeight-surfaceWidth)/2, surfaceWidth, surfaceWidth);//FixMe; Is it really necessary ?
+            glDepthRangef(0, 1);
+        }
 
     /* Buffer Clear */
     glClearColor(gColorMatrix[mIndex][0], gColorMatrix[mIndex][1],
@@ -651,7 +706,7 @@ bool RenderMachine::polygonBuildnLink(int w, int h, const char vertexShader[], c
     /* Scissor Test */
     if(hasScissor)
         {
-            glScissor(0, (h-w)/2, w, w/2);
+            glScissor(0, (surfaceHeight-surfaceWidth)/2, surfaceWidth, surfaceWidth/2);
             glEnable(GL_SCISSOR_TEST);
         }
 
@@ -716,8 +771,18 @@ void RenderMachine::polygonDraw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    /* polygon vertex data */
-    if(hasSimTriangle)glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
+    /* ==== polygon vertex data update!==== */
+    if(hasSimTriangle)
+        {
+            glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, gSimpleTriangleVertices);
+            glEnableVertexAttribArray(mAttrVSPosition);
+        }
+
+    if(hasRectangle)
+        {
+            glVertexAttribPointer(mAttrVSPosition, 2, GL_FLOAT, GL_FALSE, 0, mRectangleVertices);
+            glEnableVertexAttribArray(mAttrVSPosition);
+        }
 
     if(hasCubeWithVBO)
         {
@@ -732,7 +797,7 @@ void RenderMachine::polygonDraw()
             glEnableVertexAttribArray(mAttrVSPosition);
         }
 
-    /* do transformantion */
+    /* ==== do transformantion ==== */
     if(hasRotation)
         {
             MatrixTransform::matrixIndentity(&mRotateMatrix);
@@ -782,10 +847,18 @@ void RenderMachine::polygonDraw()
             mTranslationMagnitude += 0.1;
             if (mTranslationMagnitude > 1.0f) mTranslationMagnitude = 0;
             MatrixTransform::matrixIndentity(&mTranslateMatrix);
-            /* FixMe; matrixTranslate was wrong ?  */
             MatrixTransform::matrixTranslate(&mTranslateMatrix, 0.0f, 0.0f, 0.0f);
             MatrixTransform::matrixDump(&mTranslateMatrix, "mTranslateMatrix");
             glUniformMatrix4fv(mUniVStranslateMat, 1, GL_FALSE, (GLfloat * )mTranslateMatrix.m);
+        }
+
+    if(hasOrthoProjection)
+        {
+            /* mUniVSorthoprojecMat */
+            MatrixTransform::matrixIndentity(&mOrthoProjecMatrix);
+            MatrixTransform::matrixOrthoProjection(&mOrthoProjecMatrix, 0, surfaceWidth, 0, surfaceHeight, 0, 1);
+            MatrixTransform::matrixDump(&mOrthoProjecMatrix, "mOrthoProjecMatrix");
+            glUniformMatrix4fv(mUniVSorthoprojecMat, 1, GL_FALSE, (GLfloat*)mOrthoProjecMatrix.m);
         }
 
     if(hasBasicStencilOpe)  /* Stencil Test */
@@ -795,42 +868,46 @@ void RenderMachine::polygonDraw()
             glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
         }
 
-    /*
-     * FixMe; TODO: Color and Light
-     */
-
-
-    /*
-    *hasColorDirectPass can use as standalone, but if want to use VBO version, should alwasy mark has-
-    ColorDirectPassCombineVBO as true. Not allow only hasColorDirectPassCombineVBO condition as true.
-    */
-    if(hasColorDirectPassCombimeVBO && !hasColorDirectPass)
+    /* ==== Buffer object update! ==== */
+    if(hasColorDirectPassCombimeVBO)
         {
-            error_print("Wrong configucation, Not allow!");
-            exit(-1);
+            if(hasColorDirectPass)
+                {
+                    /*
+                    * hasColorDirectPass can use as standalone, but if want to use VBO version, should alwasy mark has-
+                    * ColorDirectPassCombineVBO as true. Not allow only hasColorDirectPassCombineVBO condition as true.
+                    */
+                    glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[1]);
+                    glVertexAttribPointer(mAttrVSColorPass, 4, GL_FLOAT, GL_FALSE, 0, 0);
+                    glEnableVertexAttribArray(mAttrVSColorPass);
+                }
+            else
+                {
+                    error_print("Wrong configucation, Not allow!");
+                    exit(-1);
+                }
         }
-
-    if(hasColorDirectPassCombimeVBO && hasColorDirectPass)  //Here, we depend on DirectPass shader ability
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, mVBOForVI[1]);
-            glVertexAttribPointer(mAttrVSColorPass, 4, GL_FLOAT, GL_FALSE, 0, 0);
-            glEnableVertexAttribArray(mAttrVSColorPass);
-
-        }
-
-    if (!hasColorDirectPassCombimeVBO && hasColorDirectPass)
+    else if(hasColorDirectPass)
         {
             glVertexAttribPointer(mAttrVSColorPass, 4, GL_FLOAT, GL_FALSE, 0, mCubeColor);
             glEnableVertexAttribArray(mAttrVSColorPass);
         }
 
+    /* ==== texture mapping update! ==== */
     if(hasTexture2D)
         {
-            glVertexAttribPointer(mAttrVSTexCoordPass, 2, GL_FLOAT, GL_FALSE, 0, mCubeTexCoord); /* Enable Texture coordination */
+            if(hasCube)
+                {
+                    glVertexAttribPointer(mAttrVSTexCoordPass, 2, GL_FLOAT, GL_FALSE, 0, mCubeTexCoords); /* Enable Texture coordination */
+                }
+            if(hasRectangle)
+                {
+                    glVertexAttribPointer(mAttrVSTexCoordPass, 2, GL_FLOAT, GL_FALSE, 0, mRectangleTexCoords);
+                }
             glEnableVertexAttribArray(mAttrVSTexCoordPass);
         }
 
-    /* Let's cook */
+    /* ==== draw something ==== */
     if(hasSimTriangle)
         {
             glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -852,13 +929,22 @@ void RenderMachine::polygonDraw()
             /*
             *glDrawElements will run faster than glDrawArray for many reasons.
             */
-            glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
+            if(hasCubeIndexModeWithoutVBO) //Must exclusive used with VBO mode
+                glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
+            else
+                glDrawArrays(GL_TRIANGLES, 0, 36); // For Cube drawing without index
+
         }
 
-    /*Swap something*/
+    if(hasRectangle)
+        {
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        }
+
+    /* ==== Swap something ==== */
     eglSwapBuffers(mEGLDisplay, mEGLSurface);
 }
-/*if(hasCube)glDrawArrays(GL_TRIANGLES, 0, 36);  //No index mode*/
+
 
 /*
 *   Note: This is Static member function
@@ -934,7 +1020,6 @@ void* RenderMachine::mainRender(void* thisthis)
     EGLint majorVersion;
     EGLint minorVersion;
     EGLContext context;
-    EGLint w, h;
 
     /* EGL init*/
     thisObject->mEGLDisplay= eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -943,7 +1028,7 @@ void* RenderMachine::mainRender(void* thisthis)
     /* EGL Choose our configuration context */
     eglChooseConfig(thisObject->mEGLDisplay, s_configAttribs, &myConfig, 1, &numConfigs);
     printf("---We match %d number config(s)-----\n", numConfigs);
-    thisObject->printEGLConfigInformation(myConfig);
+    //thisObject->printEGLConfigInformation(myConfig);
 
     /* EGL Create window surface and Context */
     thisObject-> mEGLSurface= eglCreateWindowSurface(thisObject->mEGLDisplay, myConfig, thisObject->windowSurface, NULL);
@@ -952,9 +1037,9 @@ void* RenderMachine::mainRender(void* thisthis)
     /* EGL Make current as available */
     returnValue = eglMakeCurrent(thisObject->mEGLDisplay, thisObject->mEGLSurface, thisObject->mEGLSurface, context);
 
-    eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_WIDTH, &w);
-    eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_HEIGHT, &h);
-    printf("TID:%d Window dimensions: %d x %d\n", gettid(), w, h);
+    eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_WIDTH, &(thisObject->surfaceWidth));
+    eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_HEIGHT, &(thisObject->surfaceHeight));
+    printf("TID:%d Window dimensions: %d x %d\n", gettid(), thisObject->surfaceWidth, thisObject->surfaceHeight);
 
     /*
     *   1: Generating polygon shader program
@@ -963,8 +1048,7 @@ void* RenderMachine::mainRender(void* thisthis)
     */
     thisObject->polygonShaderSetup();
 
-    if(!thisObject->polygonBuildnLink(w, h,
-                                      thisObject->mVertexShader.string(), thisObject->mFramgmentShader.string()))
+    if(!thisObject->polygonBuildnLink(thisObject->mVertexShader.string(), thisObject->mFramgmentShader.string()))
         {
             fprintf(stderr, "Could not set up graphics.\n");
             return (void *)0;
@@ -1007,8 +1091,8 @@ void* RenderMachine::mainRender(void* thisthis)
 }
 
 void RenderMachine::startRender(EGLNativeWindowType window,
-                                   sp<SurfaceComposerClient> composerClient,
-                                   sp<SurfaceControl> control, int identity)
+                                sp<SurfaceComposerClient> composerClient,
+                                sp<SurfaceControl> control, int identity)
 {
     pthread_t thread_status;
 

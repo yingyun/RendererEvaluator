@@ -1,7 +1,6 @@
 /*
-* FixMe; Add comments
-*
-*
+*2013 Cui.Yingyun
+* Vairous affine transform matrix
 *
 */
 
@@ -45,6 +44,7 @@ public:
     static void matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
     static void matrixTranslate(Matrix44 * result, GLfloat x, GLfloat y, GLfloat z);
     static void matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLfloat sz);
+    static void matrixOrthoProjection(Matrix44* result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far);
     static void matrixDump(const Matrix44 * M, const char * tag);
     static void vectorDump(const Vector4 * vDumped);
 

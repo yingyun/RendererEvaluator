@@ -69,11 +69,16 @@ private:
     static GLclampf gColorMatrix[6][4];
     /* polygon info*/
     static GLfloat gSimpleTriangleVertices[6];
+
+    GLfloat * mRectangleVertices;
+    GLfloat * mRectangleTexCoords;
+
     GLfloat * mCubeVertices;
     GLfloat * mCubeColor;
-    GLfloat * mCubeTexCoord;
+    GLfloat * mCubeTexCoords;
     GLuint * mCubeIndices;
     GLuint mCubeNumOfIndex;
+
     GLfloat * mBlenderVertices;
 
     //Shader for vertex
@@ -81,6 +86,7 @@ private:
     static const char * gVS_Header_Uniform_rotationMatrix;
     static const char * gVS_Header_Uniform_scaleMatrix;
     static const char * gVS_Header_Uniform_translationMatrix;
+    static const char * gVS_Header_Uniform_OrthoProjcMatrix;
     static const char * gVS_Header_Attribute_passColor;
     static const char * gVS_Header_Attribute_texCoord;
     static const char * gVS_Header_Varying_colorToFrag;
@@ -91,6 +97,7 @@ private:
     static const char * gVS_Function_Pass_RO_Multi_Position;
     static const char * gVS_Function_Pass_SC_Multi_Position;
     static const char * gVS_Function_Pass_TR_Multi_Position;
+    static const char * gVS_Function_OrthoProjection_Multi_Position;
     static const char * gVS_Function_Pass_Color_To_Frag;
     static const char * gVS_Function_Pass_texCoord_To_Frag;
     static const char * gVS_Function_Gaussian_Blur;
@@ -118,13 +125,14 @@ private:
     GLuint mUniVSrotateMat;
     GLuint mUniVSscaleMat;
     GLuint mUniVStranslateMat;
+    GLuint mUniVSorthoprojecMat;
     GLuint mAttrVSColorPass;
     GLuint mAttrVSTexCoordPass;
     GLuint mUniFSSampler;
 
 
     //Shader for fragment
- 
+
 
 
     /* ------- Rendering options Start, Not it's a class object property------- */
@@ -135,15 +143,18 @@ private:
     bool hasRotation;
     bool hasScale;
     bool hasTranslation;
+    bool hasOrthoProjection;
+    bool hasNDCVerticle; //Exclusive used with ortho projection, if we has ortho NDC will be invalid in OpenGL, so it's just macth with pure transform
+
     bool hasLighting;
     bool hasTexture2D;
     bool hasMipMap;
     bool hasBasicCubeFBO;
 
     bool hasSimTriangle;
+    bool hasRectangle;
     bool hasCube;
-    bool hasCuebIWTO; /*Cube with index mode without VBO*/
-    bool hasCubeWTO;  /*Cube no index mode without VBO as well*/
+    bool hasCubeIndexModeWithoutVBO; /*Note: Just can combine used with Color Direct Pass, not available with texture 2d*/
     bool hasCubeWithVBO;
     /*Must combine used with haCubeWithVBO and hasColorDirectPass
     *Reason: If we use VBO as data  source, so should use all of the data from
@@ -181,6 +192,7 @@ private:
     Matrix44 mRotateMatrix;
     Matrix44 mScaleMatrix;
     Matrix44 mTranslateMatrix;
+    Matrix44 mOrthoProjecMatrix;
 
     //global shader source, class object property
     String8 mVertexShader;
@@ -188,7 +200,7 @@ private:
 
     //Polygon render function
     void polygonShaderSetup();
-    bool polygonBuildnLink(int w, int h, const char vertexShader[], const char fragmentShader[]);
+    bool polygonBuildnLink(const char vertexShader[], const char fragmentShader[]);
     void polygonDraw();
 
     /*Cui.YY
@@ -212,6 +224,8 @@ private:
     sp<Looper> mLoop;
     EGLSurface mEGLSurface;
     EGLDisplay mEGLDisplay;
+    EGLint surfaceWidth;
+    EGLint surfaceHeight;
 
     //Used to setup basic rendering environment
     GLuint loadShader(GLenum shaderType, const char* pSource);
