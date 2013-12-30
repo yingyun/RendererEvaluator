@@ -24,17 +24,19 @@ int dumper(void* user, const char* section, const char* name,
            const char* value)
 {
     User = (int)user;
-    if (strcmp(section, Prev_section)) {
-        printf("... [%s]\n", section);
-        strncpy(Prev_section, section, sizeof(Prev_section));
-        Prev_section[sizeof(Prev_section) - 1] = '\0';
-    }
+    if (strcmp(section, Prev_section))
+        {
+            printf("... [%s]\n", section);
+            strncpy(Prev_section, section, sizeof(Prev_section));
+            Prev_section[sizeof(Prev_section) - 1] = '\0';
+        }
     printf("... %s=%s;\n", name, value);
 
     return strcmp(name, "user")==0 && strcmp(value, "parse_error")==0 ? 0 : 1;
 }
 
-void parse(const char* fname) {
+void parse(const char* fname)
+{
     static int u = 100;
     int e;
 

@@ -108,12 +108,14 @@ private:
     static const char * gFS_Header_Varying_colorToFrag;
     static const char * gFS_Header_Varying_texCoordToFrag;
     static const char * gFS_Header_Sampler2D;
+    static const char * gFS_Header_Brightness_Alpha;
 
     static const char * gFS_Main_Start_Function;  //Body
     static const char * gFS_Function_Pass_Constant_Color;
     static const char * gFS_Function_Direct_Pass_Color;
     static const char * gFS_Function_Direct_Sampler_texCoord;
     static const char * gFS_Function_Gaussian_Blur;
+    static const char * gFS_Function_Brightness;
     static const char * gFS_Main_End_Function;
 
 
@@ -128,10 +130,11 @@ private:
     GLuint mUniVSorthoprojecMat;
     GLuint mAttrVSColorPass;
     GLuint mAttrVSTexCoordPass;
-    GLuint mUniFSSampler;
 
 
     //Shader for fragment
+    GLuint mUniFSSampler;
+    GLuint mUniFSBrightnessAlpha;
 
 
 
@@ -175,10 +178,16 @@ private:
 
     /* Various post-processing shader effect */
     bool hasHuePP;
-    bool hasContrastPP;
+
+    /* Below four operation can complete by linear interpolation or extrapolation
+    * Image_out = (1-a) * Image_target + a * Image_source
+    */
     bool hasBrightnessPP;
-    /* bool hasGammaPP; */  //Is it possible in software side ?
+    bool hasContrastPP;
     bool hasSaturationPP;
+    bool hasSharpnessPP;
+
+    /* bool hasGammaPP; */  //Is it possible in software side ?
 
     /* Various Testing/Evaluate function */
     bool hasGoogleTest;
@@ -214,11 +223,14 @@ private:
     nsecs_t mOldTimeStamp;
     SkBitmap mBitmap;
 
-    //Each transformation specific
+    //Each transformation middle variable
     unsigned int mRotationAngle;
     GLfloat mScaleMagnitude;
     bool mScaleIncreasing;
     GLfloat mTranslationMagnitude;
+
+    //Each post processing middle variable
+    GLfloat mBrightnessMagnitude;
 
     DisplayEventReceiver mDisplayEventReceiver;
     sp<Looper> mLoop;

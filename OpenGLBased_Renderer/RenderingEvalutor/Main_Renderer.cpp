@@ -122,6 +122,8 @@ const char * RenderMachine::gFS_Header_Varying_texCoordToFrag =
     "varying vec2 v_tcToFrag;\n";
 const char * RenderMachine::gFS_Header_Sampler2D =
     "uniform sampler2D u_samplerTexture;\n";
+const char * RenderMachine::gFS_Header_Brightness_Alpha =
+    "uniform float u_brightnessAlpha;\n";
 
 const char * RenderMachine::gFS_Main_Start_Function =
     "void main() {\n";
@@ -132,6 +134,8 @@ const char * RenderMachine::gFS_Function_Direct_Pass_Color =
     "  gl_FragColor = v_colorToFrag;\n";
 const char * RenderMachine::gFS_Function_Direct_Sampler_texCoord =
     "  gl_FragColor = texture2D( u_samplerTexture, v_tcToFrag );\n";
+const char * RenderMachine::gFS_Function_Brightness =
+    "  gl_FragColor = gl_FragColor * u_brightnessAlpha;\n";
 
 const char * RenderMachine::gFS_Function_Gaussian_Blur =
     "";
@@ -150,7 +154,7 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
     hasOrthoProjection = true;
     hasNDCVerticle = false;
 
-    /* advanced vertex operation */
+    /* Advanced Vertex Operation */
     hasLighting = false;
     hasTexture2D = true;
     hasMipMap = true;
@@ -165,6 +169,20 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
     hasColorConstantPass = false;
     hasColorDirectPass = false;
 
+    /* Advanced Fragment Operation */
+    hasHuePP = false;
+    hasBrightnessPP = true;
+    hasContrastPP = false;
+    hasSaturationPP = false;
+    hasSharpnessPP= false;
+
+
+    /* bool hasGammaPP; */  //Is it possible in software side ?
+
+    /* Various Testing/Evaluate function */
+    hasGoogleTest = false;
+    hasGPUEvaluation = false;
+
     /* polygon setup */
     hasSimTriangle = false;
     hasRectangle = true;
@@ -178,19 +196,22 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
     hasGaussianBlur = false;
     hasCullFace = false;
 
-    /* transformation specific */
+    /* transformation middle variable init */
     mRotationAngle = 0;
     mScaleMagnitude = 0;
     mScaleIncreasing = true;
     mTranslationMagnitude = 0;
 
-    /* polygon specific */
+    /* polygon middle variable init */
     mRectangleVertices = 0;
     mCubeVertices = 0;
     mCubeColor = 0;
     mCubeIndices = 0;
     mCubeNumOfIndex = 0;
     mBlenderVertices = 0;
+
+    /* post processing middle variable init */
+    mBrightnessMagnitude = 0.0f;
 
     printf("-Render Configuration-\n \
    \t ===== Color pass ===== \n \
@@ -205,6 +226,13 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
    \t hasTranslation \t%d\n  \
    \t hasOrthoProjection \t%d\n \
    \t hasNDCVerticle \t%d\n \
+   \n\
+   \t ===== Color Image Processing =====\n \
+   \t hasHuePP \t\t%d\n \
+   \t hasBrightnessPP \t%d\n \
+   \t hasContrastPP \t\t%d\n \
+   \t hasSaturationPP \t%d\n \
+   \t hasSharpnessPP \t%d\n \
    \n\
    \t ===== Light and texture ===== \n \
    \t hasLighting \t%d\n   \
@@ -242,6 +270,11 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
            hasTranslation,
            hasOrthoProjection,
            hasNDCVerticle,
+           hasHuePP,
+           hasBrightnessPP,
+           hasContrastPP,
+           hasSaturationPP,
+           hasSharpnessPP,
            hasLighting,
            hasTexture2D,
            hasMipMap,
@@ -429,7 +462,9 @@ void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
 
     /* Address and alloc the memory for pixel */
     //const char* fileName = "/data/M.png";
-    const char* fileName = "/data/DesertTreeCloud.png";
+    //const char* fileName = "/data/DesertTreeCloud.png";   DarkModel-MiddBG.png
+    //const char* fileName = "/data/MiddModel-MiddBG.png";
+    const char* fileName = "/data/DarkModel-MiddBG.png";
     struct stat dest;
     if(stat(fileName, &dest) < 0)
         {
@@ -566,6 +601,7 @@ void RenderMachine::polygonShaderSetup()
     if(hasColorDirectPass)mFramgmentShader.append(gFS_Header_Varying_colorToFrag);
     if(hasTexture2D) mFramgmentShader.append(gFS_Header_Varying_texCoordToFrag);
     if(hasTexture2D) mFramgmentShader.append(gFS_Header_Sampler2D);
+    if(hasBrightnessPP) mFramgmentShader.append(gFS_Header_Brightness_Alpha);
 
     /* Setup Fragment shader main body */
     mFramgmentShader.append(gFS_Main_Start_Function);
@@ -573,6 +609,7 @@ void RenderMachine::polygonShaderSetup()
     if(hasColorConstantPass)mFramgmentShader.append(gFS_Function_Pass_Constant_Color);
     if(hasColorDirectPass)mFramgmentShader.append(gFS_Function_Direct_Pass_Color);
     if(hasTexture2D) mFramgmentShader.append(gFS_Function_Direct_Sampler_texCoord);
+    if(hasBrightnessPP) mFramgmentShader.append(gFS_Function_Brightness);
 
     mFramgmentShader.append(gFS_Main_End_Function);
     printf("FragmentShader=> \n");
@@ -670,6 +707,13 @@ bool RenderMachine::polygonBuildnLink(const char vertexShader[], const char frag
             glBindTexture(GL_TEXTURE_2D, mTexture[0]);
             glUniform1i(mUniFSSampler, 0);
         }
+
+    if(hasBrightnessPP)
+        {
+            mUniFSBrightnessAlpha= glGetUniformLocation(mOGLProgram, "u_brightnessAlpha");
+        }
+
+
     /*
     *Cui. YY 20131008:W=window width, H=window height by default
     *As the NDC->SC formular, if w, h doesn't match as the same value in here,
@@ -905,6 +949,25 @@ void RenderMachine::polygonDraw()
                     glVertexAttribPointer(mAttrVSTexCoordPass, 2, GL_FLOAT, GL_FALSE, 0, mRectangleTexCoords);
                 }
             glEnableVertexAttribArray(mAttrVSTexCoordPass);
+        }
+
+    /* ==== Color image post-processing ==== */
+    /*
+    *Linear interpolation and Extrapolation
+    * Image_out = (1-a) * Image_target + a * Image_source
+    */
+    if(hasBrightnessPP)
+        {
+            if(mBrightnessMagnitude >= 2.0f)
+                {
+                    mBrightnessMagnitude = 0.0f;
+                }
+            else
+                {
+                    mBrightnessMagnitude += 0.002f;
+                }
+            //printf("mBrightnessMagnitude %f \n", mBrightnessMagnitude);
+            glUniform1f(mUniFSBrightnessAlpha, mBrightnessMagnitude);
         }
 
     /* ==== draw something ==== */
