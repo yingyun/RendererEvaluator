@@ -1,27 +1,7 @@
 /*
- *MEIZU Technology. ZHUHAI 2013
- *
- *The purpose of this program:
- *1:Measue surfaceflinger performance
- *2:Measure the impact of layer composer on power consumtion
- *3:Measure the performance of graphic buffer allocation
- *
- *20130819:Initial version of Native opengl program, basically it's based on SurfaceFlinger service.
- *In the google original design, it's use raw NativeWindow to control buffer deque and enque ope
- *ration via EGL driver. But it's doesn't have compatbility across different android version which
- *android was made huge change on graphic subsystem. So, i have to chang this as follow
- *SurfaceFlinger rule to get the buffer service from SurfaceFlinger.
- *
- *Note that it's just a snipe code of opengl 2.0. Just used for studying SF usage.
- *
- *20130824: Maybe it can be used for testing Native graphic performance.
- *If possible it also can integrate with Google Test Framework under external/gtest
- *
- *20130831: Can run with multiple OpenGL context thread
- *
- *20130901: Render each frame on each vsync event
- *
- *20130911: Add various effect on the canvas.
+ *2013-2014 Cui.Yingyun
+ * cuiyingyun@gmail.com
+ * TODO: The description of this program purpose
  *
  */
 
@@ -55,6 +35,15 @@ int main(int argc, char** argv)
     unsigned int num_of_surface = NUMOFSURFACE;
     unsigned int num_of_fps = 1;
 
+    /*
+     * TODO: Re-factor this argument parser, ugly! Out of date !
+     * ---Use config file style to control the render---
+     *OpenSource Bakcup:
+     *http://www.hyperrealm.com/libconfig/               ;;library
+     *http://www.gtkbook.com/tutorial.php?page=keyfile   ;;For GTK based desktop, Glib
+     *https://code.google.com/p/inih/                    ;;Simple INI parser; Use it !
+     *Use INIH R29 class to parse the config file in here.
+     */
     if (argc == 3)
         {
             int b = atoi(argv[1]);

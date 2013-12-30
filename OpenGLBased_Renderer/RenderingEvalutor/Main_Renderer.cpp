@@ -933,7 +933,6 @@ void RenderMachine::polygonDraw()
                 glDrawElements(GL_TRIANGLES, mCubeNumOfIndex, GL_UNSIGNED_INT, mCubeIndices);
             else
                 glDrawArrays(GL_TRIANGLES, 0, 36); // For Cube drawing without index
-
         }
 
     if(hasRectangle)
