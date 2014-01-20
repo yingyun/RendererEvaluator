@@ -12,8 +12,10 @@
 * =>5: various texture mapping
 * =>6: Add GPU composing Evaluator, Refer ANDROID/frameworks/native/cmd/flatland
 * =>7: Google test framework used for SurfaceTexture testing.
-* =>8: Change the strategy for surface size and viewport
+* =>8: Change the strategy for surface size and viewport                                -> Done;
 * =>9: Specify the texture file via program argument
+* =>10: GrayScale image manipulation;                                                   -> Done;
+* =>11: Add config file parse to control various operation for rendering
 */
 
 #include "Main_Renderer.h"
@@ -136,6 +138,10 @@ const char * RenderMachine::gFS_Function_Direct_Sampler_texCoord =
     "  gl_FragColor = texture2D( u_samplerTexture, v_tcToFrag );\n";
 const char * RenderMachine::gFS_Function_Brightness =
     "  gl_FragColor = gl_FragColor * u_brightnessAlpha;\n";
+const char * RenderMachine::gFS_Function_Luminance =
+    "  vec3 lumCoeff = vec3(0.2125, 0.7154, 0.0721); \n \
+ float lum = dot(lumCoeff, gl_FragColor.rgb); \n \
+ gl_FragColor = vec4(lum, lum, lum, 1.0);";
 
 const char * RenderMachine::gFS_Function_Gaussian_Blur =
     "";
@@ -171,10 +177,11 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
 
     /* Advanced Fragment Operation */
     hasHuePP = false;
-    hasBrightnessPP = true;
+    hasBrightnessPP = false;
     hasContrastPP = false;
     hasSaturationPP = false;
-    hasSharpnessPP= false;
+    hasSharpnessPP = false;
+    hasLuminancePP = true;
 
 
     /* bool hasGammaPP; */  //Is it possible in software side ?
@@ -233,6 +240,7 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
    \t hasContrastPP \t\t%d\n \
    \t hasSaturationPP \t%d\n \
    \t hasSharpnessPP \t%d\n \
+   \t hasLuminancePP \t%d\n \
    \n\
    \t ===== Light and texture ===== \n \
    \t hasLighting \t%d\n   \
@@ -275,6 +283,7 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
            hasContrastPP,
            hasSaturationPP,
            hasSharpnessPP,
+           hasLuminancePP,
            hasLighting,
            hasTexture2D,
            hasMipMap,
@@ -460,7 +469,6 @@ void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
     *SkBitmap::kARGB_8888_Config:
     */
 
-    /* Address and alloc the memory for pixel */
     //const char* fileName = "/data/M.png";
     //const char* fileName = "/data/DesertTreeCloud.png";   DarkModel-MiddBG.png
     //const char* fileName = "/data/MiddModel-MiddBG.png";
@@ -472,6 +480,7 @@ void RenderMachine::loadTexture(int* width, int* height, void** pixelData)
             exit(-1);
         }
 
+    /* Address and alloc the memory for pixel */
     unsigned int fileSize =  dest.st_size;
     void * imagePixels = malloc(fileSize);
     if(imagePixels == NULL)
@@ -610,6 +619,7 @@ void RenderMachine::polygonShaderSetup()
     if(hasColorDirectPass)mFramgmentShader.append(gFS_Function_Direct_Pass_Color);
     if(hasTexture2D) mFramgmentShader.append(gFS_Function_Direct_Sampler_texCoord);
     if(hasBrightnessPP) mFramgmentShader.append(gFS_Function_Brightness);
+    if(hasLuminancePP) mFramgmentShader.append(gFS_Function_Luminance);
 
     mFramgmentShader.append(gFS_Main_End_Function);
     printf("FragmentShader=> \n");
