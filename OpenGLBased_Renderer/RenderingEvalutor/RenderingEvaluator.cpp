@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 #include "NativeSurfaceFlingerEGLService.h"
-#include "Main_Renderer.h"
+#include "RenderMachine.h"
 
 #define NUMOFSURFACE 6
 

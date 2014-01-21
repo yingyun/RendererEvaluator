@@ -2,11 +2,12 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
-	RenderingEvalutor.cpp \
-	Main_Renderer.cpp \
+	RenderingEvaluator.cpp \
+	RenderMachine.cpp \
 	NativeSurfaceFlingerEGLService.cpp \
 	MatrixTransform.cpp \
-	VertexGenerator.cpp
+	VertexGenerator.cpp \
+	ShaderGen.cpp
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \
