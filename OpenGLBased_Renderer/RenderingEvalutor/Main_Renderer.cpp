@@ -851,6 +851,11 @@ void RenderMachine::polygonDraw()
             glEnableVertexAttribArray(mAttrVSPosition);
         }
 
+    /*
+    *FixMe; TODO: Get the rid of updating uniform from this draw function
+    *
+    */
+
     /* ==== do transformantion ==== */
     if(hasRotation)
         {
