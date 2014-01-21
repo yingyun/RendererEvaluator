@@ -116,7 +116,7 @@ private:
     static const char * gFS_Function_Direct_Sampler_texCoord;
     static const char * gFS_Function_Gaussian_Blur;
     static const char * gFS_Function_Brightness;
-    static const char * gFS_Function_Luminance;
+    static const char * gFS_Function_Grayscale;
     static const char * gFS_Main_End_Function;
 
 
@@ -187,7 +187,7 @@ private:
     bool hasContrastPP;
     bool hasSaturationPP;
     bool hasSharpnessPP;
-    bool hasLuminancePP;
+    bool hasGrayscalePP;
 
     /* bool hasGammaPP; */  //Is it possible in software side ?
 

@@ -138,7 +138,7 @@ const char * RenderMachine::gFS_Function_Direct_Sampler_texCoord =
     "  gl_FragColor = texture2D( u_samplerTexture, v_tcToFrag );\n";
 const char * RenderMachine::gFS_Function_Brightness =
     "  gl_FragColor = gl_FragColor * u_brightnessAlpha;\n";
-const char * RenderMachine::gFS_Function_Luminance =
+const char * RenderMachine::gFS_Function_Grayscale =
     "  vec3 lumCoeff = vec3(0.2125, 0.7154, 0.0721); \n \
  float lum = dot(lumCoeff, gl_FragColor.rgb); \n \
  gl_FragColor = vec4(lum, lum, lum, 1.0);";
@@ -181,7 +181,7 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
     hasContrastPP = false;
     hasSaturationPP = false;
     hasSharpnessPP = false;
-    hasLuminancePP = true;
+    hasGrayscalePP = true;
 
 
     /* bool hasGammaPP; */  //Is it possible in software side ?
@@ -240,7 +240,7 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
    \t hasContrastPP \t\t%d\n \
    \t hasSaturationPP \t%d\n \
    \t hasSharpnessPP \t%d\n \
-   \t hasLuminancePP \t%d\n \
+   \t hasGrayscalePP \t%d\n \
    \n\
    \t ===== Light and texture ===== \n \
    \t hasLighting \t%d\n   \
@@ -283,7 +283,7 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
            hasContrastPP,
            hasSaturationPP,
            hasSharpnessPP,
-           hasLuminancePP,
+           hasGrayscalePP,
            hasLighting,
            hasTexture2D,
            hasMipMap,
@@ -619,7 +619,7 @@ void RenderMachine::polygonShaderSetup()
     if(hasColorDirectPass)mFramgmentShader.append(gFS_Function_Direct_Pass_Color);
     if(hasTexture2D) mFramgmentShader.append(gFS_Function_Direct_Sampler_texCoord);
     if(hasBrightnessPP) mFramgmentShader.append(gFS_Function_Brightness);
-    if(hasLuminancePP) mFramgmentShader.append(gFS_Function_Luminance);
+    if(hasGrayscalePP) mFramgmentShader.append(gFS_Function_Grayscale);
 
     mFramgmentShader.append(gFS_Main_End_Function);
     printf("FragmentShader=> \n");
