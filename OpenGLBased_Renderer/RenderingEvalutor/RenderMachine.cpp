@@ -64,6 +64,7 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
     *Cui.YY
     *FixMe; TODO: Below value should be constructed by INI file
     */
+    hasTestingRender = false;
 
     /* model view tranformation */
     hasRotation = false;
@@ -93,7 +94,7 @@ RenderMachine::RenderMachine(unsigned int index, unsigned int step):
     hasContrastPP = false;
     hasSaturationPP = false;
     hasSharpnessPP = false;
-    hasGrayscalePP = true;
+    hasGrayscalePP = false;
 
     /* Various Testing/Evaluate function */
     hasGoogleTest = false;
@@ -256,6 +257,8 @@ void RenderMachine::printEGLConfigInformation(EGLConfig config)
 void RenderMachine::printRenderingConfiguration()
 {
     printf("-Render Configuration-\n \
+   \t hasTestingRender \t%d\n \
+   \n\
    \t ===== Color pass ===== \n \
    \t hasColorConstantPass \t%d\n \
    \t hasColorDirectPass \t%d\n \
@@ -276,6 +279,7 @@ void RenderMachine::printRenderingConfiguration()
    \t hasSaturationPP \t%d\n \
    \t hasSharpnessPP \t%d\n \
    \t hasGrayscalePP \t%d\n \
+   \t hasGaussianBlur \t%d\n \
    \n\
    \t ===== Light and texture ===== \n \
    \t hasLighting \t%d\n   \
@@ -301,9 +305,8 @@ void RenderMachine::printRenderingConfiguration()
    \t hasBasicMSAA\t\t%d\n  \
    \t hasBasicBlendingOpe\t%d\n  \
    \t hasCullFace\t\t%d\n \
-   \n\
-   \t ===== Image post-processing ===== \n \
-   \t hasGaussianBlur\t%d\n\n",
+   \n\n",
+           hasTestingRender,
            hasColorConstantPass,
            hasColorDirectPass,
            hasColorDirectPassCombimeVBO,
@@ -319,6 +322,7 @@ void RenderMachine::printRenderingConfiguration()
            hasSaturationPP,
            hasSharpnessPP,
            hasGrayscalePP,
+           hasGaussianBlur,
            hasLighting,
            hasTexture2D,
            hasMipMap,
@@ -335,9 +339,7 @@ void RenderMachine::printRenderingConfiguration()
            hasBasicDepthTest,
            hasBasicMSAA,
            hasBasicBlendingOpe,
-           hasCullFace,
-           hasGaussianBlur
-          );
+           hasCullFace);
 
 }
 

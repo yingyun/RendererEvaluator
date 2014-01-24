@@ -99,6 +99,8 @@ private:
     GLuint mUniFSBrightnessAlpha;
 
     /* Note:If add an new item, should also keep with polygonShaderSetup function */
+    bool hasTestingRender;
+    
     bool hasColorConstantPass;
     bool hasColorDirectPass;
     bool hasPreciMidium;
@@ -132,7 +134,6 @@ private:
     bool hasBasicDepthTest;
     bool hasBasicMSAA;
     bool hasBasicBlendingOpe;
-    bool hasGaussianBlur;
     bool hasCullFace;
 
     /* Various post-processing shader effect */
@@ -146,6 +147,8 @@ private:
     bool hasSaturationPP;
     bool hasSharpnessPP;
     bool hasGrayscalePP;
+
+    bool hasGaussianBlur;
 
     /* Various Testing/Evaluate function */
     bool hasGoogleTest;
