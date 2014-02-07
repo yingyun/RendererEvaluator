@@ -57,7 +57,7 @@ int ini_parse_file(FILE* file,
 
 /* Nonzero to use stack, zero to use heap (malloc/free). */
 #ifndef INI_USE_STACK
-#define INI_USE_STACK 1
+#define INI_USE_STACK 0
 #endif
 
 /* Stop parsing on first error (default is to keep parsing). */

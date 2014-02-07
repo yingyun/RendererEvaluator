@@ -1,5 +1,4 @@
 /*
-*MEIZU Technology. ZHUHAI 2013
 *Cui.YY
 *The implementation of vertex geneartor.
 *
@@ -8,7 +7,8 @@
 
 
 #include "VertexGenerator.h"
-namespace android
+
+namespace RenderEvaluator
 {
 #define NUM_VERTICES 24
 #define NUM_INDICES 36
@@ -202,7 +202,7 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
 
             if(vertices != NULL)
                 {
-                    *vertices = (float *)malloc(sizeof(float) * 3 * NUM_VERTICES);//FixMe; Mem leak here
+                    *vertices = (float *)malloc(sizeof(float) * 3 * NUM_VERTICES);
                     memcpy(*vertices, cubeVerts, sizeof(cubeVerts));
                     for(int i = 0; i < NUM_VERTICES * 3; i++)
                         {
@@ -363,7 +363,7 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
 
             if(vertices != NULL)
                 {
-                    *vertices = (float *)malloc(sizeof(float) * 3 * NUM_INDICES);//FixMe; Mem leak here
+                    *vertices = (float *)malloc(sizeof(float) * 3 * NUM_INDICES);
                     memcpy(*vertices, cubeVerts, sizeof(cubeVerts));
                     for(int i = 0; i < NUM_INDICES * 3; i++)
                         {
@@ -450,6 +450,10 @@ unsigned int VertexGenerator::indexCubeSizeByte()
     return sizeof(unsigned int) * 1 * NUM_INDICES;
 }
 
+void VertexGenerator::generateRectangle(float width, float height, float ** vertices, float ** texCoords)
+{
+    generateRectangle(0.0f, height, 0.0f, 0.0f,  width, 0.0f, width, height, vertices, texCoords);
+}
 
 void VertexGenerator::generateRectangle(float p0_x, float p0_y, float p1_x, float p1_y,
                                         float p2_x, float p2_y, float p3_x, float p3_y,

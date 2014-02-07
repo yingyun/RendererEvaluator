@@ -1,7 +1,6 @@
 /*
-*2013 Cui.Yingyun
-* Vairous affine transform matrix
-*
+*2013-2014 Cui.Yingyun
+*Vairous affine transform matrix
 */
 
 
@@ -16,10 +15,10 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
+#include "Logging.h"
 
-namespace android
+namespace RenderEvaluator
 {
-
 typedef struct
 {
     GLfloat m[4][4];
@@ -32,13 +31,7 @@ typedef struct
 
 class MatrixTransform
 {
-    //FixMe; Implement RTS firstly
-
-private:
-
 public:
-
-    //Basic Matrix operation
     static void matrixIndentity(Matrix44 *result);
     static void matrixMultiply(Matrix44 *result, Matrix44 *srcA, Matrix44 *srcB);
     static void matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
@@ -48,9 +41,7 @@ public:
     static void matrixDump(const Matrix44 * M, const char * tag);
     static void vectorDump(const Vector4 * vDumped);
 
+    static void androidStyleProjection(Matrix44 * result, GLfloat width, GLfloat height);
 };
-
-
 }
-
 #endif

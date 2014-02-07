@@ -3,28 +3,15 @@
 * Note: These affine translation matrix maybe has some bugs
 *
 */
-
-
-
-
 #include "MatrixTransform.h"
 
-namespace android
+namespace RenderEvaluator
 {
-
-//#define LOG_ENABLE
-#ifdef LOG_ENABLE
-#define LOG(...) printf(__VA_ARGS__)  //FixMe;  What does VA_ARGS mean?
-#else
-#define LOG(...)
-#endif
-
 /*
 * Cui.YY  FixMe; Need to review equation
 * Detaild equation refer 3D Math primer please
 */
 #define PI  3.14159265
-
 
 void MatrixTransform::matrixIndentity(Matrix44 * result)
 {
@@ -56,7 +43,6 @@ void MatrixTransform::matrixMultiply(Matrix44 *result, Matrix44 *srcA, Matrix44 
     memcpy(result, &tmp, sizeof(Matrix44));
 }
 
-//FixMe;  Wrong matrix ?
 void MatrixTransform::matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
     GLfloat sinAngle;
@@ -111,7 +97,6 @@ void MatrixTransform::matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, 
         }
 }
 
-//FixMe; Wrong Matrix?
 void MatrixTransform::matrixTranslate(Matrix44 * result, GLfloat tx, GLfloat ty, GLfloat tz)
 {
     result->m[3][0] += (result->m[0][0] * tx + result->m[1][0] * ty + result->m[2][0] * tz);
@@ -120,7 +105,6 @@ void MatrixTransform::matrixTranslate(Matrix44 * result, GLfloat tx, GLfloat ty,
     result->m[3][3] += (result->m[0][3] * tx + result->m[1][3] * ty + result->m[2][3] * tz);
 }
 
-//FixMe; Wrong Matrix?
 void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLfloat sz)
 {
     result->m[0][0] *= sx;
@@ -139,6 +123,15 @@ void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLf
     result->m[2][3] *= sz;
 }
 
+/*
+*Convenience method to setup android style ortho projection in which the original point was
+*the left-bottom and pixel based window size
+*/
+void MatrixTransform::androidStyleProjection(Matrix44 * result, GLfloat width, GLfloat height)
+{
+    matrixOrthoProjection(result, 0, width, 0, height, 0, 1);
+}
+
 //Orthoprojection matrix
 void MatrixTransform::matrixOrthoProjection(Matrix44 * result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far)
 {
@@ -150,8 +143,6 @@ void MatrixTransform::matrixOrthoProjection(Matrix44 * result, GLfloat left, GLf
     result->m[3][2] = -(far   + near)   / (far   - near);
 }
 
-
-/*FixMe; The essence of 2D array */
 void MatrixTransform::matrixDump(const Matrix44 * mDumped, const char * tag)
 {
     /*
@@ -160,22 +151,22 @@ void MatrixTransform::matrixDump(const Matrix44 * mDumped, const char * tag)
     * type as float (* aa)[5] variable, it's also means float[5] type.
     */
     const GLfloat (* M)[4] = mDumped->m;
-    LOG("%s\n " \
-        "\t %f %f %f %f\n" \
-        "\t %f %f %f %f\n" \
-        "\t %f %f %f %f\n"\
-        "\t %f %f %f %f\n"
-        ,tag
-        ,M[0][0] ,M[0][1] ,M[0][2] ,M[0][3]
-        ,M[1][0] ,M[1][1] ,M[1][2] ,M[1][3]
-        ,M[2][0] ,M[2][1] ,M[2][2] ,M[2][3]
-        ,M[3][0] ,M[3][1] ,M[3][2] ,M[3][3]
-       );
+    LOG_DEBUG("%s\n " \
+              "\t %f %f %f %f\n" \
+              "\t %f %f %f %f\n" \
+              "\t %f %f %f %f\n"\
+              "\t %f %f %f %f\n"
+              ,tag
+              ,M[0][0] ,M[0][1] ,M[0][2] ,M[0][3]
+              ,M[1][0] ,M[1][1] ,M[1][2] ,M[1][3]
+              ,M[2][0] ,M[2][1] ,M[2][2] ,M[2][3]
+              ,M[3][0] ,M[3][1] ,M[3][2] ,M[3][3]
+             );
 }
 void MatrixTransform::vectorDump(const Vector4 * vDumped)
 {
     const GLfloat * V = vDumped->v;
-    printf("%f, %f, %f, %f\n", V[0], V[1], V[2], V[3]);
+    LOG_DEBUG("%f, %f, %f, %f\n", V[0], V[1], V[2], V[3]);
 }
 
 }

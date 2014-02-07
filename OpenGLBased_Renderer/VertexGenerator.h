@@ -7,11 +7,12 @@
 #ifndef  VERTEXGENERATOR_H
 #define VERTEXGENERATOR_H
 
-namespace android
-{
-
 #include <stdio.h>
 #include <stdlib.h>
+
+namespace RenderEvaluator
+{
+
 class VertexGenerator
 {
 public:
@@ -47,12 +48,14 @@ public:
      * Note that it's based on screen coordination
      *
      */
+    static void generateRectangle(float width, float height, float ** vertices, float ** texCoords);
+
     static void generateRectangle(float p0_x, float p0_y, float p1_x, float p1_y,
                                   float p2_x, float p2_y, float p3_x, float p3_y,
                                   float **vertices, float **texCoords);
     static void releaseRectangle(float **vertices, float **texCoords);
 };
 
-} //namespace android end
+}
 
 #endif
