@@ -31,6 +31,7 @@ private:
     GLuint positionHandler;
     GLuint projectionHandler;
     GLuint samplerHandler;
+    GLuint colorOffsetHandler;
     GLuint mProgram;
     GLuint texture[1];
 

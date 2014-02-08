@@ -30,12 +30,13 @@ bool GrayscaleEffect::updateShaderOnce()
     precision mediump float;\n\
     varying vec2 outTexCoords;\n\
     uniform sampler2D sampler;\n\
+    uniform vec4 colorOffset;\n\
     void main(void) {\n\
         vec3 lumCoeff = vec3(0.2125, 0.7154, 0.0721);\n\
         vec4 texColor = texture2D(sampler, outTexCoords);\n\
         //Do Luminance\n\
         float lum = dot(lumCoeff, texColor.rgb);\n\
-        gl_FragColor = vec4(lum, lum, lum, 1.0);\n\
+        gl_FragColor = vec4(lum, lum, lum, 1.0) + colorOffset;\n\
     }\n";
     mFragShader.append(fragShader);
 
@@ -53,8 +54,9 @@ bool GrayscaleEffect::updateAttributeOnce()
     positionHandler = glGetAttribLocation(mProgram, "position");
     projectionHandler = glGetUniformLocation(mProgram, "projection");
     samplerHandler = glGetUniformLocation(mProgram, "sampler");
-    LOG_INFO("Render=> texCoords %d, position %d, projection %d, sampler %d\n", texCoordsHandler, positionHandler,
-             projectionHandler, samplerHandler);
+    colorOffsetHandler = glGetUniformLocation(mProgram, "colorOffset");
+    LOG_INFO("Render=> texCoords %d, position %d, projection %d, sampler %d, colorOffset %d\n",
+        texCoordsHandler, positionHandler, projectionHandler, samplerHandler, colorOffsetHandler);
 
     /* Generate & Update vertex and texture coordinations */
     VertexGenerator::generateRectangle(mLayerInfo.LayerWidth, mLayerInfo.LayerHeight, &vertexData, &texCoordsData);
@@ -72,6 +74,10 @@ bool GrayscaleEffect::updateAttributeOnce()
 
     /*Update sampler*/
     glUniform1i(samplerHandler, 0);
+
+    /*Update color offset*/
+    GLfloat colorOffsetData[4] = {0.1, 0.1, 0.1, 0.0};
+    glUniform4fv(colorOffsetHandler, 1, colorOffsetData);
     GL_ERROR_CHECK;
 
     return true;
