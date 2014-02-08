@@ -1,16 +1,6 @@
-RenderingEvalutor can evalute the performance/feature of Composer,
-SurfaceFlinger for example on android platform.
-It can draw some cube with his surface by opengl and compose it by
-surfaceflinger to display it.
-Use this tool can evalute the the performance of composing layer by
-OpenGL method and also can evalute the desgin of HWComposer strategy
-of vender display IP.
+RenderEvaluator was used to evaluate the funcitonality and performance of
+display server/composer and native OpenGL driver stack performance.
 
+Under heavily developing status, more detailed description will be updated.
 
-How to use it:
-	1: Place code under ANDROID_ROOT/external/
-	2: Setup build enviroment and run 'mm' on the code directory
-	3: Push binary to the file system and run it as regular linux command
-
-
-	-Yingyun(Cui.YY) cuiyingyun@gmail.com
+    -Yingyun(Cui.YY) cuiyingyun@gmail.com
