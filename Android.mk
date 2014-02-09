@@ -3,6 +3,7 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
 	Effects/GrayscaleEffect.cpp \
+	Effects/PureCanvasEffect.cpp \
 	INI_Parser/ini.c \
 	INI_Parser/INIReader.cpp \
 	RenderEvaluator.cpp \

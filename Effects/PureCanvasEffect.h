@@ -13,15 +13,14 @@ using android::String8;
 
 namespace RenderEvaluator
 {
-
 class PureCanvasEffect : public EffectBase
 {
 private:
     String8 mFragShader;
     String8 mVertexShader;
-    int surfaceHeight;
-    int surfaceWidth;
-    Matrix44 projectionMatrix;
+    Matrix44 mProjectionMatrix;
+    LayerRenderType mLayerInfo;
+    SkBitmap mBitmap;
 
     GLfloat * vertexData;
     GLfloat * texCoordsData;
@@ -33,7 +32,7 @@ private:
     GLuint texture[1];
 
 public:
-    PureCanvasEffect();
+    PureCanvasEffect(LayerRenderType layerInfo);
     virtual ~PureCanvasEffect() {}
     virtual bool updateShaderOnce();
     virtual bool updateAttributeOnce();
@@ -41,5 +40,6 @@ public:
     virtual bool drawPolygonEvery();
     virtual bool updateFrameEvery();
 };
+
 }
 #endif

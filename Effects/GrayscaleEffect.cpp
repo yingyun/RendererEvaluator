@@ -56,7 +56,7 @@ bool GrayscaleEffect::updateAttributeOnce()
     samplerHandler = glGetUniformLocation(mProgram, "sampler");
     colorOffsetHandler = glGetUniformLocation(mProgram, "colorOffset");
     LOG_INFO("Render=> texCoords %d, position %d, projection %d, sampler %d, colorOffset %d\n",
-        texCoordsHandler, positionHandler, projectionHandler, samplerHandler, colorOffsetHandler);
+             texCoordsHandler, positionHandler, projectionHandler, samplerHandler, colorOffsetHandler);
 
     /* Generate & Update vertex and texture coordinations */
     VertexGenerator::generateRectangle(mLayerInfo.LayerWidth, mLayerInfo.LayerHeight, &vertexData, &texCoordsData);

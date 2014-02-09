@@ -4,7 +4,7 @@
 #include "TextureGenerator.h"
 namespace RenderEvaluator
 {
-void TextureGenerator::loadTexture(int * width, int * height, void * * pixelData, SkBitmap& bitmap)
+void TextureGenerator::loadTexture(int * width, int * height, void ** pixelData, SkBitmap& bitmap)
 {
 
     /*

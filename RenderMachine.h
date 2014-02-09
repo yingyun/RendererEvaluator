@@ -37,6 +37,7 @@
 /* Effect header */
 #include "Effects/EffectBase.h"
 #include "Effects/GrayscaleEffect.h"
+#include "Effects/PureCanvasEffect.h"
 
 
 using android::sp;

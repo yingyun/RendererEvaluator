@@ -13,8 +13,26 @@ RenderMachine::RenderMachine(LayerRenderType layerInfo)
 
 void RenderMachine::polygonEffectSelect()
 {
-    /* FixMe; TODO: Add runtime switch to change the effect dynamically. */
-    mEffect = new GrayscaleEffect(mLayerInfo);
+    /*
+     *Note: Add more instance routine in here to retrive
+     *the proper render effect.
+     */
+    EffectBase* tempResult;
+    string renderEffect = mLayerInfo.LayerRenderEffect;
+    if(renderEffect == string("Grayscale"))
+        {
+            tempResult = new GrayscaleEffect(mLayerInfo);
+        }
+    else if(renderEffect == string("PureCanvas"))
+        {
+            tempResult = new PureCanvasEffect(mLayerInfo);
+        }
+    else
+        {
+            LOG_ERROR("Wrong rendre effect type !\n");
+            exit(1);
+        }
+    mEffect = tempResult;
 }
 
 bool RenderMachine::polygonViewSetup()
