@@ -1,10 +1,10 @@
-/* inih -- simple .INI file parser
+/*
+20140210: Cui.YY use simple .ini parser libaray
 
+inih -- simple .INI file parser
 inih is released under the New BSD license (see LICENSE.txt). Go to the project
 home page for more info:
-
 http://code.google.com/p/inih/
-
 */
 
 #include <stdio.h>
