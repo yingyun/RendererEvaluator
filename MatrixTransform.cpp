@@ -10,6 +10,7 @@ namespace RenderEvaluator
 /*
 * Cui.YY  FixMe; Need to review equation
 * Detaild equation refer 3D Math primer please
+* Take a look at in Android matrix design
 */
 #define PI  3.14159265
 

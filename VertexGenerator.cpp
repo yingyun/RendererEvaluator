@@ -19,8 +19,6 @@ namespace RenderEvaluator
 *20131229 Cui.Yingyun
 *Note: This generating will get the result of NDC(Normailized Coordination) verticles.
 *It means that you can't use this combine with the operation of projection matrix.
-* TODO: Do generate the verticle based on screen coordination. Let's us easy to use it with
-* projection matrix.
 */
 int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices, float **normals,
                                   float **texCoords, float **colors, unsigned int **indices)
@@ -358,8 +356,6 @@ int VertexGenerator::generateCube(bool indexMode, float scale, float **vertices,
                 1.0f, 0.0f, 1.0f, .0f,
                 1.0f, 0.0f, 1.0f, .0f
             };
-
-            // TODO: implement texcoord and normal
 
             if(vertices != NULL)
                 {
