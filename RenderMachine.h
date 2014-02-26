@@ -1,4 +1,3 @@
-
 #ifndef  RENDERMACHINA_H_
 #define RENDERMACHINA_H_
 
@@ -57,7 +56,6 @@ namespace RenderEvaluator
 class RenderMachine:public virtual RefBase
 {
 public:
-    /* ANativeWindow* */
     EGLNativeWindowType mWindowSurface;
 
     RenderMachine(LayerRenderType layerInfo);
@@ -65,7 +63,6 @@ public:
     static void* mainRender(void* thisthis);
 
 private:
-    /* Polygon render function */
     void polygonEffectSelect();
     bool polygonViewSetup();
     bool polygonOnceRoutine();

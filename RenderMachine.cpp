@@ -1,7 +1,3 @@
-/*
-*2013-2014 Cui.YY
-*/
-
 #include "RenderMachine.h"
 
 namespace RenderEvaluator

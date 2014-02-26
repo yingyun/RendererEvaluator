@@ -1,17 +1,11 @@
-/*
-*Cui.YY
-*The implementation of vertex geneartor.
-*
-*
-*/
-
-
 #include "VertexGenerator.h"
 
 namespace RenderEvaluator
 {
 #define NUM_VERTICES 24
 #define NUM_INDICES 36
+
+RENDEREVALUATOR_SINGLETON_STATIC_VAR_INIT(VertexGenerator);
 
 /*
 *This function gets from OpenGLES2.0 Programming Guide

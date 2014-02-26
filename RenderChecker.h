@@ -1,7 +1,3 @@
-/*
-* 20140129 Cui.Yingyun
-*/
-
 #ifndef RENDERCHECKER_H_
 #define RENDERCHECKER_H_
 
@@ -16,11 +12,7 @@ namespace RenderEvaluator
 class RenderChecker
 {
 public:
-    RenderChecker()
-    {
-        //Do something in the future
-    }
-
+    RenderChecker() {}
     static void checkGLDriver(EGLDisplay display);
     static void checkEGLConfig(EGLConfig config, EGLDisplay display);
     static void checkGLErrors();

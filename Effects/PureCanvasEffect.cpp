@@ -1,6 +1,3 @@
-/*
-* 20140206 Cui.Yingyun
-*/
 #include "PureCanvasEffect.h"
 
 namespace RenderEvaluator
@@ -35,8 +32,8 @@ bool PureCanvasEffect::updateShaderOnce()
     }\n";
     mFragShader.append(fragShader);
 
-    mProgram = ShaderProgramBuilder::buildShaderProgram(mVertexShader.string(), mFragShader.string());
-    ShaderProgramBuilder::useShaderProgram(mProgram);
+    mProgram = ShaderProgramBuilder::getInstance().buildShaderProgram(mVertexShader.string(), mFragShader.string());
+    ShaderProgramBuilder::getInstance().useShaderProgram(mProgram);
     GL_ERROR_CHECK;
 
     return true;
@@ -53,7 +50,7 @@ bool PureCanvasEffect::updateAttributeOnce()
              texCoordsHandler, positionHandler, projectionHandler, samplerHandler);
 
     /* Generate & Update vertex and texture coordinations */
-    VertexGenerator::generateRectangle(mLayerInfo.LayerWidth, mLayerInfo.LayerHeight, &vertexData, &texCoordsData);
+    VertexGenerator::getInstance().generateRectangle(mLayerInfo.LayerWidth, mLayerInfo.LayerHeight, &vertexData, &texCoordsData);
 
     glVertexAttribPointer(texCoordsHandler, 2, GL_FLOAT, GL_FALSE, 0, texCoordsData);
     glEnableVertexAttribArray(texCoordsHandler);
@@ -62,8 +59,8 @@ bool PureCanvasEffect::updateAttributeOnce()
     glEnableVertexAttribArray(positionHandler);
 
     /*Update projection matrix*/
-    MatrixTransform::matrixIndentity(&mProjectionMatrix);
-    MatrixTransform::androidStyleProjection(&mProjectionMatrix, mLayerInfo.LayerWidth, mLayerInfo.LayerHeight);
+    MatrixTransform::getInstance().matrixIndentity(&mProjectionMatrix);
+    MatrixTransform::getInstance().androidStyleProjection(&mProjectionMatrix, mLayerInfo.LayerWidth, mLayerInfo.LayerHeight);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, (GLfloat *)mProjectionMatrix.m);
 
     /*Update sampler*/
@@ -80,8 +77,8 @@ bool PureCanvasEffect::updateBufferOnce()
     void * pixelData;
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, texture[0]);
-    TextureGenerator::loadTexture(&textureWidth, &textureHeight, &pixelData, mBitmap);
-    TextureGenerator::samplingMode(GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+    TextureGenerator::getInstance().loadTexture(&textureWidth, &textureHeight, &pixelData, mBitmap);
+    TextureGenerator::getInstance().samplingMode(GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
     glActiveTexture(GL_TEXTURE0);
     GL_ERROR_CHECK;

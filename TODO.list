@@ -4,3 +4,4 @@ TODO List:
 2: Verify again MVP matrix
 3: Support OpenGL ES 3.0 support
 4: Study the implementation of G3D libaray. http://g3d.sourceforge.net/manual/9.00/guidedemos.html
+5: Re-write VertexGenerator class

@@ -1,9 +1,9 @@
-/*
-*20140129 Cui.Yingyun
-*/
 #include "TextureGenerator.h"
 namespace RenderEvaluator
 {
+
+RENDEREVALUATOR_SINGLETON_STATIC_VAR_INIT(TextureGenerator);
+
 void TextureGenerator::loadTexture(int * width, int * height, void ** pixelData, SkBitmap& bitmap)
 {
 

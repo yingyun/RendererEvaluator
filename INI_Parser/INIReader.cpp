@@ -1,5 +1,3 @@
-// Read an INI file into easy-to-access name/value pairs.
-
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>

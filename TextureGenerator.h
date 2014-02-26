@@ -1,9 +1,5 @@
-/*
- * 20140129 Cui.Yingyun
- */
-
-#ifndef  TEXTUREGENERATOR_H
-#define  TEXTUREGENERATOR_H
+#ifndef  RENDEREVALUATOR_TEXTUREGENERATOR_H
+#define  RENDEREVALUATOR_TEXTUREGENERATOR_H
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -15,15 +11,18 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
+#include "Pattern/Singleton.h"
 #include "Logging.h"
 
 namespace RenderEvaluator
 {
-class TextureGenerator
+
+class TextureGenerator : public Singleton<TextureGenerator>
 {
 public:
-    static void loadTexture(int* width, int* height, void** pixelData, SkBitmap& bitmap);
-    static void samplingMode(int minFilter, int magFilter, int sFilter, int tFilter);
+    TextureGenerator() {}
+    void loadTexture(int* width, int* height, void** pixelData, SkBitmap& bitmap);
+    void samplingMode(int minFilter, int magFilter, int sFilter, int tFilter);
 };
 
 }

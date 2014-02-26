@@ -1,8 +1,3 @@
-/*
-* Cui.Yingyun 20131228
-* Note: These affine translation matrix maybe has some bugs
-*
-*/
 #include "MatrixTransform.h"
 
 namespace RenderEvaluator
@@ -13,6 +8,8 @@ namespace RenderEvaluator
 * Take a look at in Android matrix design
 */
 #define PI  3.14159265
+
+RENDEREVALUATOR_SINGLETON_STATIC_VAR_INIT(MatrixTransform);
 
 void MatrixTransform::matrixIndentity(Matrix44 * result)
 {

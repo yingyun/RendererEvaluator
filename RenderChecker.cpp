@@ -1,8 +1,3 @@
-/*
- * 2014 Cui.YY
- * cuiyingyun@gmail.com
- */
-
 #include <RenderChecker.h>
 
 namespace RenderEvaluator

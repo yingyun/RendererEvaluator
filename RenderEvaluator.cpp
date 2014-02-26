@@ -1,8 +1,3 @@
-/*
- * 2013-2014 Cui.YY (cuiyingyun@gmail.com)
- *
- */
-
 #include "RenderEvaluator.h"
 
 int main(int argc, char** argv)

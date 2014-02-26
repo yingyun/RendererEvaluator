@@ -1,7 +1,3 @@
-/*
- * 20140205: Cui.Yingyun
- */
-
 #ifndef ERRORPRINT_H
 #define ERRORPRINT_H
 
@@ -9,7 +5,6 @@
 #include <stdlib.h>
 #include "RenderChecker.h"
 
-/* Logging */
 enum
 {
     DEBUG_LEVEL = 0xf,

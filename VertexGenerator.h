@@ -1,21 +1,18 @@
-/*
-*  201231228 Cui.Yingyun
-*
-*   Used to generate vertex, e.g. Cube, read Blender output...
-*/
-
 #ifndef  VERTEXGENERATOR_H
 #define VERTEXGENERATOR_H
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "Pattern/Singleton.h"
+
 namespace RenderEvaluator
 {
 
-class VertexGenerator
+class VertexGenerator : public Singleton<VertexGenerator>
 {
 public:
+    VertexGenerator() {}
     /*
      *Generate NDC based verticle which just used without projection matrix.
      *indexMode: index mode or not
@@ -28,18 +25,18 @@ public:
      *
      *return: the numbur of vertices was created.
      */
-    static int generateCube(bool indexMode, float scale, float **vertices, float **normals,
+    int generateCube(bool indexMode, float scale, float **vertices, float **normals,
                             float **texCoords, float **colors, unsigned int **indices);
-    static void releaseCube(float **vertices, float **normals,
+    void releaseCube(float **vertices, float **normals,
                             float **texCoords, float **colors, unsigned int **indices);
     /*
      * Get the attribute of Cube
      */
-    static unsigned int vertexCubeSizeByte(bool indexMode);
-    static unsigned int colorCubeSizeByte(bool indexMode);
-    static unsigned int texcoordCubeSizeByte(bool indexMode);
-    static unsigned int normalCubeSizeByte(bool indexMode);
-    static unsigned int indexCubeSizeByte();
+    unsigned int vertexCubeSizeByte(bool indexMode);
+    unsigned int colorCubeSizeByte(bool indexMode);
+    unsigned int texcoordCubeSizeByte(bool indexMode);
+    unsigned int normalCubeSizeByte(bool indexMode);
+    unsigned int indexCubeSizeByte();
 
     /*
      *The point start count from left-top to left-bottom and right-bottom then right-top.
@@ -48,12 +45,12 @@ public:
      * Note that it's based on screen coordination
      *
      */
-    static void generateRectangle(float width, float height, float ** vertices, float ** texCoords);
+    void generateRectangle(float width, float height, float ** vertices, float ** texCoords);
 
-    static void generateRectangle(float p0_x, float p0_y, float p1_x, float p1_y,
+    void generateRectangle(float p0_x, float p0_y, float p1_x, float p1_y,
                                   float p2_x, float p2_y, float p3_x, float p3_y,
                                   float **vertices, float **texCoords);
-    static void releaseRectangle(float **vertices, float **texCoords);
+    void releaseRectangle(float **vertices, float **texCoords);
 };
 
 }

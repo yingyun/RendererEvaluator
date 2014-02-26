@@ -1,7 +1,3 @@
-/*
- * 20140204 Cui.Yingyun
- */
-
 #ifndef  SHADERPROGRAMBUILDER_H_
 #define  SHADERPROGRAMBUILDER_H_
 #include <stdio.h>
@@ -11,18 +7,20 @@
 #include <GLES2/gl2ext.h>
 
 #include "Logging.h"
+#include "Pattern/Singleton.h"
 
 namespace RenderEvaluator
 {
 
-class ShaderProgramBuilder
+class ShaderProgramBuilder : public Singleton<ShaderProgramBuilder>
 {
 public:
-    static GLuint buildShaderProgram(const char* pVertexSource, const char* pFragmentSource);
-    static void useShaderProgram(GLuint program);
+    ShaderProgramBuilder() {}
+    GLuint buildShaderProgram(const char* pVertexSource, const char* pFragmentSource);
+    void useShaderProgram(GLuint program);
 
 private:
-    static GLuint loadShaderProgram(GLenum shaderType, const char* pSource);
+    GLuint loadShaderProgram(GLenum shaderType, const char* pSource);
 };
 
 }

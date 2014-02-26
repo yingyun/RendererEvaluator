@@ -1,14 +1,3 @@
-/*
-*
-*Cui.YY
-*Description:
-* Platform specific - Android based
-*
-*This class connected with SurfaceFlinger via Binder service, so we can simulate
-*all the operation just like  android gfx render framework was doing.
-*In the theory, it can provide more sanity control of layers and the behavior of
-*surfaceflinger.
-*/
 #ifndef  PLATFORM_NATIVE_ANDROID_H_
 #define PLATFORM_NATIVE_ANDROID_H_
 

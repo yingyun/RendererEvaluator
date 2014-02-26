@@ -1,10 +1,3 @@
-/*
-*Cui.YY
-*The implementation of Nativce EGL surface service.
-*Detailed see the class header.
-*
-*/
-
 #include "Native_Android.h"
 
 namespace RenderEvaluator

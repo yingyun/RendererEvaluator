@@ -1,12 +1,10 @@
-/*
-*20140204 Cui.Yingyun
-*/
-
 #include "ShaderProgramBuilder.h"
 namespace RenderEvaluator
 {
 #define VERTEX_SHADER GL_VERTEX_SHADER
 #define FRAGMENT_SHADER GL_FRAGMENT_SHADER
+
+RENDEREVALUATOR_SINGLETON_STATIC_VAR_INIT(ShaderProgramBuilder);
 
 void ShaderProgramBuilder::useShaderProgram(GLuint program)
 {

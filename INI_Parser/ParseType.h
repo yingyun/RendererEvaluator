@@ -1,7 +1,3 @@
-/*
-*20140206 Cui.YY
-*/
-
 #ifndef PARSETYPE_H_
 #define PARSETYPE_H_
 
