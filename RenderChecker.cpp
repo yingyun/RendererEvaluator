@@ -16,7 +16,6 @@ void RenderChecker::checkGLDriver(EGLDisplay display)
     LOG_INFO("Version: %s\n", version);
     LOG_INFO("Renderer: %s\n", glrenderer);
     LOG_INFO("%s\n", glsl_version);
-    //    printf("%s\n", extensions);
 
     int integer4[4] = {0, 0, 0 , 0};
     float float4[4] = {0.0, 0.0, 0.0, 0.0};
@@ -29,12 +28,6 @@ void RenderChecker::checkGLDriver(EGLDisplay display)
     glGetFloatv(GL_DEPTH_RANGE, float4);
     LOG_INFO("Depth Range: (%f - %f)\n", float4[0], float4[1]);
 
-    /*
-    *CullFaceMode
-    *#define GL_FRONT                                      0x0404
-    *#define GL_BACK                                        0x0405
-    *#define GL_FRONT_AND_BACK                 0x0408
-    */
     glGetIntegerv(GL_CULL_FACE_MODE, integer4);
     LOG_INFO("Cull face mode 0x%x\n", integer4[0]);
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, integer4);
@@ -134,10 +127,6 @@ void RenderChecker::checkGLErrors()
             if (error == GL_INVALID_ENUM) LOG_ERROR("GL ERROR:  invalid enumerant");
             if (error == GL_INVALID_VALUE) LOG_ERROR("GL ERROR: invalid value");
             if (error == GL_INVALID_OPERATION) LOG_ERROR("GL ERROR: invalid operation");
-            /* GL 1.x
-                        if (error == GL_STACK_OVERFLOW) error_print("GL ERROR: stack overflow");
-                        if (error == GL_STACK_UNDERFLOW) error_print("GL ERROR: stack underflow");
-             */
             if (error == GL_OUT_OF_MEMORY) LOG_ERROR("GL ERROR: out of memory");
         }
     while (true);
