@@ -1,9 +1,11 @@
 #include "RenderEvaluator.h"
 
+#define CONFIG_INI_PATH "/data/RenderEvaluator/config.ini"
+
 int main(int argc, char** argv)
 {
     usageRender();
-    INIReader configReader("/data/RenderEvaluator/config.ini");
+    INIReader configReader(CONFIG_INI_PATH);
     if(configReader.ParseError() < 0) LOG_ERROR("Parsing config.ini failed!\n");
 
     MainFunctionType functionInfo = parseMainFunction(configReader);
@@ -28,10 +30,15 @@ int main(int argc, char** argv)
 
 void usageRender()
 {
+    /*
+    *No meaninful code below, just only for showing RenderEvaluator can use
+    *STL and Boost two powerful C++ library.
+    */
     string description;
     description += "Cui.YY RenderEvaluator Ver:0.2\n\
 Note: Be sure you have config.ini file under /data/RenderEvaluator/\n\n";
-    LOG_INFO("%s", description.data());
+    BOOST_FOREACH(char ch, description)
+        std::cout << ch;
 }
 
 void handleLayerRenderTask(INIReader& configParser, unsigned int numOfLayer)

@@ -8,5 +8,7 @@ adb push $A_BUILD_RESULT/system/bin/RenderEvaluator /system/bin/
 adb shell mkdir -p /data/RenderEvaluator
 adb push Resource/config.ini /data/RenderEvaluator
 
+echo ""
+echo ""
 echo "-Run RenderEvaluator-"
 adb shell RenderEvaluator

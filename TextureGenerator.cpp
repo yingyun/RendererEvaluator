@@ -16,7 +16,7 @@ void TextureGenerator::loadTexture(int * width, int * height, void ** pixelData,
     //const char* fileName = "/data/M.png";
     //const char* fileName = "/data/DesertTreeCloud.png";   DarkModel-MiddBG.png
     //const char* fileName = "/data/MiddModel-MiddBG.png";
-    const char* fileName = "/data/DarkModel-MiddBG.png";
+    const char* fileName = "/data/RenderEvaluator/DarkModel-MiddBG.png";
     struct stat dest;
     if(stat(fileName, &dest) < 0)
         {
