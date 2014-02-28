@@ -1,7 +1,5 @@
 #include "RenderEvaluator.h"
 
-#define CONFIG_INI_PATH "/data/RenderEvaluator/config.ini"
-
 int main(int argc, char** argv)
 {
     usageRender();

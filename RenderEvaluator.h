@@ -15,6 +15,7 @@
 
 #define NUMOFSURFACE_MAX 12
 #define  CLAMP(numOfLayer) do{ if(numOfLayer< 1) numOfLayer = 1; else if(numOfLayer > NUMOFSURFACE_MAX) numOfLayer = NUMOFSURFACE_MAX;} while( 0 )
+#define CONFIG_INI_PATH "/data/RenderEvaluator/config.ini"
 
 using android::sp;
 using RenderEvaluator::RenderMachine;

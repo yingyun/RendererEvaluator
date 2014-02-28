@@ -1,7 +1,9 @@
 TODO List:
 
-1: Use singleton desing pattern to refactor various tool class
+1:(20140226-DONE): Use singleton desing pattern to refactor various tool class
 2: Verify again MVP matrix
-3: Support OpenGL ES 3.0 support
+3: Support OpenGL ES 3.0 support, Add VBO support
 4: Study the implementation of G3D libaray. http://g3d.sourceforge.net/manual/9.00/guidedemos.html
 5: Re-write VertexGenerator class
+6: OpenCV Imageprocessing routine study
+7:(20140228-DONE): TextureGenerator; add tenxture selector

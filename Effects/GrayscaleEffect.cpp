@@ -87,7 +87,7 @@ bool GrayscaleEffect::updateBufferOnce()
     void * pixelData;
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, texture[0]);
-    TextureGenerator::getInstance().loadTexture(&textureWidth, &textureHeight, &pixelData, mBitmap);
+    TextureGenerator::getInstance().loadTexture(mLayerInfo.LayerTexture, &textureWidth, &textureHeight, &pixelData, mBitmap);
     TextureGenerator::getInstance().samplingMode(GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
     glActiveTexture(GL_TEXTURE0);

@@ -1,26 +1,24 @@
 #include "TextureGenerator.h"
+
 namespace RenderEvaluator
 {
 
 RENDEREVALUATOR_SINGLETON_STATIC_VAR_INIT(TextureGenerator);
 
-void TextureGenerator::loadTexture(int * width, int * height, void ** pixelData, SkBitmap& bitmap)
+void TextureGenerator::loadTexture(std::string texture, int * width, int * height, void ** pixelData, SkBitmap& bitmap)
 {
 
     /*
-    *M.png was the PNG32 format under the /data/ directory.
+    * The texture source image was the PNG32 format under the /data/ directory.
     *Assume that we just support 8888 format for now and must be an NonOfPower size.
     *SkBitmap::kARGB_8888_Config:
     */
 
-    //const char* fileName = "/data/M.png";
-    //const char* fileName = "/data/DesertTreeCloud.png";   DarkModel-MiddBG.png
-    //const char* fileName = "/data/MiddModel-MiddBG.png";
-    const char* fileName = "/data/RenderEvaluator/DarkModel-MiddBG.png";
+    texture = TEXTURE_PATH + texture;       
     struct stat dest;
-    if(stat(fileName, &dest) < 0)
+    if(stat(texture.data(), &dest) < 0)
         {
-            LOG_ERROR("Get the texture file size failed!");
+            LOG_ERROR("Get the texture file size failed!, Make sure put the image under /data/RenderEvaluator firstly");
             exit(-1);
         }
 
@@ -34,7 +32,7 @@ void TextureGenerator::loadTexture(int * width, int * height, void ** pixelData,
         }
 
     FILE * file = NULL;
-    file = fopen(fileName, "r");
+    file = fopen(texture.data(), "r");
     if (file == NULL) LOG_ERROR("Open texture was faild!\n");
     unsigned int haveReaded = fread(imagePixels, 1, fileSize, file);
     if(fileSize == haveReaded) LOG_INFO("Load %d bytes texture data was sucessful!\n", haveReaded);
