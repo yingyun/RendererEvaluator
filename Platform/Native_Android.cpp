@@ -36,7 +36,7 @@ void Native_Android::setLayerRender(LayerRenderType & layerInfo)
 
 sp<Surface> Native_Android::createNativeSurface()
 {
-    mSurfaceControl.push_back(mSurfaceComposerClient->createSurface(String8::format("Surface-%d", mLayerInfo.LayerIndex),
+    mSurfaceControl.push_back(mSurfaceComposerClient->createSurface(String8::format("Layer%d", mLayerInfo.LayerIndex),
                               mLayerInfo.LayerWidth, mLayerInfo.LayerHeight,
                               android::PIXEL_FORMAT_RGBA_8888, ISurfaceComposerClient::eFXSurfaceNormal));
 

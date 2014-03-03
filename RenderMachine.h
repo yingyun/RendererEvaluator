@@ -75,7 +75,7 @@ private:
     EGLDisplay mEGLDisplay;
     EGLint surfaceWidth;
     EGLint surfaceHeight;
-    size_t mCounter =1;
+    size_t mCounter = 1;
     nsecs_t mOldTimeStamp;
     LayerRenderType mLayerInfo;
 

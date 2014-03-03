@@ -35,8 +35,7 @@ void usageRender()
     string description;
     description += "Cui.YY RenderEvaluator Ver:0.2\n\
 Note: Be sure you have config.ini file under /data/RenderEvaluator/\n\n";
-    BOOST_FOREACH(char ch, description)
-        std::cout << ch;
+    std::cout << description.data() << std::endl;
 }
 
 void handleLayerRenderTask(INIReader& configParser, unsigned int numOfLayer)

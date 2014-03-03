@@ -123,11 +123,11 @@ void RenderChecker::checkGLErrors()
             GLenum error = glGetError();
             if (error == GL_NO_ERROR)
                 break;
-            LOG_ERROR("GL error 0x%04x", int(error));
-            if (error == GL_INVALID_ENUM) LOG_ERROR("GL ERROR:  invalid enumerant");
-            if (error == GL_INVALID_VALUE) LOG_ERROR("GL ERROR: invalid value");
-            if (error == GL_INVALID_OPERATION) LOG_ERROR("GL ERROR: invalid operation");
-            if (error == GL_OUT_OF_MEMORY) LOG_ERROR("GL ERROR: out of memory");
+            LOG_ERROR("Code: 0x%04x ", int(error));
+            if (error == GL_INVALID_ENUM) LOG_ERROR("GL ERROR:  invalid enumerant\n");
+            if (error == GL_INVALID_VALUE) LOG_ERROR("GL ERROR: invalid value\n");
+            if (error == GL_INVALID_OPERATION) LOG_ERROR("GL ERROR: invalid operation\n");
+            if (error == GL_OUT_OF_MEMORY) LOG_ERROR("GL ERROR: out of memory\n");
         }
     while (true);
 }

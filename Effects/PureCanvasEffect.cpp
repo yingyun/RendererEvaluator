@@ -2,6 +2,10 @@
 
 namespace RenderEvaluator
 {
+#define VERTEC_COUNT 4
+#define VERTEX_SIZE 2
+#define TEXCOORDS_SIZE 2
+
 PureCanvasEffect::PureCanvasEffect(LayerRenderType layerInfo)
 {
     mLayerInfo = layerInfo;
@@ -49,20 +53,35 @@ bool PureCanvasEffect::updateAttributeOnce()
     LOG_INFO("Render=> texCoords %d, position %d, projection %d, sampler %d\n",
              texCoordsHandler, positionHandler, projectionHandler, samplerHandler);
 
-    /* Generate & Update vertex and texture coordinations */
-    VertexGenerator::getInstance().generateRectangle(mLayerInfo.LayerWidth, mLayerInfo.LayerHeight, &vertexData, &texCoordsData);
 
-    glVertexAttribPointer(texCoordsHandler, 2, GL_FLOAT, GL_FALSE, 0, texCoordsData);
-    glEnableVertexAttribArray(texCoordsHandler);
 
-    glVertexAttribPointer(positionHandler, 2, GL_FLOAT, GL_FALSE, 0, vertexData);
-    glEnableVertexAttribArray(positionHandler);
+    float width = (float)mLayerInfo.LayerWidth;
+    float height = (float)mLayerInfo.LayerHeight;
 
     /*Update projection matrix*/
     MatrixTransform::getInstance().matrixIndentity(&mProjectionMatrix);
-    MatrixTransform::getInstance().androidStyleProjection(&mProjectionMatrix, mLayerInfo.LayerWidth, mLayerInfo.LayerHeight);
+    MatrixTransform::getInstance().androidStyleProjection(&mProjectionMatrix, width, height);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, (GLfloat *)mProjectionMatrix.m);
 
+
+    /* Generate & Update vertex and texture coordinations */
+    MESH mesh(VertexGenerator::Mesh2D::TRIANGLE_FAN, 
+    VERTEC_COUNT, VERTEX_SIZE, TEXCOORDS_SIZE);
+    MESH::VertexArray<vec2f> position(mesh.getPositionArray<vec2f>());
+    MESH::VertexArray<vec2f> texCoord(mesh.getTexCoordArray<vec2f>());
+    position[0] = vec2f(0.0, 0.0);
+    position[1] = vec2f(width, 0.0);
+    position[2] = vec2f(width, height);
+    position[3] = vec2f(0.0, height);
+
+    texCoord[0] = vec2f(0.0, 0.0);
+    texCoord[1] = vec2f(1.0, 0.0);
+    texCoord[2] = vec2f(1.0, 1.0);
+    texCoord[3] = vec2f(0.0, 1.0);
+
+    mRectMesh = mesh;
+    mRectMesh.dumpInfo();
+    
     /*Update sampler*/
     glUniform1i(samplerHandler, 0);
     GL_ERROR_CHECK;
@@ -77,9 +96,12 @@ bool PureCanvasEffect::updateBufferOnce()
     void * pixelData;
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, texture[0]);
-    TextureGenerator::getInstance().loadTexture(mLayerInfo.LayerTexture, &textureWidth, &textureHeight, &pixelData, mBitmap);
-    TextureGenerator::getInstance().samplingMode(GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+    TextureGenerator::getInstance().loadTexture(mLayerInfo.LayerTexture, 
+        &textureWidth, &textureHeight, &pixelData, mBitmap);
+    TextureGenerator::getInstance().samplingMode(GL_NEAREST, GL_NEAREST, 
+        GL_REPEAT, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, 
+        GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
     glActiveTexture(GL_TEXTURE0);
     GL_ERROR_CHECK;
 
@@ -88,7 +110,7 @@ bool PureCanvasEffect::updateBufferOnce()
 
 bool PureCanvasEffect::drawPolygonEvery()
 {
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawArrays(MESH::TRIANGLE_FAN, 0, VERTEC_COUNT);
     GL_ERROR_CHECK;
 
     return true;
@@ -96,12 +118,14 @@ bool PureCanvasEffect::drawPolygonEvery()
 
 bool PureCanvasEffect::updateFrameEvery()
 {
-    /*Update Vertex & Texture coordinations*/
-    glVertexAttribPointer(texCoordsHandler, 2, GL_FLOAT, GL_FALSE, 0, texCoordsData);
-    glEnableVertexAttribArray(texCoordsHandler);
-
-    glVertexAttribPointer(positionHandler, 2, GL_FLOAT, GL_FALSE, 0, vertexData);
+	/*Update Vertex & Texture coordinations*/
+    glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT, 
+    GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getPositions());
     glEnableVertexAttribArray(positionHandler);
+
+    glVertexAttribPointer(texCoordsHandler, mRectMesh.getTexCoordsSize(), GL_FLOAT, 
+    GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getTexCoords());
+    glEnableVertexAttribArray(texCoordsHandler);
     GL_ERROR_CHECK;
 
     return true;
