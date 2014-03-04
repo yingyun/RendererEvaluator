@@ -23,6 +23,10 @@ void RenderMachine::polygonEffectSelect()
         {
             tempResult = new PureCanvasEffect(mLayerInfo);
         }
+    else if(renderEffect == string("EdgeDetection"))
+        {
+            tempResult = new EdgeDetection(mLayerInfo);
+        }
     else
         {
             LOG_ERROR("Wrong rendre effect type !\n");

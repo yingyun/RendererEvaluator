@@ -43,6 +43,7 @@
 #include "Effects/EffectBase.h"
 #include "Effects/GrayscaleEffect.h"
 #include "Effects/PureCanvasEffect.h"
+#include "Effects/EdgeDetection.h"
 
 using android::sp;
 using android::wp;

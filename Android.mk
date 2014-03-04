@@ -17,6 +17,7 @@ LOCAL_C_INCLUDES += \
 LOCAL_SRC_FILES:= \
 	Effects/GrayscaleEffect.cpp \
 	Effects/PureCanvasEffect.cpp \
+	Effects/EdgeDetection.cpp \
 	INI_Parser/ini.cpp \
 	INI_Parser/INIReader.cpp \
 	RenderEvaluator.cpp \
