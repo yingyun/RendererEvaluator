@@ -142,7 +142,6 @@ void* RenderMachine::mainRender(void* thisthis)
     /* EGL Choose our configuration context */
     eglChooseConfig(thisObject->mEGLDisplay, s_configAttribs, &myConfig, 1, &numConfigs);
     LOG_INFO("---We match %d number config(s)-----\n", numConfigs);
-    //thisObject->printEGLConfigInformation(myConfig);
 
     /* EGL Create window surface and Context */
     thisObject-> mEGLSurface= eglCreateWindowSurface(thisObject->mEGLDisplay, myConfig, thisObject->mWindowSurface, NULL);
@@ -153,7 +152,9 @@ void* RenderMachine::mainRender(void* thisthis)
 
     eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_WIDTH, &(thisObject->surfaceWidth));
     eglQuerySurface(thisObject->mEGLDisplay, thisObject->mEGLSurface, EGL_HEIGHT, &(thisObject->surfaceHeight));
-    LOG_INFO("TID:%d Window dimensions: %d x %d\n", gettid(), thisObject->surfaceWidth, thisObject->surfaceHeight);
+
+    RenderChecker::getInstance().checkGLDriver(thisObject->mEGLDisplay);
+    LOG_INFO("TID:%d Window surface size:(%d %d)\n", gettid(), thisObject->surfaceWidth, thisObject->surfaceHeight);
 
     thisObject->polygonEffectSelect();
     thisObject->polygonViewSetup();

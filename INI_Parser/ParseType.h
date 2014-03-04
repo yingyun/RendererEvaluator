@@ -2,6 +2,7 @@
 #define PARSETYPE_H_
 
 #include <string>
+
 using std::string;
 
 typedef struct

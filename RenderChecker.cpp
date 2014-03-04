@@ -2,6 +2,9 @@
 
 namespace RenderEvaluator
 {
+
+RENDEREVALUATOR_SINGLETON_STATIC_VAR_INIT(RenderChecker);
+
 void RenderChecker::checkGLDriver(EGLDisplay display)
 {
     /*

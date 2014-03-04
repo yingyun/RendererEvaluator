@@ -46,6 +46,11 @@ LOCAL_LDFLAGS := \
 
 LOCAL_CPPFLAGS += -fexceptions -std=c++11
 
+#OpenGL Switcher. In general, ES30 backward-compatibility with ES20
+#but some of device didn't support ES30.
+LOCAL_CFLAGS := -DUSE_OPENGL_ES_30
+#LOCAL_CFLAGS := -DUSE_OPENGL_ES_20
+
 LOCAL_MODULE:= RenderEvaluator
 
 LOCAL_MODULE_TAGS := optional
