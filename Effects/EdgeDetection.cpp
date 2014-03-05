@@ -13,7 +13,6 @@ EdgeDetection::EdgeDetection(LayerRenderType layerInfo)
 
 bool EdgeDetection::updateShaderOnce()
 {
-    /* Do the shader build*/
     const char * vertexShader = "\
     attribute vec4 texCoords;\n\
     varying vec2 outTexCoords;\n\
@@ -34,7 +33,7 @@ bool EdgeDetection::updateShaderOnce()
 
     const char * fragShader = "\
     precision mediump float;\n\
-    varyign vec2 outTexCoords;\n\
+    varying vec2 outTexCoords;\n\
     varying float xPixelsize;\n\
     varying float yPixelSize;\n\
     uniform sampler2D sampler;\n\
@@ -44,27 +43,27 @@ bool EdgeDetection::updateShaderOnce()
     	vec2 tex = outTexCoords.st;\n\
     	vec4 texture = texture2D(sampler, tex);\n\
     	\n\
-    	onCoords = vec2(-xPixelsize, yPixelSize);\n\
-    	teCoords = vec2(0, yPixelSize);\n\
-    	tsCoords = vec2(xPixelsize, yPixelSize);\n\
-    	fsCoords = vec2(-xPixelsize, 0);\n\
-          \n\
-    	oneP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+onCoords)));\n\
-    	twoP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+teCoords)));\n\
-    	threeP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+tsCoords)));\n\
-    	fourP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+fsCoords)));\n\
-          \n\
-    	sixP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-fsCoords)));\n\
-    	sevenP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-tsCoords)));\n\
-    	eightP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-teCoords)));\n\
-    	nineP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-onCoords)));\n\
+    	vec2 onCoords = vec2(-xPixelsize, yPixelSize);\n\
+    	vec2 teCoords = vec2(0, yPixelSize);\n\
+    	vec2 tsCoords = vec2(xPixelsize, yPixelSize);\n\
+    	vec2 fsCoords = vec2(-xPixelsize, 0);\n\
+        \n\
+    	float oneP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+onCoords)).rgb);\n\
+    	float twoP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+teCoords)).rgb);\n\
+    	float threeP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+tsCoords)).rgb);\n\
+    	float fourP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+fsCoords)).rgb);\n\
+        \n\
+    	float sixP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-fsCoords)).rgb);\n\
+    	float sevenP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-tsCoords)).rgb);\n\
+    	float eightP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-teCoords)).rgb);\n\
+    	float nineP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-onCoords)).rgb);\n\
     	\n\
-    	float Gx = oneP*-3 + fourP*-10 + sevenP*-3 + threeP*3 + sixP*10 + nine*3;\n\
-    	float Gy = oneP*-3 + twoP*-10 + three*-3 + sevenP*3 + eightP*10 + nine*3;\n\
+    	float Gx = oneP*-2.0f + fourP*-8.0f + sevenP*-2.0f + threeP*2.0f + sixP*8.0f + nineP*2.0f;\n\
+    	float Gy = oneP*-2.0f + twoP*-8.0f + threeP*-2.0f + sevenP*2.0f + eightP*8.0f + nineP*2.0f;\n\
     	\n\
-    	float mag = length(vec2(Gx, Gy));\n\
-    	vec3 target = vec3(mag, mag, mag);\n\
-    	gl_FragColor = vec4(mix(target, texture.rgb, 0.9), 1.0);\n\
+    	float edgeDetection = length(vec2(Gx, Gy));\n\
+    	vec3 target = vec3(edgeDetection - 0.5f, edgeDetection, edgeDetection);\n\
+    	gl_FragColor = vec4(mix(target, texture.rgb, 0.25), 1.0);\n\
     }\n";
     mFragShader.append(fragShader);
 
@@ -85,10 +84,7 @@ bool EdgeDetection::updateAttributeOnce()
     xPointSizeHandler = glGetUniformLocation(mProgram, "xPS");
     yPointSizeHandler = glGetUniformLocation(mProgram, "yPS");
     LOG_INFO("Render=> texCoords %d, position %d, projection %d, sampler %d, xPS %d, yPS %d\n",
-             texCoordsHandler, positionHandler, projectionHandler, samplerHandler,
-             xPointSizeHandler,yPointSizeHandler );
-
-
+             texCoordsHandler, positionHandler, projectionHandler, samplerHandler, xPointSizeHandler,yPointSizeHandler);
 
     float width = (float)mLayerInfo.LayerWidth;
     float height = (float)mLayerInfo.LayerHeight;
@@ -97,7 +93,6 @@ bool EdgeDetection::updateAttributeOnce()
     MatrixTransform::getInstance().matrixIndentity(&mProjectionMatrix);
     MatrixTransform::getInstance().androidStyleProjection(&mProjectionMatrix, width, height);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, (GLfloat *)mProjectionMatrix.m);
-
 
     /* Generate & Update vertex and texture coordinations */
     MESH mesh(VertexGenerator::Mesh2D::TRIANGLE_FAN,
@@ -119,6 +114,10 @@ bool EdgeDetection::updateAttributeOnce()
 
     /*Update sampler*/
     glUniform1i(samplerHandler, 0);
+
+    /*Update texture pixel size*/
+    glUniform1f(xPointSizeHandler, 1.0f / width);
+    glUniform1f(yPointSizeHandler, 1.0f / height);
     GL_ERROR_CHECK;
 
     return true;
@@ -140,10 +139,6 @@ bool EdgeDetection::updateBufferOnce()
     glActiveTexture(GL_TEXTURE0);
     GL_ERROR_CHECK;
 
-    /*Update texture pixel size*/
-    glUniform1f(xPointSizeHandler, 1.0f / mLayerInfo.LayerWidth);
-    glUniform1f(yPointSizeHandler, 1.0f / mLayerInfo.LayerHeight);
-
     return true;
 }
 
@@ -157,7 +152,7 @@ bool EdgeDetection::drawPolygonEvery()
 
 bool EdgeDetection::updateFrameEvery()
 {
-	/*Update Vertex & Texture coordinations*/
+    /*Update Vertex & Texture coordinations*/
     glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT,
     GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getPositions());
     glEnableVertexAttribArray(positionHandler);
@@ -166,9 +161,6 @@ bool EdgeDetection::updateFrameEvery()
     GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getTexCoords());
     glEnableVertexAttribArray(texCoordsHandler);
     GL_ERROR_CHECK;
-
-
-    
 
     return true;
 }
