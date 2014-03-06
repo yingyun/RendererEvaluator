@@ -44,7 +44,6 @@ bool GrayscaleEffect::updateShaderOnce()
 
     mProgram = ShaderProgramBuilder::getInstance().buildShaderProgram(mVertexShader.string(), mFragShader.string());
     ShaderProgramBuilder::getInstance().useShaderProgram(mProgram);
-    GL_ERROR_CHECK;
 
     return true;
 }
@@ -68,10 +67,10 @@ bool GrayscaleEffect::updateAttributeOnce()
     MatrixTransform::getInstance().matrixIndentity(&mProjectionMatrix);
     MatrixTransform::getInstance().androidStyleProjection(&mProjectionMatrix, width, height);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, (GLfloat *)mProjectionMatrix.m);
-
+    GL_ERROR_CHECK("GrayScale: update projection matrix");
 
     /* Generate & Update vertex and texture coordinations */
-    MESH mesh(VertexGenerator::Mesh2D::TRIANGLE_FAN, 
+    MESH mesh(VertexGenerator::Mesh2D::TRIANGLE_FAN,
     VERTEC_COUNT, VERTEX_SIZE, TEXCOORDS_SIZE);
     MESH::VertexArray<vec2f> position(mesh.getPositionArray<vec2f>());
     MESH::VertexArray<vec2f> texCoord(mesh.getTexCoordArray<vec2f>());
@@ -87,14 +86,15 @@ bool GrayscaleEffect::updateAttributeOnce()
 
     mRectMesh = mesh;
     mRectMesh.dumpInfo();
-    
+
     /*Update sampler*/
     glUniform1i(samplerHandler, 0);
+    GL_ERROR_CHECK("GrayScale: update sampler");
 
     /*Update color offset*/
     GLfloat colorOffsetData[4] = {0.1, 0.1, 0.1, 0.0};
     glUniform4fv(colorOffsetHandler, 1, colorOffsetData);
-    GL_ERROR_CHECK;
+    GL_ERROR_CHECK("GrayScale: update color offset");
 
     return true;
 }
@@ -106,14 +106,14 @@ bool GrayscaleEffect::updateBufferOnce()
     void * pixelData;
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, texture[0]);
-    TextureGenerator::getInstance().loadTexture(mLayerInfo.LayerTexture, 
+    TextureGenerator::getInstance().loadTexture(mLayerInfo.LayerTexture,
         &textureWidth, &textureHeight, &pixelData, mBitmap);
-    TextureGenerator::getInstance().samplingMode(GL_NEAREST, GL_NEAREST, 
+    TextureGenerator::getInstance().samplingMode(GL_NEAREST, GL_NEAREST,
         GL_REPEAT, GL_REPEAT);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0,
         GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
     glActiveTexture(GL_TEXTURE0);
-    GL_ERROR_CHECK;
+    GL_ERROR_CHECK("GrayScale: Create texture and update image");
 
     return true;
 }
@@ -121,7 +121,7 @@ bool GrayscaleEffect::updateBufferOnce()
 bool GrayscaleEffect::drawPolygonEvery()
 {
     glDrawArrays(MESH::TRIANGLE_FAN, 0, VERTEC_COUNT);
-    GL_ERROR_CHECK;
+    GL_ERROR_CHECK("GrayScale:drawPolygon");
 
     return true;
 }
@@ -129,14 +129,15 @@ bool GrayscaleEffect::drawPolygonEvery()
 bool GrayscaleEffect::updateFrameEvery()
 {
 	/*Update Vertex & Texture coordinations*/
-    glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT, 
+    glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT,
     GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getPositions());
     glEnableVertexAttribArray(positionHandler);
+    GL_ERROR_CHECK("GrayScale: update vertex attribute");
 
-    glVertexAttribPointer(texCoordsHandler, mRectMesh.getTexCoordsSize(), GL_FLOAT, 
+    glVertexAttribPointer(texCoordsHandler, mRectMesh.getTexCoordsSize(), GL_FLOAT,
     GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getTexCoords());
     glEnableVertexAttribArray(texCoordsHandler);
-    GL_ERROR_CHECK;
+    GL_ERROR_CHECK("GrayScale: update texture attribute");
 
     return true;
 }

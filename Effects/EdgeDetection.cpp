@@ -69,7 +69,6 @@ bool EdgeDetection::updateShaderOnce()
 
     mProgram = ShaderProgramBuilder::getInstance().buildShaderProgram(mVertexShader.string(), mFragShader.string());
     ShaderProgramBuilder::getInstance().useShaderProgram(mProgram);
-    GL_ERROR_CHECK;
 
     return true;
 }
@@ -93,6 +92,7 @@ bool EdgeDetection::updateAttributeOnce()
     MatrixTransform::getInstance().matrixIndentity(&mProjectionMatrix);
     MatrixTransform::getInstance().androidStyleProjection(&mProjectionMatrix, width, height);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, (GLfloat *)mProjectionMatrix.m);
+    GL_ERROR_CHECK("EdgeDetection:update projection matrix");
 
     /* Generate & Update vertex and texture coordinations */
     MESH mesh(VertexGenerator::Mesh2D::TRIANGLE_FAN,
@@ -118,7 +118,7 @@ bool EdgeDetection::updateAttributeOnce()
     /*Update texture pixel size*/
     glUniform1f(xPointSizeHandler, 1.0f / width);
     glUniform1f(yPointSizeHandler, 1.0f / height);
-    GL_ERROR_CHECK;
+    GL_ERROR_CHECK("EdgeDetection:update sampler and pixel size uniform");
 
     return true;
 }
@@ -137,31 +137,51 @@ bool EdgeDetection::updateBufferOnce()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0,
         GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
     glActiveTexture(GL_TEXTURE0);
-    GL_ERROR_CHECK;
+    GL_ERROR_CHECK("EdgeDetection:Gen texture and update image");
+
+    /*Update VAO and vertex, texture VBO*/
+    glGenVertexArrays(1, &mVertexArrayObject);
+    glBindVertexArray(mVertexArrayObject);
+
+    glGenBuffers(1, &mVertexPositionBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexPositionBuffer);
+    int vertexByteSize = (mRectMesh.getVertexSize() + mRectMesh.getTexCoordsSize() ) * mRectMesh.getVertexCount() * sizeof(float);
+    glBufferData(GL_ARRAY_BUFFER, vertexByteSize, mRectMesh.getPositions(), GL_STATIC_DRAW);
+    glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT,
+        GL_FALSE, mRectMesh.getByteStride(), (void *)0);
+    glEnableVertexAttribArray(positionHandler);
+    GL_ERROR_CHECK("EdgeDetection:VAO for vertex");
+
+    glGenBuffers(1, &mTextureCoordsBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mTextureCoordsBuffer);
+    vertexByteSize -= mRectMesh.getTexCoordsSize() * sizeof(float);
+    glBufferData(GL_ARRAY_BUFFER, vertexByteSize, mRectMesh.getTexCoords(), GL_STATIC_DRAW);
+    glVertexAttribPointer(texCoordsHandler, mRectMesh.getTexCoordsSize(), GL_FLOAT,
+        GL_FALSE, mRectMesh.getByteStride(), (void *)0);
+    glEnableVertexAttribArray(texCoordsHandler);
+    GL_ERROR_CHECK("EdgeDetection:VAO for texture");
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return true;
 }
 
 bool EdgeDetection::drawPolygonEvery()
 {
+    glBindVertexArray(mVertexArrayObject);
+    GL_ERROR_CHECK("EdgeDetection:Switch VAO");
+
     glDrawArrays(MESH::TRIANGLE_FAN, 0, VERTEC_COUNT);
-    GL_ERROR_CHECK;
+    GL_ERROR_CHECK("EdgeDetection:drawPolygon");
+
+    glBindVertexArray(0);
 
     return true;
 }
 
 bool EdgeDetection::updateFrameEvery()
 {
-    /*Update Vertex & Texture coordinations*/
-    glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT,
-    GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getPositions());
-    glEnableVertexAttribArray(positionHandler);
-
-    glVertexAttribPointer(texCoordsHandler, mRectMesh.getTexCoordsSize(), GL_FLOAT,
-    GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getTexCoords());
-    glEnableVertexAttribArray(texCoordsHandler);
-    GL_ERROR_CHECK;
-
     return true;
 }
 

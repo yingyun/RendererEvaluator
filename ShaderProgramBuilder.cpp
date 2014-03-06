@@ -10,7 +10,7 @@ void ShaderProgramBuilder::useShaderProgram(GLuint program)
 {
     LOG_INFO("Render=> Use GL program %d\n", program);
     glUseProgram( program);
-    GL_ERROR_CHECK;
+    GL_ERROR_CHECK("ShaderProgramBuilder:use GL program");
 }
 
 GLuint ShaderProgramBuilder::buildShaderProgram(const char * pVertexSource, const char * pFragmentSource)
@@ -18,20 +18,23 @@ GLuint ShaderProgramBuilder::buildShaderProgram(const char * pVertexSource, cons
     GLuint vertexShader = loadShaderProgram(VERTEX_SHADER, pVertexSource);
     if (!vertexShader)
         return false;
-    LOG_INFO("Render=> Build Vertex Shader\n");
+    LOG_INFO("Render=> Pass Build Vertex Shader\n");
 
     GLuint pixelShader = loadShaderProgram(FRAGMENT_SHADER, pFragmentSource);
     if (!pixelShader)
         return false;
-    LOG_INFO("Render=> Build Fragment Shader\n");
+    LOG_INFO("Render=> Pass Build Fragment Shader\n");
 
     GLuint program = glCreateProgram();
+    GL_ERROR_CHECK("ShaderProgramBuilder:Create Program");
     if (program)
         {
             glAttachShader(program, vertexShader);
             glAttachShader(program, pixelShader);
+            GL_ERROR_CHECK("ShaderProgramBuilder:Attach Program");
 
             glLinkProgram(program);
+            GL_ERROR_CHECK("ShaderProgramBuilder:Link Program");
 
             GLint linkStatus = GL_FALSE;
             glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
@@ -41,13 +44,11 @@ GLuint ShaderProgramBuilder::buildShaderProgram(const char * pVertexSource, cons
                     glGetProgramiv(program, GL_INFO_LOG_LENGTH, &bufLength);
                     if (bufLength)
                         {
-                            //char* buf = (char*) malloc(bufLength);
                             char* buf = new char[bufLength];
                             if (buf)
                                 {
                                     glGetProgramInfoLog(program, bufLength, NULL, buf);
                                     LOG_ERROR("Could not link program:\n%s\n", buf);
-                                    //free(buf);
                                     delete buf;
                                 }
                         }
@@ -62,6 +63,7 @@ GLuint ShaderProgramBuilder::buildShaderProgram(const char * pVertexSource, cons
 GLuint ShaderProgramBuilder::loadShaderProgram(GLenum shaderType, const char * pSource)
 {
     GLuint shader = glCreateShader(shaderType);
+    GL_ERROR_CHECK("ShaderProgramBuilder:Create Shader");
     if (shader)
         {
             glShaderSource(shader, 1, &pSource, NULL);
@@ -74,13 +76,12 @@ GLuint ShaderProgramBuilder::loadShaderProgram(GLenum shaderType, const char * p
                     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
                     if (infoLen)
                         {
-                            //char* buf = (char*) malloc(infoLen);
+                            GL_ERROR_CHECK("ShaderProgramBuilder:Failed on Compile Shader");
                             char* buf = new char[infoLen];
                             if (buf)
                                 {
                                     glGetShaderInfoLog(shader, infoLen, NULL, buf);
                                     LOG_ERROR("Could not compile shader %d:\n%s\n", shaderType, buf);
-                                    //free(buf);
                                     delete buf;
                                 }
                             glDeleteShader(shader);

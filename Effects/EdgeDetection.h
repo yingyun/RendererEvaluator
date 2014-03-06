@@ -34,6 +34,9 @@ private:
     GLuint yPointSizeHandler;
     GLuint mProgram;
     GLuint texture[1];
+    GLuint mVertexArrayObject;
+    GLuint mVertexPositionBuffer;
+    GLuint mTextureCoordsBuffer;
 
 public:
     EdgeDetection(LayerRenderType layerInfo);

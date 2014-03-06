@@ -13,7 +13,7 @@
 #ifdef USE_OPENGL_ES_20
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-#endif 
+#endif
 
 #ifdef USE_OPENGL_ES_30
 #include <GLES3/gl3.h>

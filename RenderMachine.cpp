@@ -56,7 +56,7 @@ bool RenderMachine::polygonViewSetup()
 
 bool RenderMachine::polygonOnceRoutine()
 {
-    if( !mEffect->updateShaderOnce()) return false;
+    if(!mEffect->updateShaderOnce()) return false;
     if(!mEffect->updateAttributeOnce()) return false;
     if(!mEffect->updateBufferOnce()) return false;
     return true;

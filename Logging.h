@@ -27,6 +27,6 @@ enum
 #endif
 
 /* OpenGL */
-#define GL_ERROR_CHECK  RenderChecker::getInstance().checkGLErrors()
+#define GL_ERROR_CHECK(description)  do{RenderChecker::getInstance().checkGLErrors(description);}while(0)
 
 #endif

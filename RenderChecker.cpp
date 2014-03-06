@@ -119,14 +119,20 @@ void RenderChecker::checkEGLConfig(EGLConfig config, EGLDisplay display)
     LOG_INFO("\n");
 }
 
-void RenderChecker::checkGLErrors()
+/*
+*Rule to use checkGLErros:
+*In OpenGL state machine desgin, error mechanism just responsible for recording error code
+*instead of blocking the excution of gl command routine. So the rule is simple,
+*who call gl command who call gl error check after that command.
+*/
+void RenderChecker::checkGLErrors(const char* description)
 {
     do
         {
             GLenum error = glGetError();
             if (error == GL_NO_ERROR)
                 break;
-            LOG_ERROR("Code: 0x%04x ", int(error));
+            LOG_ERROR("%s=>Code: 0x%04x ", description, int(error));
             if (error == GL_INVALID_ENUM) LOG_ERROR("GL ERROR:  invalid enumerant\n");
             if (error == GL_INVALID_VALUE) LOG_ERROR("GL ERROR: invalid value\n");
             if (error == GL_INVALID_OPERATION) LOG_ERROR("GL ERROR: invalid operation\n");
