@@ -64,11 +64,12 @@ namespace RenderEvaluator
 class RenderMachine:public virtual RefBase
 {
 public:
-    EGLNativeWindowType mWindowSurface;
-
     RenderMachine(LayerRenderType layerInfo);
+    ~RenderMachine();
     void startRender(EGLNativeWindowType surface);
     static void* mainRender(void* thisthis);
+
+    EGLNativeWindowType mWindowSurface;
 
 private:
     void polygonEffectSelect();

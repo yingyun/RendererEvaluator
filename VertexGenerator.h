@@ -9,7 +9,7 @@
 #ifdef USE_OPENGL_ES_20
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-#endif 
+#endif
 
 #ifdef USE_OPENGL_ES_30
 #include <GLES3/gl3.h>
@@ -59,30 +59,39 @@ public:
             }
         };
 
-        Mesh2D(): mPrimitive(TRIANGLE_FAN), mVertices(0), mVertexCount(4), 
-            mVertexSize(2), mTexCoordsSize(2) 
+        Mesh2D(): mPrimitive(TRIANGLE_FAN), mVertices(0), mVertexCount(4),
+            mVertexSize(2), mTexCoordsSize(2)
             {
                 //do something in the future
             }
-        
-        Mesh2D(Mesh2D& mesh)
+
+        Mesh2D& operator = (Mesh2D& mesh)
             {
                 mPrimitive = mesh.getPrimitive();
                 mVertexCount = mesh.getVertexCount();
                 mVertexSize = mesh.getVertexSize();
                 mTexCoordsSize = mesh.getTexCoordsSize();
                 mStride = mesh.getStride();
-                mVertices = mesh.getPositions();
-                if(mVertices == 0)
+                mVertices = 0;
+                float* sourceVertices = mesh.getPositions();
+                unsigned int byteOfmVertices = (mVertexSize + mTexCoordsSize) * mVertexCount;
+                mVertices = new float[byteOfmVertices];
+                if(mVertices != 0)
                     {
-                        LOG_ERROR("Wrong Mesh2D init!\n");
+                        for(unsigned int i =0; i < byteOfmVertices; i++)
+                            mVertices[i] = sourceVertices[i];
+                    }
+                else
+                    {
+                        LOG_ERROR("Wrong Mesh2D init\n");
                         exit(-1);
                     }
+                return *this;
             }
 
-        Mesh2D(Primitive primitive, size_t vertexCount, 
-            size_t vertexSize, size_t texCoordsSize): 
-            mPrimitive(primitive), 
+        Mesh2D(Primitive primitive, size_t vertexCount,
+            size_t vertexSize, size_t texCoordsSize):
+            mPrimitive(primitive),
             mVertexCount(vertexCount),
             mVertexSize(vertexSize),
             mTexCoordsSize(texCoordsSize)
@@ -90,18 +99,18 @@ public:
                 mVertices = new float[(mVertexSize + mTexCoordsSize) * mVertexCount];
                 mStride = mVertexSize + mTexCoordsSize;
             }
-            
+
         ~Mesh2D()
             {
-                //delete [] mVertices;,,, Keep this until program was terminated
+                delete [] mVertices;
             }
 
         template <typename TYPE>
-        VertexArray<TYPE> getPositionArray() { 
+        VertexArray<TYPE> getPositionArray() {
             return VertexArray<TYPE>(getPositions(), mStride); }
 
         template <typename TYPE>
-        VertexArray<TYPE> getTexCoordArray() { 
+        VertexArray<TYPE> getTexCoordArray() {
             return VertexArray<TYPE>(getTexCoords(), mStride); }
 
         Primitive getPrimitive() { return mPrimitive; }
@@ -115,7 +124,7 @@ public:
         void dumpInfo()
             {
                 LOG_INFO("<-Dumpping Mesh2D information->\n");
-                LOG_INFO("Vertex Point Count: %d, Vertex Size: %d, TexCoords Size: %d, Byte Stride: %d\n", 
+                LOG_INFO("Vertex Point Count: %d, Vertex Size: %d, TexCoords Size: %d, Byte Stride: %d\n",
                 getVertexCount(), getVertexSize(), getTexCoordsSize(), getByteStride());
                 for(size_t i = 0; i < getVertexCount(); ++i)
                     {
@@ -148,11 +157,11 @@ public:
         typedef size_t size_type;
 
         union {
-            struct { 
-                TYPE x; TYPE y; 
+            struct {
+                TYPE x; TYPE y;
                 };
-            struct { 
-                TYPE s; TYPE t; 
+            struct {
+                TYPE s; TYPE t;
                 };
         };
 
@@ -185,11 +194,11 @@ public:
         typedef size_t size_type;
 
         union {
-            struct { 
+            struct {
                 TYPE x; TYPE y; TYPE z;
                 };
-            struct { 
-                TYPE r; TYPE g; TYPE b; 
+            struct {
+                TYPE r; TYPE g; TYPE b;
                 };
         };
 
@@ -222,11 +231,11 @@ public:
         typedef size_t size_type;
 
         union {
-            struct { 
+            struct {
                 TYPE x; TYPE y; TYPE z; TYPE w;
                 };
-            struct { 
-                TYPE r; TYPE g; TYPE b; TYPE a; 
+            struct {
+                TYPE r; TYPE g; TYPE b; TYPE a;
                 };
         };
 

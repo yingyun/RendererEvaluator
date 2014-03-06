@@ -11,6 +11,11 @@ PureCanvasEffect::PureCanvasEffect(LayerRenderType layerInfo)
     mLayerInfo = layerInfo;
 }
 
+PureCanvasEffect::~PureCanvasEffect()
+{
+    glDeleteTextures(1, texture);
+}
+
 bool PureCanvasEffect::updateShaderOnce()
 {
     /* Do the shader build*/

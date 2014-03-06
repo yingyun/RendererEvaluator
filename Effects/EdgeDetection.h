@@ -40,7 +40,7 @@ private:
 
 public:
     EdgeDetection(LayerRenderType layerInfo);
-    virtual ~EdgeDetection() {}
+    virtual ~EdgeDetection();
     virtual bool updateShaderOnce();
     virtual bool updateAttributeOnce();
     virtual bool updateBufferOnce();

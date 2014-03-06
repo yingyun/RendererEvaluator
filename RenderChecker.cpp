@@ -59,6 +59,7 @@ void RenderChecker::checkGLDriver(EGLDisplay display)
         {
             //printEGLConfigInformation(configData[i]);
         }
+    delete [] configData;
 }
 
 void RenderChecker::checkEGLConfig(EGLConfig config, EGLDisplay display)

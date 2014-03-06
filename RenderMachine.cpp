@@ -7,6 +7,11 @@ RenderMachine::RenderMachine(LayerRenderType layerInfo)
     mLayerInfo= layerInfo;
 }
 
+RenderMachine::~RenderMachine()
+{
+    delete mEffect;
+}
+
 void RenderMachine::polygonEffectSelect()
 {
     /*

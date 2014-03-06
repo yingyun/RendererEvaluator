@@ -35,7 +35,7 @@ private:
 
 public:
     PureCanvasEffect(LayerRenderType layerInfo);
-    virtual ~PureCanvasEffect() {}
+    virtual ~PureCanvasEffect();
     virtual bool updateShaderOnce();
     virtual bool updateAttributeOnce();
     virtual bool updateBufferOnce();

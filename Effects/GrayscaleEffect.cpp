@@ -12,6 +12,11 @@ GrayscaleEffect::GrayscaleEffect(LayerRenderType layerInfo)
     mLayerInfo = layerInfo;
 }
 
+GrayscaleEffect::~GrayscaleEffect()
+{
+    glDeleteTextures(1, texture);
+}
+
 bool GrayscaleEffect::updateShaderOnce()
 {
     /* Do the shader build*/

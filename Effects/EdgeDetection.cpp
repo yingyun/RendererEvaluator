@@ -11,6 +11,15 @@ EdgeDetection::EdgeDetection(LayerRenderType layerInfo)
     mLayerInfo = layerInfo;
 }
 
+EdgeDetection::~EdgeDetection()
+{
+    /*Release source*/
+    glDeleteBuffers(1, &mTextureCoordsBuffer);
+    glDeleteBuffers(1, &mVertexPositionBuffer);
+    glDeleteVertexArrays(1, &mVertexArrayObject);
+    glDeleteTextures(1, texture);
+}
+
 bool EdgeDetection::updateShaderOnce()
 {
     const char * vertexShader = "\

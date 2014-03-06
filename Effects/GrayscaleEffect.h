@@ -36,7 +36,7 @@ private:
 
 public:
     GrayscaleEffect(LayerRenderType layerInfo);
-    virtual ~GrayscaleEffect() {}
+    virtual ~GrayscaleEffect();
     virtual bool updateShaderOnce();
     virtual bool updateAttributeOnce();
     virtual bool updateBufferOnce();
