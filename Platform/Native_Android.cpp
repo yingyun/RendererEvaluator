@@ -43,6 +43,7 @@ sp<Surface> Native_Android::createNativeSurface()
     SurfaceComposerClient::openGlobalTransaction();
     mSurfaceControl.back()->setLayer(BASE_ZORDER+ mLayerInfo.LayerOrder);
     mSurfaceControl.back()->setPosition(mLayerInfo.LayerPositionX, mLayerInfo.LayerPositionY);
+    mSurfaceControl.back()->setAlpha(mLayerInfo.LayerAlpha);
     SurfaceComposerClient::closeGlobalTransaction();
 
     mSurface.push_back(mSurfaceControl[mLayerInfo.LayerIndex]->getSurface());

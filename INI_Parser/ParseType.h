@@ -15,7 +15,7 @@ typedef struct
     unsigned int LayerPositionY;
     unsigned int LayerWidth;
     unsigned int LayerHeight;
-    unsigned int LayerAlpha;
+    float LayerAlpha;
     string LayerObjectModel;
     string LayerTexture;
 } LayerRenderType;

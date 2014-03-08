@@ -85,7 +85,7 @@ LayerRenderType parseLayer(INIReader & configParser, string& layerName)
     layerInfo.LayerPositionY = configParser.GetInteger(layerName, "LayerPositionY", 0);
     layerInfo.LayerWidth = configParser.GetInteger(layerName, "LayerWidth", 0);
     layerInfo.LayerHeight = configParser.GetInteger(layerName, "LayerHeight", 0);
-    layerInfo.LayerAlpha = configParser.GetInteger(layerName, "LayerAlpha",  -1);
+    layerInfo.LayerAlpha = configParser.GetReal(layerName, "LayerAlpha",  1.0f);
     layerInfo.LayerObjectModel = configParser.Get(layerName, "LayerObjectModel", "default");
     layerInfo.LayerTexture = configParser.Get(layerName, "LayerTexture", "default");
     string index = layerName.substr(5);
