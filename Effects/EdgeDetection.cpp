@@ -1,3 +1,9 @@
+/*
+*Edge detection routine, use sobel detection algorithms
+*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #include "EdgeDetection.h"
 
 namespace RenderEvaluator

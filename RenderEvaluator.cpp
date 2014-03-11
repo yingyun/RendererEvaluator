@@ -1,3 +1,9 @@
+/*
+*RenderEvaluator main function, it's entrance of program.
+*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #include "RenderEvaluator.h"
 
 int main(int argc, char** argv)

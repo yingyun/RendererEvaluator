@@ -1,3 +1,9 @@
+/*
+*polygon generater. no much work in here for now.
+*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #include "VertexGenerator.h"
 
 namespace RenderEvaluator

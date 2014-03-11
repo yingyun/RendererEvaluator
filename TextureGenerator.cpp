@@ -1,3 +1,9 @@
+/*
+*Texture load and map routine
+*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #include "TextureGenerator.h"
 
 namespace RenderEvaluator

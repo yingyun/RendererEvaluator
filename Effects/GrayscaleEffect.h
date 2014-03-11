@@ -1,3 +1,7 @@
+/*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #ifndef RENDEREVALUATOR_GRAYSCALEEFFECT_H_
 #define RENDEREVALUATOR_GRAYSCALEEFFECT_H_
 

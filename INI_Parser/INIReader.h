@@ -1,3 +1,6 @@
+/*
+*This file is released under the GPL2
+*/
 #ifndef __INIREADER_H__
 #define __INIREADER_H__
 

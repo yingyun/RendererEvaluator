@@ -1,3 +1,7 @@
+/*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #ifndef  MATRIXTRANSFORM_H
 #define MATRIXTRANSFORM_H
 

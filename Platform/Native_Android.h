@@ -1,3 +1,7 @@
+/*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #ifndef  PLATFORM_NATIVE_ANDROID_H_
 #define PLATFORM_NATIVE_ANDROID_H_
 

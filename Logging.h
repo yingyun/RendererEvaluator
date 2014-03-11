@@ -1,3 +1,10 @@
+/*
+*Wrap simple debug macro
+*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
+
 #ifndef ERRORPRINT_H
 #define ERRORPRINT_H
 

@@ -1,3 +1,9 @@
+/*
+*the patter design of singleton
+*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #ifndef RENDEREVALUATOR_PATTERN_SINGLETON_H_
 #define RENDEREVALUATOR_PATTERN_SINGLETON_H_
 

@@ -1,3 +1,9 @@
+/*
+*The opengl shader program build routine
+*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #include "ShaderProgramBuilder.h"
 namespace RenderEvaluator
 {

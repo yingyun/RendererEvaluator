@@ -1,3 +1,9 @@
+/*
+*Base class for filter to implement the function which they want to achive
+*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #ifndef RENDEREVALUATOR_EFFECTS_EFFECTBASE_H_
 #define RENDEREVALUATOR_EFFECTS_EFFECTBASE_H_
 

@@ -1,3 +1,7 @@
+/*
+*Copyright (C) 2013 - 2014 Cui. Yingyun
+*This file is released under the GPL2
+*/
 #ifndef  RENDEREVALUATOR_TEXTUREGENERATOR_H
 #define  RENDEREVALUATOR_TEXTUREGENERATOR_H
 #include <stdio.h>

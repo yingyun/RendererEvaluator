@@ -1,3 +1,6 @@
+/*
+*This file is released under the GPL2
+*/
 #ifndef __INI_H__
 #define __INI_H__
 

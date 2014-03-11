@@ -1,3 +1,6 @@
+/*
+*This file is released under the GPL2
+*/
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
