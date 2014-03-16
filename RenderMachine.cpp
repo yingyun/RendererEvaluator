@@ -38,6 +38,10 @@ void RenderMachine::polygonEffectSelect()
         {
             tempResult = new EdgeDetection(mLayerInfo);
         }
+    else if(renderEffect == string("GaussianBlur"))
+        {
+            tempResult = new GaussianBlur(mLayerInfo);
+        } 
     else
         {
             LOG_ERROR("Wrong rendre effect type !\n");

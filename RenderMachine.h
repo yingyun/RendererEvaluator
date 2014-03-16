@@ -48,6 +48,7 @@
 #include "Effects/GrayscaleEffect.h"
 #include "Effects/PureCanvasEffect.h"
 #include "Effects/EdgeDetection.h"
+#include "Effects/GaussianBlur.h"
 
 using android::sp;
 using android::wp;

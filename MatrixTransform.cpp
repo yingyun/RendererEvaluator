@@ -132,7 +132,7 @@ void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLf
 *Convenience method to setup android style ortho projection in which the origin point was
 *the left-bottom and pixel based window size
 */
-void MatrixTransform::androidStyleProjection(Matrix44 * result, GLfloat width, GLfloat height)
+void MatrixTransform::fullScreenOrthoProj(Matrix44 * result, GLfloat width, GLfloat height)
 {
     matrixOrthoProjection(result, 0, width, 0, height, 0, 1);
 }

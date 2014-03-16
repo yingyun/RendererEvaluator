@@ -48,7 +48,7 @@ public:
     void matrixOrthoProjection(Matrix44* result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far);
     void matrixDump(const Matrix44 * M, const char * tag);
     void vectorDump(const Vector4 * vDumped);
-    void androidStyleProjection(Matrix44 * result, GLfloat width, GLfloat height);
+    void fullScreenOrthoProj(Matrix44 * result, GLfloat width, GLfloat height);
 };
 }
 #endif

@@ -1,23 +1,32 @@
 /*
-*Edge detection routine, use sobel detection algorithms
+*Gaussian blur, it's a traditional method.just for fun
 *
 *Copyright (C) 2013 - 2014 Cui. Yingyun
 *This file is released under the GPL2
 */
-#include "EdgeDetection.h"
+
+/*
+*
+*Note that this filter wasn't completed yet
+*/
+#include "GaussianBlur.h"
 
 namespace RenderEvaluator
 {
 #define VERTEC_COUNT 4
 #define VERTEX_SIZE 2
 #define TEXCOORDS_SIZE 2
+#define Pi 3.14159265
+ 
+#define SIG 1.0 //TODO: Use variable pass to replace it
+#define LOOP 20
 
-EdgeDetection::EdgeDetection(LayerRenderType layerInfo)
+GaussianBlur::GaussianBlur(LayerRenderType layerInfo)
 {
     mLayerInfo = layerInfo;
 }
 
-EdgeDetection::~EdgeDetection()
+GaussianBlur::~GaussianBlur()
 {
     /*Release source*/
     glDeleteBuffers(1, &mTextureCoordsBuffer);
@@ -26,59 +35,108 @@ EdgeDetection::~EdgeDetection()
     glDeleteTextures(1, texture);
 }
 
-bool EdgeDetection::updateShaderOnce()
+/*
+*Mathematical Formula
+*G(x) = ( 1/sigma sqrt(2 * Pi) ) * e exp(-root(x-a) / 2 * root(signal)) 
+*
+*a = the shift from origin point forward to x-axis 
+*sigma = called standard deviation, root(sigma) = called variance
+*Pi = 3.1415926535897932384626433832795028841971693993751
+*x	= the input point from the x-axis
+*input x area = in the math, we define it's nearly in (-3*sigma, +3*sigma);three times by sigma
+*/
+
+double gaussian_distribution(double x_input, double sigma, double x_shift)
+{
+	double front = 1.0f / (sigma * sqrt(2 * Pi));
+	double back = front * exp( -(x_input * x_input) / (2 * (sigma * sigma)) );
+	return back;
+}
+
+vector<double> genGaussianWeightList(double sig, int radius_pixel)
+{
+	double sigma = sig;
+	int loop_times = radius_pixel;
+	double step = (sigma * 3) / static_cast<double>(loop_times);
+	double sum_of_weight = 0.0f;
+	double weight;
+
+	vector<double> distribution;
+	for (int i = 0; i < loop_times; i++)
+	{
+		weight = gaussian_distribution( (step * i), sigma, 0);
+		sum_of_weight += weight;
+		
+		distribution.push_back(weight);
+	}
+
+	sum_of_weight = sum_of_weight * 2 - distribution[0];
+
+	double after_to_half_sum = 0.0;
+	for (unsigned int i = 0; i < distribution.size(); ++i)
+	{
+	    /*Keep the sum of one-direction was 0.5*/
+		distribution[i] = distribution[i] / (sum_of_weight * 2.0);
+		after_to_half_sum += distribution[i];
+	}
+
+    return distribution;
+}
+
+bool GaussianBlur::updateShaderOnce()
 {
     const char * vertexShader = "\
     attribute vec4 texCoords;\n\
     varying vec2 outTexCoords;\n\
-    varying float xPixelsize;\n\
-    varying float yPixelSize;\n\
-    uniform float xPS;\n\
-    uniform float yPS;\n\
+    uniform float weight0;\n\
+    uniform float weight1;\n\
+    uniform float weight2;\n\
+    uniform float weight3;\n\
+    uniform float weight4;\n\
+    varying float w0;\n\
+    varying float w1;\n\
+    varying float w2;\n\
+    varying float w3;\n\
+    varying float w4;\n\
+    uniform vec2 uni_step;\n\
     attribute vec4 position;\n\
     uniform mat4 projection;\n\
     void main(void)\n\
     {\n\
-    	gl_Position = projection * position;\n\
     	outTexCoords = texCoords.st;\n\
-    	xPixelsize = xPS;\n\
-    	yPixelSize = yPS;\n\
+	w0 = weight0;\n\
+	w1 = weight1;\n\
+	w2 = weight2;\n\
+	w3 = weight3;\n\
+	w4 = weight4;\n\
+	var_step = uni_step;\n\
+	gl_Position = projection * position;\n\
     }\n";
     mVertexShader.append(vertexShader);
 
     const char * fragShader = "\
     precision mediump float;\n\
     varying vec2 outTexCoords;\n\
-    varying float xPixelsize;\n\
-    varying float yPixelSize;\n\
+    varying float w0;\n\
+    varying float w1;\n\
+    varying float w2;\n\
+    varying float w3;\n\
+    varying float w4;\n\
+    varyign vec2 var_step;\n\
     uniform sampler2D sampler;\n\
-    const vec3 lumCoeff = vec3(0.2125, 0.7154, 0.0721);\n\
     void main(void)\n\
     {\n\
-    	vec2 tex = outTexCoords.st;\n\
-    	vec4 texture = texture2D(sampler, tex);\n\
-    	\n\
-    	vec2 onCoords = vec2(-xPixelsize, yPixelSize);\n\
-    	vec2 teCoords = vec2(0, yPixelSize);\n\
-    	vec2 tsCoords = vec2(xPixelsize, yPixelSize);\n\
-    	vec2 fsCoords = vec2(-xPixelsize, 0);\n\
-        \n\
-    	float oneP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+onCoords)).rgb);\n\
-    	float twoP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+teCoords)).rgb);\n\
-    	float threeP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+tsCoords)).rgb);\n\
-    	float fourP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords+fsCoords)).rgb);\n\
-        \n\
-    	float sixP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-fsCoords)).rgb);\n\
-    	float sevenP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-tsCoords)).rgb);\n\
-    	float eightP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-teCoords)).rgb);\n\
-    	float nineP = dot(lumCoeff, texture2D(sampler, vec2(outTexCoords-onCoords)).rgb);\n\
-    	\n\
-    	float Gx = oneP*-2.0f + fourP*-8.0f + sevenP*-2.0f + threeP*2.0f + sixP*8.0f + nineP*2.0f;\n\
-    	float Gy = oneP*-2.0f + twoP*-8.0f + threeP*-2.0f + sevenP*2.0f + eightP*8.0f + nineP*2.0f;\n\
-    	\n\
-    	float edgeDetection = length(vec2(Gx, Gy));\n\
-    	vec3 target = vec3(edgeDetection - 0.5f, edgeDetection, edgeDetection);\n\
-    	gl_FragColor = vec4(mix(target, texture.rgb, 0.25), 1.0);\n\
+	vec4 color;\n\
+	color = texture2D(sampler, outTexCoords) * w0;\n\
+	color += texture2D(sampler, outTexCoords - var_step * 1) * w1;\n\
+	color += texture2D(sampler, outTexCoords - var_step * 2) * w2;\n\
+	color += texture2D(sampler, outTexCoords - var_step * 3) * w3;\n\
+	color += texture2D(sampler, outTexCoords - var_step * 4) * w4;\n\
+	color += texture2D(sampler, outTexCoords + var_step * 1) * w1;\n\
+	color += texture2D(sampler, outTexCoords + var_step * 2) * w2;\n\
+	color += texture2D(sampler, outTexCoords + var_step * 3) * w3;\n\
+	color += texture2D(sampler, outTexCoords + var_step * 4) * w4;\n\
+    	gl_FragColor = color;\n\
     }\n";
     mFragShader.append(fragShader);
 
@@ -88,17 +146,22 @@ bool EdgeDetection::updateShaderOnce()
     return true;
 }
 
-bool EdgeDetection::updateAttributeOnce()
+bool GaussianBlur::updateAttributeOnce()
 {
     /*Get the attribute from GLSL*/
     texCoordsHandler = glGetAttribLocation(mProgram, "texCoords");
     positionHandler = glGetAttribLocation(mProgram, "position");
     projectionHandler = glGetUniformLocation(mProgram, "projection");
     samplerHandler = glGetUniformLocation(mProgram, "sampler");
-    xPointSizeHandler = glGetUniformLocation(mProgram, "xPS");
-    yPointSizeHandler = glGetUniformLocation(mProgram, "yPS");
-    LOG_INFO("Render=> texCoords %d, position %d, projection %d, sampler %d, xPS %d, yPS %d\n",
-             texCoordsHandler, positionHandler, projectionHandler, samplerHandler, xPointSizeHandler,yPointSizeHandler);
+    w0Handler = glGetUniformLocation(mProgram, "weight0");
+    w1Handler = glGetUniformLocation(mProgram, "weight1");
+    w2Handler = glGetUniformLocation(mProgram, "weight2");
+    w3Handler = glGetUniformLocation(mProgram, "weight3");
+    w4Handler = glGetUniformLocation(mProgram, "weight4");
+    stepHanlder = glGetUniformLocation(mProgram, "uni_step");
+    LOG_INFO("Render=> texCoords %d, position %d, projection %d, sampler %d, w0 %d, w1 %d, w2 %d, w3 %d, w4 %d, step %d \n",
+             texCoordsHandler, positionHandler, projectionHandler, samplerHandler,
+             w0Handler, w1Handler, w2Handler, w3Handler, w4Handler, stepHanlder);
 
     float width = (float)mLayerInfo.LayerWidth;
     float height = (float)mLayerInfo.LayerHeight;
@@ -107,7 +170,7 @@ bool EdgeDetection::updateAttributeOnce()
     MatrixTransform::getInstance().matrixIndentity(&mProjectionMatrix);
     MatrixTransform::getInstance().fullScreenOrthoProj(&mProjectionMatrix, width, height);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, (GLfloat *)mProjectionMatrix.m);
-    GL_ERROR_CHECK("EdgeDetection:update projection matrix");
+    GL_ERROR_CHECK("GaussianBlur:update projection matrix");
 
     /* Generate & Update vertex and texture coordinations */
     MESH mesh(VertexGenerator::Mesh2D::TRIANGLE_FAN,
@@ -131,14 +194,12 @@ bool EdgeDetection::updateAttributeOnce()
     glUniform1i(samplerHandler, 0);
 
     /*Update texture pixel size*/
-    glUniform1f(xPointSizeHandler, 1.0f / width);
-    glUniform1f(yPointSizeHandler, 1.0f / height);
-    GL_ERROR_CHECK("EdgeDetection:update sampler and pixel size uniform");
+    GL_ERROR_CHECK("GaussianBlur:update sampler and pixel size uniform");
 
     return true;
 }
 
-bool EdgeDetection::updateBufferOnce()
+bool GaussianBlur::updateBufferOnce()
 {
     /*Update Texture buffer */
     int textureWidth = 0, textureHeight = 0;
@@ -152,7 +213,7 @@ bool EdgeDetection::updateBufferOnce()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0,
         GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
     glActiveTexture(GL_TEXTURE0);
-    GL_ERROR_CHECK("EdgeDetection:Gen texture and update image");
+    GL_ERROR_CHECK("GaussianBlur:Gen texture and update image");
 
     /*Update VAO and vertex, texture VBO*/
     glGenVertexArrays(1, &mVertexArrayObject);
@@ -165,7 +226,7 @@ bool EdgeDetection::updateBufferOnce()
     glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT,
         GL_FALSE, mRectMesh.getByteStride(), (void *)0);
     glEnableVertexAttribArray(positionHandler);
-    GL_ERROR_CHECK("EdgeDetection:VAO for vertex");
+    GL_ERROR_CHECK("GaussianBlur:VAO for vertex");
 
     glGenBuffers(1, &mTextureCoordsBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mTextureCoordsBuffer);
@@ -174,7 +235,7 @@ bool EdgeDetection::updateBufferOnce()
     glVertexAttribPointer(texCoordsHandler, mRectMesh.getTexCoordsSize(), GL_FLOAT,
         GL_FALSE, mRectMesh.getByteStride(), (void *)0);
     glEnableVertexAttribArray(texCoordsHandler);
-    GL_ERROR_CHECK("EdgeDetection:VAO for texture");
+    GL_ERROR_CHECK("GaussianBlur:VAO for texture");
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -182,20 +243,20 @@ bool EdgeDetection::updateBufferOnce()
     return true;
 }
 
-bool EdgeDetection::drawPolygonEvery()
+bool GaussianBlur::drawPolygonEvery()
 {
     glBindVertexArray(mVertexArrayObject);
-    GL_ERROR_CHECK("EdgeDetection:Switch VAO");
+    GL_ERROR_CHECK("GaussianBlur:Switch VAO");
 
     glDrawArrays(MESH::TRIANGLE_FAN, 0, VERTEC_COUNT);
-    GL_ERROR_CHECK("EdgeDetection:drawPolygon");
+    GL_ERROR_CHECK("GaussianBlur:drawPolygon");
 
     glBindVertexArray(0);
 
     return true;
 }
 
-bool EdgeDetection::updateFrameEvery()
+bool GaussianBlur::updateFrameEvery()
 {
     return true;
 }

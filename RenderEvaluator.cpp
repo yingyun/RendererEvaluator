@@ -1,5 +1,5 @@
 /*
-*RenderEvaluator main function, it's entrance of program.
+*RenderEvaluator main function, it's an entrance of program.
 *
 *Copyright (C) 2013 - 2014 Cui. Yingyun
 *This file is released under the GPL2

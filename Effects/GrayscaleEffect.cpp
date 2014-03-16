@@ -76,7 +76,7 @@ bool GrayscaleEffect::updateAttributeOnce()
 
     /*Update projection matrix*/
     MatrixTransform::getInstance().matrixIndentity(&mProjectionMatrix);
-    MatrixTransform::getInstance().androidStyleProjection(&mProjectionMatrix, width, height);
+    MatrixTransform::getInstance().fullScreenOrthoProj(&mProjectionMatrix, width, height);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, (GLfloat *)mProjectionMatrix.m);
     GL_ERROR_CHECK("GrayScale: update projection matrix");
 
