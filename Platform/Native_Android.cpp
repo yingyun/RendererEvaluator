@@ -40,6 +40,9 @@ void Native_Android::setLayerRender(LayerRenderType & layerInfo)
     mLayerInfo = layerInfo;
 }
 
+/*
+ *The SurfaceComposerClient will call into SurfaceFlinger::createLayer() eventually.
+ */
 sp<Surface> Native_Android::createNativeSurface()
 {
     mSurfaceControl.push_back(mSurfaceComposerClient->createSurface(String8::format("Layer%d", mLayerInfo.LayerIndex),
