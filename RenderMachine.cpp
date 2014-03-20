@@ -11,6 +11,7 @@ namespace RenderEvaluator
 RenderMachine::RenderMachine(LayerRenderType layerInfo)
 {
     mLayerInfo= layerInfo;
+    LOG_INFO("RenderMachine: Use %d version of OpenGL ES\n", USE_OPENGL_ES_VER);
 }
 
 RenderMachine::~RenderMachine()
@@ -41,7 +42,11 @@ void RenderMachine::polygonEffectSelect()
     else if(renderEffect == string("GaussianBlur"))
         {
             tempResult = new GaussianBlur(mLayerInfo);
-        } 
+        }
+    else if(renderEffect == string("BlenderModel"))
+        {
+            tempResult = new BlenderModel(mLayerInfo);
+        }
     else
         {
             LOG_ERROR("Wrong rendre effect type !\n");
@@ -58,7 +63,7 @@ bool RenderMachine::polygonViewSetup()
 
     /* Buffer Clear */
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClearDepthf(0);
+    glClearDepthf(1.0);
     glClearStencil(0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 

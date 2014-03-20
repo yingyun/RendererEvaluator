@@ -19,7 +19,7 @@ int INIReader::ParseError()
     return _error;
 }
 
-string INIReader::Get(string section, string name, string default_value)
+string INIReader::GetString(string section, string name, string default_value)
 {
     string key = MakeKey(section, name);
     return _values.count(key) ? _values[key] : default_value;
@@ -27,7 +27,7 @@ string INIReader::Get(string section, string name, string default_value)
 
 long INIReader::GetInteger(string section, string name, long default_value)
 {
-    string valstr = Get(section, name, "");
+    string valstr = GetString(section, name, "");
     const char* value = valstr.c_str();
     char* end;
     // This parses "1234" (decimal) and also "0x4D2" (hex)
@@ -37,7 +37,7 @@ long INIReader::GetInteger(string section, string name, long default_value)
 
 double INIReader::GetReal(string section, string name, double default_value)
 {
-    string valstr = Get(section, name, "");
+    string valstr = GetString(section, name, "");
     const char* value = valstr.c_str();
     char* end;
     double n = strtod(value, &end);
@@ -46,7 +46,7 @@ double INIReader::GetReal(string section, string name, double default_value)
 
 bool INIReader::GetBoolean(string section, string name, bool default_value)
 {
-    string valstr = Get(section, name, "");
+    string valstr = GetString(section, name, "");
     // Convert to lower case to make string comparisons case-insensitive
     std::transform(valstr.begin(), valstr.end(), valstr.begin(), ::tolower);
     if (valstr == "true" || valstr == "yes" || valstr == "on" || valstr == "1")

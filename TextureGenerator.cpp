@@ -20,7 +20,7 @@ void TextureGenerator::loadTexture(std::string texture, int * width, int * heigh
     *SkBitmap::kARGB_8888_Config:
     */
 
-    texture = TEXTURE_PATH + texture;       
+    texture = TEXTURE_PATH + texture;
     struct stat dest;
     if(stat(texture.data(), &dest) < 0)
         {

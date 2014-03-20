@@ -17,7 +17,7 @@ namespace RenderEvaluator
 #define VERTEX_SIZE 2
 #define TEXCOORDS_SIZE 2
 #define Pi 3.14159265
- 
+
 #define SIG 1.0 //TODO: Use variable pass to replace it
 #define LOOP 20
 
@@ -37,9 +37,9 @@ GaussianBlur::~GaussianBlur()
 
 /*
 *Mathematical Formula
-*G(x) = ( 1/sigma sqrt(2 * Pi) ) * e exp(-root(x-a) / 2 * root(signal)) 
+*G(x) = ( 1/sigma sqrt(2 * Pi) ) * e exp(-root(x-a) / 2 * root(signal))
 *
-*a = the shift from origin point forward to x-axis 
+*a = the shift from origin point forward to x-axis
 *sigma = called standard deviation, root(sigma) = called variance
 *Pi = 3.1415926535897932384626433832795028841971693993751
 *x	= the input point from the x-axis
@@ -48,37 +48,37 @@ GaussianBlur::~GaussianBlur()
 
 double gaussian_distribution(double x_input, double sigma, double x_shift)
 {
-	double front = 1.0f / (sigma * sqrt(2 * Pi));
-	double back = front * exp( -(x_input * x_input) / (2 * (sigma * sigma)) );
-	return back;
+    double front = 1.0f / (sigma * sqrt(2 * Pi));
+    double back = front * exp( -(x_input * x_input) / (2 * (sigma * sigma)) );
+    return back;
 }
 
 vector<double> genGaussianWeightList(double sig, int radius_pixel)
 {
-	double sigma = sig;
-	int loop_times = radius_pixel;
-	double step = (sigma * 3) / static_cast<double>(loop_times);
-	double sum_of_weight = 0.0f;
-	double weight;
+    double sigma = sig;
+    int loop_times = radius_pixel;
+    double step = (sigma * 3) / static_cast<double>(loop_times);
+    double sum_of_weight = 0.0f;
+    double weight;
 
-	vector<double> distribution;
-	for (int i = 0; i < loop_times; i++)
-	{
-		weight = gaussian_distribution( (step * i), sigma, 0);
-		sum_of_weight += weight;
-		
-		distribution.push_back(weight);
-	}
+    vector<double> distribution;
+    for (int i = 0; i < loop_times; i++)
+        {
+            weight = gaussian_distribution( (step * i), sigma, 0);
+            sum_of_weight += weight;
 
-	sum_of_weight = sum_of_weight * 2 - distribution[0];
+            distribution.push_back(weight);
+        }
 
-	double after_to_half_sum = 0.0;
-	for (unsigned int i = 0; i < distribution.size(); ++i)
-	{
-	    /*Keep the sum of one-direction was 0.5*/
-		distribution[i] = distribution[i] / (sum_of_weight * 2.0);
-		after_to_half_sum += distribution[i];
-	}
+    sum_of_weight = sum_of_weight * 2 - distribution[0];
+
+    double after_to_half_sum = 0.0;
+    for (unsigned int i = 0; i < distribution.size(); ++i)
+        {
+            /*Keep the sum of one-direction was 0.5*/
+            distribution[i] = distribution[i] / (sum_of_weight * 2.0);
+            after_to_half_sum += distribution[i];
+        }
 
     return distribution;
 }
@@ -174,7 +174,7 @@ bool GaussianBlur::updateAttributeOnce()
 
     /* Generate & Update vertex and texture coordinations */
     MESH mesh(VertexGenerator::Mesh2D::TRIANGLE_FAN,
-    VERTEC_COUNT, VERTEX_SIZE, TEXCOORDS_SIZE);
+              VERTEC_COUNT, VERTEX_SIZE, TEXCOORDS_SIZE);
     MESH::VertexArray<vec2f> position(mesh.getPositionArray<vec2f>());
     MESH::VertexArray<vec2f> texCoord(mesh.getTexCoordArray<vec2f>());
     position[0] = vec2f(0.0, 0.0);
@@ -207,11 +207,11 @@ bool GaussianBlur::updateBufferOnce()
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, texture[0]);
     TextureGenerator::getInstance().loadTexture(mLayerInfo.LayerTexture,
-        &textureWidth, &textureHeight, &pixelData, mBitmap);
+            &textureWidth, &textureHeight, &pixelData, mBitmap);
     TextureGenerator::getInstance().samplingMode(GL_NEAREST, GL_NEAREST,
-        GL_REPEAT, GL_REPEAT);
+            GL_REPEAT, GL_REPEAT);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0,
-        GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+                 GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
     glActiveTexture(GL_TEXTURE0);
     GL_ERROR_CHECK("GaussianBlur:Gen texture and update image");
 
@@ -224,7 +224,7 @@ bool GaussianBlur::updateBufferOnce()
     int vertexByteSize = (mRectMesh.getVertexSize() + mRectMesh.getTexCoordsSize() ) * mRectMesh.getVertexCount() * sizeof(float);
     glBufferData(GL_ARRAY_BUFFER, vertexByteSize, mRectMesh.getPositions(), GL_STATIC_DRAW);
     glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT,
-        GL_FALSE, mRectMesh.getByteStride(), (void *)0);
+                          GL_FALSE, mRectMesh.getByteStride(), (void *)0);
     glEnableVertexAttribArray(positionHandler);
     GL_ERROR_CHECK("GaussianBlur:VAO for vertex");
 
@@ -233,7 +233,7 @@ bool GaussianBlur::updateBufferOnce()
     vertexByteSize -= mRectMesh.getTexCoordsSize() * sizeof(float);
     glBufferData(GL_ARRAY_BUFFER, vertexByteSize, mRectMesh.getTexCoords(), GL_STATIC_DRAW);
     glVertexAttribPointer(texCoordsHandler, mRectMesh.getTexCoordsSize(), GL_FLOAT,
-        GL_FALSE, mRectMesh.getByteStride(), (void *)0);
+                          GL_FALSE, mRectMesh.getByteStride(), (void *)0);
     glEnableVertexAttribArray(texCoordsHandler);
     GL_ERROR_CHECK("GaussianBlur:VAO for texture");
 

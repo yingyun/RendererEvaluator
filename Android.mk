@@ -19,6 +19,7 @@ LOCAL_SRC_FILES:= \
 	Effects/PureCanvasEffect.cpp \
 	Effects/EdgeDetection.cpp \
 	Effects/GaussianBlur.cpp \
+	Effects/BlenderModel.cpp \
 	INI_Parser/ini.cpp \
 	INI_Parser/INIReader.cpp \
 	RenderEvaluator.cpp \
@@ -50,8 +51,7 @@ LOCAL_CPPFLAGS += -fexceptions -std=c++11
 
 #OpenGL Switcher. In general, ES30 backward-compatibility with ES20
 #but some of device didn't support ES30.
-LOCAL_CFLAGS := -DUSE_OPENGL_ES_30
-#LOCAL_CFLAGS := -DUSE_OPENGL_ES_20
+LOCAL_CFLAGS := -DUSE_OPENGL_ES_VER=30
 
 LOCAL_MODULE:= RenderEvaluator
 

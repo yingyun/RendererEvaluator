@@ -18,6 +18,8 @@ namespace RenderEvaluator
 
 RENDEREVALUATOR_SINGLETON_STATIC_VAR_INIT(MatrixTransform);
 
+
+
 void MatrixTransform::matrixIndentity(Matrix44 * result)
 {
     memset(result, 0x0, sizeof(Matrix44));
@@ -47,6 +49,8 @@ void MatrixTransform::matrixMultiply(Matrix44 *result, Matrix44 *srcA, Matrix44 
         }
     memcpy(result, &tmp, sizeof(Matrix44));
 }
+
+/*---------------------Model-Linear Transformation---------------------*/
 
 void MatrixTransform::matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
@@ -102,14 +106,6 @@ void MatrixTransform::matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, 
         }
 }
 
-void MatrixTransform::matrixTranslate(Matrix44 * result, GLfloat tx, GLfloat ty, GLfloat tz)
-{
-    result->m[3][0] += (result->m[0][0] * tx + result->m[1][0] * ty + result->m[2][0] * tz);
-    result->m[3][1] += (result->m[0][1] * tx + result->m[1][1] * ty + result->m[2][1] * tz);
-    result->m[3][2] += (result->m[0][2] * tx + result->m[1][2] * ty + result->m[2][2] * tz);
-    result->m[3][3] += (result->m[0][3] * tx + result->m[1][3] * ty + result->m[2][3] * tz);
-}
-
 void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLfloat sz)
 {
     result->m[0][0] *= sx;
@@ -128,6 +124,75 @@ void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLf
     result->m[2][3] *= sz;
 }
 
+
+
+
+/*---------------------Model-Move origin---------------------*/
+
+void MatrixTransform::matrixTranslate(Matrix44 * result, GLfloat tx, GLfloat ty, GLfloat tz)
+{
+    result->m[3][0] += (result->m[0][0] * tx + result->m[1][0] * ty + result->m[2][0] * tz);
+    result->m[3][1] += (result->m[0][1] * tx + result->m[1][1] * ty + result->m[2][1] * tz);
+    result->m[3][2] += (result->m[0][2] * tx + result->m[1][2] * ty + result->m[2][2] * tz);
+    result->m[3][3] += (result->m[0][3] * tx + result->m[1][3] * ty + result->m[2][3] * tz);
+}
+
+
+/*---------------------View matrix---------------------*/
+
+void MatrixTransform::matrixLookAt(Matrix44 * result,
+                                   const float eyeX, const float eyeY, const float eyeZ,
+                                   const float centerX, const float centerY, const float centerZ,
+                                   const float upX, const float upY, const float upZ)
+{
+    float forward[3], side[3], up[3];
+
+    forward[0] = centerX - eyeX;
+    forward[1] = centerY - eyeY;
+    forward[2] = centerZ - eyeZ;
+
+    VertexGenerator::getInstance().OMVector3Normalizef(forward);
+
+    up[0] = upX;
+    up[1] = upY;
+    up[2] = upZ;
+
+    VertexGenerator::getInstance().OMVector3Crossf(side, forward, up);
+    VertexGenerator::getInstance().OMVector3Normalizef(side);
+    VertexGenerator::getInstance().OMVector3Crossf(up, side, forward);
+
+    result->m[0][0] = side[0];
+    result->m[0][1] = up[0];
+    result->m[0][2] = -forward[0];
+    result->m[0][3] = 0.0f;
+
+    result->m[1][0] = side[1];
+    result->m[1][1] = up[1];
+    result->m[1][2] = -forward[1];
+    result->m[1][3] = 0.0f;
+
+    result->m[2][0] = side[2];
+    result->m[2][1] = up[2];
+    result->m[2][2] = -forward[2];
+    result->m[2][3] = 0.0f;
+
+    result->m[3][0] = 0.0f;
+    result->m[3][1] = 0.0f;
+    result->m[3][2] = 0.0f;
+    result->m[3][3] = 1.0f;
+
+    Matrix44 temp;
+    matrixIndentity(&temp);
+
+    temp.m[3][0] = -eyeX;
+    temp.m[3][1] = -eyeY;
+    temp.m[3][2] = -eyeZ;
+
+    matrixMultiply(result, result, &temp);
+}
+
+/*---------------------Projection matrix---------------------*/
+
 /*
 *Convenience method to setup android style ortho projection in which the origin point was
 *the left-bottom and pixel based window size
@@ -137,7 +202,7 @@ void MatrixTransform::fullScreenOrthoProj(Matrix44 * result, GLfloat width, GLfl
     matrixOrthoProjection(result, 0, width, 0, height, 0, 1);
 }
 
-//Orthoprojection matrix
+/*Orthoprojection matrix*/
 void MatrixTransform::matrixOrthoProjection(Matrix44 * result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far)
 {
     result->m[0][0] =  2 / (right - left);
@@ -148,6 +213,49 @@ void MatrixTransform::matrixOrthoProjection(Matrix44 * result, GLfloat left, GLf
     result->m[3][2] = -(far   + near)   / (far   - near);
 }
 
+/*Perspective projection*/
+bool MatrixTransform::matrixFrustumf(Matrix44* result,
+                                     const float left, const float right, const float bottom, const float top, const float nearVal, const float farVal)
+{
+    if ((right - left) == 0.0f || (top - bottom) == 0.0f || (farVal - nearVal) == 0.0f)
+        {
+            return false;
+        }
+
+    result->m[0][0] = 2.0f * nearVal / (right - left);
+    result->m[0][1] = 0.0f;
+    result->m[0][2] = 0.0f;
+    result->m[0][3] = 0.0f;
+    result->m[1][0] = 0.0f;
+    result->m[1][1] = 2.0f * nearVal / (top - bottom);
+    result->m[1][2] = 0.0f;
+    result->m[1][3] = 0.0f;
+    result->m[2][0] = (right + left) / (right - left);
+    result->m[2][1] = (top + bottom) / (top - bottom);
+    result->m[2][2] = -(farVal + nearVal) / (farVal - nearVal);
+    result->m[2][3] = -1.0f;
+    result->m[3][0] = 0.0f;
+    result->m[3][1] = 0.0f;
+    result->m[3][2] = -(2.0f * farVal * nearVal) / (farVal - nearVal);
+    result->m[3][3] = 0.0f;
+
+    return true;
+}
+
+bool MatrixTransform::matrixPerspectiveProjection(Matrix44* result,
+        const float fovy, const float aspect, const float zNear, const float zFar)
+{
+    float xmin, xmax, ymin, ymax;
+
+    ymax = zNear * tanf(fovy * PI / 360.0f);
+    ymin = -ymax;
+    xmin = ymin * aspect;
+    xmax = ymax * aspect;
+
+    return matrixFrustumf(result, xmin, xmax, ymin, ymax, zNear, zFar);
+}
+
+/*---------------------Debug---------------------*/
 void MatrixTransform::matrixDump(const Matrix44 * mDumped, const char * tag)
 {
     /*
@@ -168,6 +276,7 @@ void MatrixTransform::matrixDump(const Matrix44 * mDumped, const char * tag)
               ,M[3][0] ,M[3][1] ,M[3][2] ,M[3][3]
              );
 }
+
 void MatrixTransform::vectorDump(const Vector4 * vDumped)
 {
     const GLfloat * V = vDumped->v;

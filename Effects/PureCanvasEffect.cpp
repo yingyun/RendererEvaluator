@@ -76,7 +76,7 @@ bool PureCanvasEffect::updateAttributeOnce()
 
     /* Generate & Update vertex and texture coordinations */
     MESH mesh(VertexGenerator::Mesh2D::TRIANGLE_FAN,
-    VERTEC_COUNT, VERTEX_SIZE, TEXCOORDS_SIZE);
+              VERTEC_COUNT, VERTEX_SIZE, TEXCOORDS_SIZE);
     MESH::VertexArray<vec2f> position(mesh.getPositionArray<vec2f>());
     MESH::VertexArray<vec2f> texCoord(mesh.getTexCoordArray<vec2f>());
     position[0] = vec2f(0.0, 0.0);
@@ -107,11 +107,11 @@ bool PureCanvasEffect::updateBufferOnce()
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, texture[0]);
     TextureGenerator::getInstance().loadTexture(mLayerInfo.LayerTexture,
-        &textureWidth, &textureHeight, &pixelData, mBitmap);
+            &textureWidth, &textureHeight, &pixelData, mBitmap);
     TextureGenerator::getInstance().samplingMode(GL_NEAREST, GL_NEAREST,
-        GL_REPEAT, GL_REPEAT);
+            GL_REPEAT, GL_REPEAT);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0,
-        GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+                 GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
     glActiveTexture(GL_TEXTURE0);
     GL_ERROR_CHECK("PureCanvas: Create texture and update image");
 
@@ -128,14 +128,14 @@ bool PureCanvasEffect::drawPolygonEvery()
 
 bool PureCanvasEffect::updateFrameEvery()
 {
-	/*Update Vertex & Texture coordinations*/
+    /*Update Vertex & Texture coordinations*/
     glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT,
-    GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getPositions());
+                          GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getPositions());
     glEnableVertexAttribArray(positionHandler);
     GL_ERROR_CHECK("PureCanvas: update vertex attribute");
 
     glVertexAttribPointer(texCoordsHandler, mRectMesh.getTexCoordsSize(), GL_FLOAT,
-    GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getTexCoords());
+                          GL_FALSE, mRectMesh.getByteStride(), mRectMesh.getTexCoords());
     glEnableVertexAttribArray(texCoordsHandler);
     GL_ERROR_CHECK("PureCanvas: update texture attribute");
 

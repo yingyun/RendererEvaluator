@@ -16,14 +16,12 @@
 
 #include <EGL/egl.h>
 
-#ifdef USE_OPENGL_ES_20
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#endif 
-
-#ifdef USE_OPENGL_ES_30
+#if USE_OPENGL_ES_VER == 30
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
+#elif USE_OPENGL_ES_VER == 20
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 #endif
 
 #include "Pattern/Singleton.h"

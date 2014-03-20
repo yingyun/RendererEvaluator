@@ -84,7 +84,7 @@ void handleGTest(INIReader& configParser)
 LayerRenderType parseLayer(INIReader & configParser, string& layerName)
 {
     LayerRenderType layerInfo;
-    layerInfo.LayerRenderEffect = configParser.Get(layerName, "LayerRenderEffect", "default");
+    layerInfo.LayerRenderEffect = configParser.GetString(layerName, "LayerRenderEffect", "default");
     layerInfo.LayerDrawTick = configParser.GetInteger(layerName, "LayerDrawTick", 0);
     layerInfo.LayerOrder = configParser.GetInteger(layerName, "LayerOrder", 0);
     layerInfo.LayerPositionX = configParser.GetInteger(layerName, "LayerPositionX", 0);
@@ -92,8 +92,8 @@ LayerRenderType parseLayer(INIReader & configParser, string& layerName)
     layerInfo.LayerWidth = configParser.GetInteger(layerName, "LayerWidth", 0);
     layerInfo.LayerHeight = configParser.GetInteger(layerName, "LayerHeight", 0);
     layerInfo.LayerAlpha = configParser.GetReal(layerName, "LayerAlpha",  1.0f);
-    layerInfo.LayerObjectModel = configParser.Get(layerName, "LayerObjectModel", "default");
-    layerInfo.LayerTexture = configParser.Get(layerName, "LayerTexture", "default");
+    layerInfo.LayerObjectModel = configParser.GetString(layerName, "LayerObjectModel", "default");
+    layerInfo.LayerTexture = configParser.GetString(layerName, "LayerTexture", "default");
     string index = layerName.substr(5);
     layerInfo.LayerIndex = atoi(index.data());
     return layerInfo;

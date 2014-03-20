@@ -22,8 +22,8 @@ public:
     int ParseError();
 
     // Get a string value from INI file, returning default_value if not found.
-    std::string Get(std::string section, std::string name,
-                    std::string default_value);
+    std::string GetString(std::string section, std::string name,
+                          std::string default_value);
 
     // Get an integer (long) value from INI file, returning default_value if
     // not found or not a valid integer (decimal "1234", "-1234", or hex "0x4d2").

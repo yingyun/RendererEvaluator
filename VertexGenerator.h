@@ -2,22 +2,21 @@
 *Copyright (C) 2013 - 2014 Cui. Yingyun
 *This file is released under the GPL2
 */
+
 #ifndef  VERTEXGENERATOR_H
 #define VERTEXGENERATOR_H
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <ctype.h>
 #include <string>
 
-#ifdef USE_OPENGL_ES_20
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#endif
-
-#ifdef USE_OPENGL_ES_30
+#if USE_OPENGL_ES_VER == 30
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
+#elif USE_OPENGL_ES_VER == 20
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 #endif
 
 #include "Pattern/Singleton.h"
@@ -28,16 +27,25 @@ using std::string;
 namespace RenderEvaluator
 {
 
+#define OM_BUFFERSIZE 1024
+#define OM_MAX_STRING  256
+#define OM_MAX_VERTICES 1048576
+#define OM_VERTICES_DIVISOR 4
+#define OM_MAX_ATTRIBUTES (OM_MAX_VERTICES/OM_VERTICES_DIVISOR)
+#define OM_MAX_TRIANGLE_ATTRIBUTES OM_MAX_VERTICES
+#define OBJ_MODEL_PATH "/data/RenderEvaluator/"
+
 class VertexGenerator : public Singleton<VertexGenerator>
 {
 public:
     VertexGenerator() {}
-    bool genObjectModel(string objName);
 
     /* ------------------------------Mesh2D------------------------------ */
-    class Mesh2D {
+    class Mesh2D
+    {
     public:
-        enum Primitive {
+        enum Primitive
+        {
             POINTS          = GL_POINTS,
             LINES           = GL_LINES,
             LINE_LOOP       = GL_LINE_LOOP,
@@ -47,100 +55,81 @@ public:
             TRIANGLE_FAN    = GL_TRIANGLE_FAN
         };
 
-    /* ------------------------------Vertex allocator------------------------------ */
+        /* ------------------------------Vertex allocator------------------------------ */
         template <typename TYPE>
-        class VertexArray {
+        class VertexArray
+        {
             friend class Mesh2D;
             float* mData;
             size_t mStride;
             VertexArray(float* data, size_t stride) : mData(data), mStride(stride) { }
         public:
-            TYPE& operator[](size_t index) {
+            TYPE& operator[](size_t index)
+            {
                 return *reinterpret_cast<TYPE*>(&mData[index*mStride]);   //Magic here ....
             }
-            TYPE const& operator[](size_t index) const {
+            TYPE const& operator[](size_t index) const
+            {
                 return *reinterpret_cast<TYPE const*>(&mData[index*mStride]);
             }
         };
 
+
         Mesh2D(): mPrimitive(TRIANGLE_FAN), mVertices(0), mVertexCount(4),
             mVertexSize(2), mTexCoordsSize(2)
-            {
-                //do something in the future
-            }
+        {
+            //do something in the future
+        }
+        Mesh2D(Primitive primitive, size_t vertexCount, size_t vertexSize, size_t texCoordsSize);
+        ~Mesh2D();
 
-        Mesh2D& operator = (Mesh2D& mesh)
-            {
-                mPrimitive = mesh.getPrimitive();
-                mVertexCount = mesh.getVertexCount();
-                mVertexSize = mesh.getVertexSize();
-                mTexCoordsSize = mesh.getTexCoordsSize();
-                mStride = mesh.getStride();
-                mVertices = 0;
-                float* sourceVertices = mesh.getPositions();
-                unsigned int byteOfmVertices = (mVertexSize + mTexCoordsSize) * mVertexCount;
-                mVertices = new float[byteOfmVertices];
-                if(mVertices != 0)
-                    {
-                        for(unsigned int i =0; i < byteOfmVertices; i++)
-                            mVertices[i] = sourceVertices[i];
-                    }
-                else
-                    {
-                        LOG_ERROR("Wrong Mesh2D init\n");
-                        exit(-1);
-                    }
-                return *this;
-            }
-
-        Mesh2D(Primitive primitive, size_t vertexCount,
-            size_t vertexSize, size_t texCoordsSize):
-            mPrimitive(primitive),
-            mVertexCount(vertexCount),
-            mVertexSize(vertexSize),
-            mTexCoordsSize(texCoordsSize)
-            {
-                mVertices = new float[(mVertexSize + mTexCoordsSize) * mVertexCount];
-                mStride = mVertexSize + mTexCoordsSize;
-            }
-
-        ~Mesh2D()
-            {
-                delete [] mVertices;
-            }
+        Mesh2D& operator = (Mesh2D& mesh);
 
         template <typename TYPE>
-        VertexArray<TYPE> getPositionArray() {
-            return VertexArray<TYPE>(getPositions(), mStride); }
+        inline VertexArray<TYPE> getPositionArray()
+        {
+            return VertexArray<TYPE>(getPositions(), mStride);
+        }
 
         template <typename TYPE>
-        VertexArray<TYPE> getTexCoordArray() {
-            return VertexArray<TYPE>(getTexCoords(), mStride); }
+        inline VertexArray<TYPE> getTexCoordArray()
+        {
+            return VertexArray<TYPE>(getTexCoords(), mStride);
+        }
 
-        Primitive getPrimitive() { return mPrimitive; }
-        float* getPositions() { return mVertices; }
-        float* getTexCoords() { return mVertices + mVertexSize; }
-        size_t getVertexCount() { return mVertexCount; }
-        size_t getVertexSize() { return mVertexSize; }
-        size_t getTexCoordsSize() { return mTexCoordsSize; }
-        size_t getByteStride() { return mStride*sizeof(float); }
-        size_t getStride() { return mStride; }
-        void dumpInfo()
-            {
-                LOG_INFO("<-Dumpping Mesh2D information->\n");
-                LOG_INFO("Vertex Point Count: %d, Vertex Size: %d, TexCoords Size: %d, Byte Stride: %d\n",
-                getVertexCount(), getVertexSize(), getTexCoordsSize(), getByteStride());
-                for(size_t i = 0; i < getVertexCount(); ++i)
-                    {
-                        float* position = getPositions() + getStride() * i;
-                        LOG_INFO("VertexPosition[%d]: %f, %f\n", i, *position, *(position + 1));
-                    }
-                for(size_t i = 0; i < getVertexCount(); ++i)
-                    {
-                        float* texCoords = getTexCoords() + getStride() * i;
-                        LOG_INFO("TexCoords[%d]: %f, %f\n", i, *texCoords, *(texCoords + 1));
-                    }
-            }
+        inline Primitive getPrimitive()
+        {
+            return mPrimitive;
+        }
+        inline float* getPositions()
+        {
+            return mVertices;
+        }
+        inline float* getTexCoords()
+        {
+            return mVertices + mVertexSize;
+        }
+        inline size_t getVertexCount()
+        {
+            return mVertexCount;
+        }
+        inline size_t getVertexSize()
+        {
+            return mVertexSize;
+        }
+        inline size_t getTexCoordsSize()
+        {
+            return mTexCoordsSize;
+        }
+        inline size_t getByteStride()
+        {
+            return mStride*sizeof(float);
+        }
+        inline size_t getStride()
+        {
+            return mStride;
+        }
+        void dumpInfo();
 
     private:
         Primitive mPrimitive;
@@ -154,25 +143,40 @@ public:
 
     /* ------------------------------VEC2 implementation------------------------------ */
     template <typename TYPE>
-    class VEC2 {
+    class VEC2
+    {
     public:
         typedef TYPE& reference;
         typedef TYPE const& const_reference;
         typedef size_t size_type;
 
-        union {
-            struct {
-                TYPE x; TYPE y;
-                };
-            struct {
-                TYPE s; TYPE t;
-                };
+        union
+        {
+            struct
+            {
+                TYPE x;
+                TYPE y;
+            };
+            struct
+            {
+                TYPE s;
+                TYPE t;
+            };
         };
 
         enum { SIZE = 2 };
-        inline static size_type size() { return SIZE; }
-        inline const_reference operator [] (size_t i) const { return (&x)[i]; }
-        inline reference       operator [] (size_t i)       { return (&x)[i]; }
+        inline static size_type size()
+        {
+            return SIZE;
+        }
+        inline const_reference operator [] (size_t i) const
+        {
+            return (&x)[i];
+        }
+        inline reference       operator [] (size_t i)
+        {
+            return (&x)[i];
+        }
 
         VEC2() : x(0), y(0) { }
 
@@ -191,25 +195,42 @@ public:
 
     /* ------------------------------VEC3 implementation------------------------------ */
     template <typename TYPE>
-    class VEC3 {
+    class VEC3
+    {
     public:
         typedef TYPE& reference;
         typedef TYPE const& const_reference;
         typedef size_t size_type;
 
-        union {
-            struct {
-                TYPE x; TYPE y; TYPE z;
-                };
-            struct {
-                TYPE r; TYPE g; TYPE b;
-                };
+        union
+        {
+            struct
+            {
+                TYPE x;
+                TYPE y;
+                TYPE z;
+            };
+            struct
+            {
+                TYPE r;
+                TYPE g;
+                TYPE b;
+            };
         };
 
         enum { SIZE = 3 };
-        inline static size_type size() { return SIZE; }
-        inline const_reference operator [] (size_t i) const { return (&x)[i]; }
-        inline reference       operator [] (size_t i)       { return (&x)[i]; }
+        inline static size_type size()
+        {
+            return SIZE;
+        }
+        inline const_reference operator [] (size_t i) const
+        {
+            return (&x)[i];
+        }
+        inline reference       operator [] (size_t i)
+        {
+            return (&x)[i];
+        }
 
         VEC3() : x(0), y(0), z(0) { }
 
@@ -228,25 +249,44 @@ public:
 
     /* ------------------------------VEC4 implementation------------------------------ */
     template <typename TYPE>
-    class VEC4 {
+    class VEC4
+    {
     public:
         typedef TYPE& reference;
         typedef TYPE const& const_reference;
         typedef size_t size_type;
 
-        union {
-            struct {
-                TYPE x; TYPE y; TYPE z; TYPE w;
-                };
-            struct {
-                TYPE r; TYPE g; TYPE b; TYPE a;
-                };
+        union
+        {
+            struct
+            {
+                TYPE x;
+                TYPE y;
+                TYPE z;
+                TYPE w;
+            };
+            struct
+            {
+                TYPE r;
+                TYPE g;
+                TYPE b;
+                TYPE a;
+            };
         };
 
         enum { SIZE = 4 };
-        inline static size_type size() { return SIZE; }
-        inline const_reference operator [] (size_t i) const { return (&x)[i]; }
-        inline reference       operator [] (size_t i)       { return (&x)[i]; }
+        inline static size_type size()
+        {
+            return SIZE;
+        }
+        inline const_reference operator [] (size_t i) const
+        {
+            return (&x)[i];
+        }
+        inline reference       operator [] (size_t i)
+        {
+            return (&x)[i];
+        }
 
         VEC4() : x(0), y(0), z(0), w(0) { }
 
@@ -263,6 +303,162 @@ public:
     typedef VEC4<float> VEC4_F;
     typedef VEC4<int> VEC4_I;
 
+    /* ------------------------------Object model holder and export------------------------------ */
+    typedef struct objectmodel
+    {
+        float* vertices;
+        float* normals;
+        float* tangents;
+        float* bitangents;
+        float* texCoords;
+        float* allAttributes;
+        unsigned short* indices;
+        unsigned short numberVertices;
+        unsigned int numberIndices;
+        unsigned int mode;
+    } OBJModel;
+
+    bool genObjectModel(string objName, OBJModel* shape);
+    void destroyObjectModel(OBJModel* shape);
+    bool OMVector3Normalizef(float vector[3]);
+    void OMVector3Crossf(float result[3], const float vector0[3], const float vector1[3]);
+
+private:
+    /*------------------------------Structure for holding material data.------------------------------*/
+    typedef struct _OMmaterial
+    {
+        //Name of the material
+        char name[OM_MAX_STRING];
+        //Emissive color
+        float emissive[4];
+        //Ambient color
+        float ambient[4];
+        //Diffuse color
+        float diffuse[4];
+        //Specular color
+        float specular[4];
+        //Shininess
+        float shininess;
+        //Transparency, which is the alpha value
+        float transparency;
+        //Reflection
+        bool reflection;
+        //Refraction
+        bool refraction;
+        //Index of refraction
+        float indexOfRefraction;
+        //Ambient color texture filename
+        char ambientTextureFilename[OM_MAX_STRING];
+        //Diffuse color texture filename
+        char diffuseTextureFilename[OM_MAX_STRING];
+        //Specular color texture filename
+        char specularTextureFilename[OM_MAX_STRING];
+        //Transparency texture filename
+        char transparencyTextureFilename[OM_MAX_STRING];
+        //Bump texture filename
+        char bumpTextureFilename[OM_MAX_STRING];
+        //Can be used to store the ambient texture name
+        unsigned int ambientTextureName;
+        //Can be used to store the diffuse texture name
+        unsigned int diffuseTextureName;
+        //Can be used to store the specular texture name
+        unsigned int specularTextureName;
+        //Can be used to store the transparency texture name
+        unsigned int transparencyTextureName;
+        //Can be used to store the bump texture name
+        unsigned int bumpTextureName;
+    } OMmaterial;
+
+    /* ------------------------------Structure for holding material data list ------------------------------*/
+    typedef struct _OMmaterialList
+    {
+        //The material data.
+        OMmaterial material;
+        //The pointer to the next element.
+        struct _OMmaterialList* next;
+    } OMmaterialList;
+
+    /*------------------------------Group of geometry.------------------------------*/
+    typedef struct _OMgroup
+    {
+        //Name of the group
+        char name[OM_MAX_STRING];
+        //Name of the material
+        char materialName[OM_MAX_STRING];
+        //Pointer to the material.
+        OMmaterial* material;
+        //Indices
+        unsigned int* indices;
+        //Indices VBO
+        unsigned int indicesVBO;
+        //VAO of this group.
+        unsigned int vao;
+        //Number of indices
+        unsigned int numberIndices;
+        //Triangle render mode - could be either: GL_TRIANGLES   GL_TRIANGLE_STRIP
+        unsigned int mode;
+    } OMgroup;
+
+    /*------------------------------Structure for holding the group data list.------------------------------*/
+    typedef struct _OMgroupList
+    {
+        //The group data
+        OMgroup group;
+        //The pointer to the next group element
+        struct _OMgroupList* next;
+    } OMgroupList;
+
+    /* ------------------------------Structure for a complete wavefront object file.------------------------------*/
+    typedef struct _OMwavefront
+    {
+        //Vertices in homogeneous coordinates.
+        float* vertices;
+        //Vertices VBO.
+        unsigned int verticesVBO;
+        //Normals
+        float* normals;
+        //Normals VBO.
+        unsigned int normalsVBO;
+        //Tangents
+        float* tangents;
+        //Tangents VBO.
+        unsigned int tangentsVBO;
+        //Bitangents
+        float* bitangents;
+        //Bitangents VBO.
+        unsigned int bitangentsVBO;
+        //Texture coordinates
+        float* texCoords;
+        //Texture corrdinates VBO.
+        unsigned int texCoordsVBO;
+        //Number of vertices.
+        unsigned int numberVertices;
+        //Pointer to the first element of the groups.
+        OMgroupList* groups;
+        //Pointer to the first element of the materials.
+        OMmaterialList* materials;
+    } OMwavefront;
+
+    /* ------------------------------ObjectModel Export method, Private------------------------------ */
+    bool OMParseObjFile(string filePath, OBJModel* shape, OMwavefront* wavefront);
+    float OMVector3Lengthf(const float vector[3]);
+    void OMPoint4SubtractPoint4f(float result[3], const float point0[4], const float point1[4]);
+    void OMDestroyMaterial(OMmaterialList** materialList);
+
+    void OMInitMaterial(OMmaterial* material);
+    bool OMCalculateTangentSpacef(OBJModel* shape);
+
+    GLboolean OMCopyObjData(OBJModel* shape, unsigned short totalNumberVertices,
+                            float* triangleVertices, unsigned short totalNumberNormals, float* triangleNormals,
+                            unsigned short totalNumberTexCoords, float* triangleTexCoords);
+
+    bool OMLoadMaterial(const char* filename, OMmaterialList** materialList);
+
+    void OMFreeTempMemory(float** vertices, float** normals, float** texCoords,
+                          float** triangleVertices, float** triangleNormals, float** triangleTexCoords);
+
+    bool OMMallocTempMemory(float** vertices, float** normals, float** texCoords,
+                            float** triangleVertices, float** triangleNormals, float** triangleTexCoords);
 };
 
 }
