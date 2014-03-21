@@ -89,8 +89,19 @@ bool BlenderModel::updateAttributeOnce()
 
 bool BlenderModel::updateBufferOnce()
 {
+#if 1
     if(!VertexGenerator::getInstance().genObjectModel(mLayerInfo.LayerObjectModel, &mOBJModel))
-        LOG_ERROR("BlenderModel: Generating Object model failed!");
+        {
+            LOG_ERROR("BlenderModel: Generating Object model failed!\n");
+            exit(-1);
+        }
+#endif
+
+#if 0
+    mOBJModel.numberVertices = 3;
+    float vertices[9] = {0.0, 1.0, 0.0, -1.0, -1.0, 0.0, 1.0, -1.0, 0.0};
+    mOBJModel.vertices  = vertices;
+#endif
 
     /*Update VAO and vertex VBO*/
     glGenVertexArrays(1, &mVertexArrayObject);
@@ -98,6 +109,8 @@ bool BlenderModel::updateBufferOnce()
 
     glGenBuffers(1, &mVertexPositionBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexPositionBuffer);
+
+    LOG_INFO("debug,,,%d,  %p\n", mOBJModel.numberVertices, mOBJModel.vertices);
 
     size_t vertexSizeByte = mOBJModel.numberVertices * 4 * sizeof(GLfloat);
 
@@ -109,7 +122,9 @@ bool BlenderModel::updateBufferOnce()
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+#if 1
     VertexGenerator::getInstance().destroyObjectModel(&mOBJModel);
+#endif
 
     return true;
 }

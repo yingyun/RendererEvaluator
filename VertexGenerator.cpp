@@ -472,7 +472,7 @@ bool VertexGenerator::OMParseObjFile(string filePath, OBJModel* shape, OMwavefro
                         }
 
                     sscanf(buffer, "%s %f %f", identifier, &s, &t);
-                    LOG_DEBUG("ObjModel: VertexTexture: s %f, t %f\n", s, t);
+                    LOG_INFO("ObjModel: VertexTexture: s %f, t %f\n", s, t);
 
                     texCoords[2 * numberTexCoords + 0] = s;
                     texCoords[2 * numberTexCoords + 1] = t;
@@ -493,7 +493,7 @@ bool VertexGenerator::OMParseObjFile(string filePath, OBJModel* shape, OMwavefro
                         }
 
                     sscanf(buffer, "%s %f %f %f", identifier, &x, &y, &z);
-                    LOG_DEBUG("ObjModel: %s VertexNormal: x %f, y %f, z %f\n", identifier, x, y, z);
+                    LOG_INFO("ObjModel: %s VertexNormal: x %f, y %f, z %f\n", identifier, x, y, z);
 
                     normals[3 * numberNormals + 0] = x;
                     normals[3 * numberNormals + 1] = y;
@@ -515,7 +515,7 @@ bool VertexGenerator::OMParseObjFile(string filePath, OBJModel* shape, OMwavefro
                         }
 
                     sscanf(buffer, "%s %f %f %f", identifier, &x, &y, &z);
-                    LOG_DEBUG("ObjModel: %s Vertex: x %f, y %f, z %f\n", identifier, x, y, z);
+                    LOG_INFO("ObjModel: %s Vertex: x %f, y %f, z %f\n", identifier, x, y, z);
 
                     vertices[4 * numberVertices + 0] = x;
                     vertices[4 * numberVertices + 1] = y;
