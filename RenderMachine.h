@@ -48,6 +48,7 @@
 #include "Effects/EdgeDetection.h"
 #include "Effects/GaussianBlur.h"
 #include "Effects/BlenderModel.h"
+#include "Effects/StencilTest.h"
 
 using android::sp;
 using android::wp;

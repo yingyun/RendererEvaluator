@@ -20,6 +20,7 @@ LOCAL_SRC_FILES:= \
 	Effects/EdgeDetection.cpp \
 	Effects/GaussianBlur.cpp \
 	Effects/BlenderModel.cpp \
+	Effects/StencilTest.cpp \
 	INI_Parser/ini.cpp \
 	INI_Parser/INIReader.cpp \
 	RenderEvaluator.cpp \

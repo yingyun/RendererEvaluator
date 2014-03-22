@@ -47,6 +47,10 @@ void RenderMachine::polygonEffectSelect()
         {
             tempResult = new BlenderModel(mLayerInfo);
         }
+    else if(renderEffect == string("StencilTest"))
+        {
+            tempResult = new StencilTest(mLayerInfo);
+        }
     else
         {
             LOG_ERROR("Wrong rendre effect type !\n");
