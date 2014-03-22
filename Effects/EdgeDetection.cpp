@@ -195,7 +195,7 @@ bool EdgeDetection::drawPolygonEvery()
     return true;
 }
 
-bool EdgeDetection::updateFrameEvery()
+bool EdgeDetection::updateParamsEvery()
 {
     return true;
 }

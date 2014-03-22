@@ -142,7 +142,7 @@ bool BlenderModel::drawPolygonEvery()
     return true;
 }
 
-bool BlenderModel::updateFrameEvery()
+bool BlenderModel::updateParamsEvery()
 {
 
     /*TODO  Model Matrix need to change every frame */

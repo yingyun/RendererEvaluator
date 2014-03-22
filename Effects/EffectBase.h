@@ -1,6 +1,15 @@
 /*
 *Base class for filter to implement the function which they want to achive
 *
+* |-> Excute once
+* updateShaderOnce()
+* updateAttributeOnce()
+* updateBufferOnce()
+*
+* |-> Excute every vsync arrive
+* updateParamsEvery()
+* drawPolygonEvery()
+*
 *Copyright (C) 2013 - 2014 Cui. Yingyun
 *This file is released under the GPL2
 */
@@ -24,7 +33,7 @@ public:
     virtual bool updateAttributeOnce() = 0;
     virtual bool updateBufferOnce() = 0;
     virtual bool drawPolygonEvery() = 0;
-    virtual bool updateFrameEvery() = 0;
+    virtual bool updateParamsEvery() = 0;
 };
 }
 #endif

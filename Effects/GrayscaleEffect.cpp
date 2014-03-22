@@ -137,7 +137,7 @@ bool GrayscaleEffect::drawPolygonEvery()
     return true;
 }
 
-bool GrayscaleEffect::updateFrameEvery()
+bool GrayscaleEffect::updateParamsEvery()
 {
     /*Update Vertex & Texture coordinations*/
     glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT,

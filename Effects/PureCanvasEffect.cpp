@@ -126,7 +126,7 @@ bool PureCanvasEffect::drawPolygonEvery()
     return true;
 }
 
-bool PureCanvasEffect::updateFrameEvery()
+bool PureCanvasEffect::updateParamsEvery()
 {
     /*Update Vertex & Texture coordinations*/
     glVertexAttribPointer(positionHandler, mRectMesh.getVertexSize(), GL_FLOAT,

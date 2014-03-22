@@ -45,7 +45,7 @@ public:
     virtual bool updateAttributeOnce();
     virtual bool updateBufferOnce();
     virtual bool drawPolygonEvery();
-    virtual bool updateFrameEvery();
+    virtual bool updateParamsEvery();
 };
 }
 #endif

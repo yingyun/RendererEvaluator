@@ -88,9 +88,9 @@ bool RenderMachine::polygonOnceRoutine()
 
 void RenderMachine::polygonDraw()
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    if(!mEffect->updateFrameEvery()) LOG_ERROR("Updating frame every error!\n");
+    if(!mEffect->updateParamsEvery()) LOG_ERROR("Updating frame every error!\n");
     if(!mEffect->drawPolygonEvery()) LOG_ERROR("Drawing polygon every error!\n");
 
     eglSwapBuffers(mEGLDisplay, mEGLSurface);

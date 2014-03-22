@@ -14,6 +14,7 @@ using android::String8;
 
 namespace RenderEvaluator
 {
+#define NumTests  4
 
 class StencilTest : public EffectBase
 {
@@ -21,6 +22,10 @@ private:
     String8 mFragShader;
     String8 mVertexShader;
     LayerRenderType mLayerInfo;
+
+    static GLfloat vVertices[];
+    static GLubyte indices[][6];
+    static GLfloat  colors[NumTests][4];
 
     GLuint colorHandler;
     GLuint positionHandler;
@@ -33,7 +38,7 @@ public:
     virtual bool updateAttributeOnce();
     virtual bool updateBufferOnce();
     virtual bool drawPolygonEvery();
-    virtual bool updateFrameEvery();
+    virtual bool updateParamsEvery();
 };
 
 }

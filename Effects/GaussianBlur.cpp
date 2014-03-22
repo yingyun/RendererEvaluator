@@ -256,7 +256,7 @@ bool GaussianBlur::drawPolygonEvery()
     return true;
 }
 
-bool GaussianBlur::updateFrameEvery()
+bool GaussianBlur::updateParamsEvery()
 {
     return true;
 }
