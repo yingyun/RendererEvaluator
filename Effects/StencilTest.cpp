@@ -230,7 +230,7 @@ bool StencilTest::drawPolygonEvery()
     //   occur.  We diable writing to the stencil buffer so we
     //   can test against them without modifying the values we
     //   generated.
-    glStencilMask( 0x0 );
+    glStencilMask(0x0);
 
     for ( int i = 0; i < NumTests; ++i )
         {
@@ -238,6 +238,8 @@ bool StencilTest::drawPolygonEvery()
             glUniform4fv( colorHandler, 1, colors[i]);
             glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices[4]);
         }
+    //Restore stencil mask
+    glStencilMask(0xFF);
 
     return true;
 }
