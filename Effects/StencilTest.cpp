@@ -139,6 +139,8 @@ bool StencilTest::updateBufferOnce()
 
 bool StencilTest::drawPolygonEvery()
 {
+    glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
     glVertexAttribPointer(positionHandler, 3, GL_FLOAT, GL_FALSE, 0, vVertices);
     glEnableVertexAttribArray(positionHandler);
 
@@ -242,12 +244,6 @@ bool StencilTest::drawPolygonEvery()
 
 bool StencilTest::updateParamsEvery()
 {
-    /*
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClearDepthf(0.75f);
-    glClearStencil(0x1);
-    */
-
     return true;
 }
 
