@@ -18,12 +18,6 @@
 */
 #include "StencilTest.h"
 
-
-/*
-*TODO: The render result is the corruption, i didn't figure out it yet...
-*The issue just happend in second frame, Successed with first failed from second frame.
-*/
-
 namespace RenderEvaluator
 {
 
@@ -157,9 +151,9 @@ bool StencilTest::drawPolygonEvery()
     //   The value in the stencil buffer for these pixels will
     //   be ---> 0x7.
     //
-    glStencilFunc( GL_LESS, 0x7, 0x3 );
-    glStencilOp( GL_REPLACE, GL_DECR, GL_DECR );
-    glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices[0]);
+    glStencilFunc(GL_LESS, 0x7, 0x3);
+    glStencilOp(GL_REPLACE, GL_DECR, GL_DECR);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices[0]);
 
     // Test 1:
     //
@@ -173,8 +167,8 @@ bool StencilTest::drawPolygonEvery()
     //    but where the geometry fails the depth test.  The
     //    stencil values for these pixels will be ---> 0x0.
     //
-    glStencilFunc( GL_GREATER, 0x3, 0x3 );
-    glStencilOp( GL_KEEP, GL_DECR, GL_KEEP );
+    glStencilFunc(GL_GREATER, 0x3, 0x3);
+    glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
     glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices[1]);
 
     // Test 2:
@@ -189,9 +183,9 @@ bool StencilTest::drawPolygonEvery()
     //
     //   The stencil values for these pixels will be ---> 0x2.
     //
-    glStencilFunc( GL_EQUAL, 0x1, 0x3 );
-    glStencilOp( GL_KEEP, GL_INCR, GL_INCR );
-    glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices[2]);
+    glStencilFunc(GL_EQUAL, 0x1, 0x3);
+    glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices[2]);
 
     // Test 3:
     //
@@ -207,12 +201,12 @@ bool StencilTest::drawPolygonEvery()
     //   (with the 0x1 being from the stencil clear value),
     //   where 's' is the number of bits in the stencil buffer
     //
-    glStencilFunc( GL_EQUAL, 0x2, 0x1 );
-    glStencilOp( GL_INVERT, GL_KEEP, GL_KEEP );
-    glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices[3]);
+    glStencilFunc(GL_EQUAL, 0x2, 0x1);
+    glStencilOp(GL_INVERT, GL_KEEP, GL_KEEP);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices[3]);
 
     GLint   numStencilBits;
-    glGetIntegerv( GL_STENCIL_BITS, &numStencilBits );
+    glGetIntegerv(GL_STENCIL_BITS, &numStencilBits);
     GLuint  stencilValues[NumTests] =
     {
         // Result of test 0
@@ -224,22 +218,17 @@ bool StencilTest::drawPolygonEvery()
         // Result of test 3.  We need to fill this
         0xff
     };
+    // 0x1 was the defalult stencil value, OxFF was the stencil test mask
     stencilValues[3] = ~(((1 << numStencilBits) - 1) & 0x1) & 0xff;
 
-    // Use the stencil buffer for controlling where rendering will
-    //   occur.  We diable writing to the stencil buffer so we
-    //   can test against them without modifying the values we
-    //   generated.
-    glStencilMask(0x0);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-    for ( int i = 0; i < NumTests; ++i )
+    for( int i = 0; i < NumTests; ++i )
         {
-            glStencilFunc( GL_EQUAL, stencilValues[i], 0xff);
-            glUniform4fv( colorHandler, 1, colors[i]);
-            glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices[4]);
+            glStencilFunc(GL_EQUAL, stencilValues[i], 0xff);
+            glUniform4fv(colorHandler, 1, colors[i]);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices[4]);
         }
-    //Restore stencil mask
-    glStencilMask(0xFF);
 
     return true;
 }
