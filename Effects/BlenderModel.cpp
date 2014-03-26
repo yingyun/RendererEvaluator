@@ -7,7 +7,7 @@
 #include "BlenderModel.h"
 
 /*
-TODO: 
+TODO:
     1: Add light(PHONG???)
     2: Add model or view change every frame!
 */

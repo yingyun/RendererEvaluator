@@ -30,10 +30,21 @@ using std::vector;
 namespace RenderEvaluator
 {
 
-#define ONE_LINE_SIZE 1024//TODO: optitmize it size
+#define ONE_LINE_SIZE 512
 #define VERTEX_C 3
 #define UV_C 2
 #define NORMAL_C 3
+
+#define VER_X 0
+#define VER_Y 1
+#define VER_Z 2
+
+#define TEX_U 0
+#define TEX_Y 1
+
+#define NOR_X 0
+#define NOR_Y 1
+#define NOR_Z 2
 
 class VertexGenerator : public Singleton<VertexGenerator>
 {

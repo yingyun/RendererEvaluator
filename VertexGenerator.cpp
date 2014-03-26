@@ -127,7 +127,7 @@ bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o
                     sscanf(lineBuffer, "%s %f %f %f\n",identifier, &vertex[0], &vertex[1], &vertex[2]);
                     vertexDatas.push_back(vertex);
 
-                    LOG_DEBUG("%s-> %f, %f, %f\n", identifier, vertex[0], vertex[1], vertex[2]); 
+                    LOG_DEBUG("%s-> %f, %f, %f\n", identifier, vertex[0], vertex[1], vertex[2]);
                 }
             else if (strncmp( lineBuffer, "vt", 2) == 0)
                 {
@@ -212,7 +212,7 @@ bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o
                                         uvIndices.push_back(uvIndex);
                                         normalIndices.push_back(normalIndex);
 
-                                        LOG_DEBUG("Face Parsing-> V_U_N: %d %d %d\n", vertexIndex, uvIndex, normalIndex); 
+                                        LOG_DEBUG("Face Parsing-> V_U_N: %d %d %d\n", vertexIndex, uvIndex, normalIndex);
                                     }
                                     break;
                                     case VERTEX_UV:
@@ -247,6 +247,7 @@ bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o
                                     }
                                     break;
                                 }
+                            //Swipe to next token
                             token = strtok(0, " \n");
                         }
                 }
@@ -261,7 +262,7 @@ bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o
     if(hasVertex && (o_vertices != NULL))
         {
             *o_vertices = new float[sizeof(float) * VERTEX_C * numVertex];
-            if(*o_vertices == 0)
+            if(*o_vertices == NULL)
                 {
                     LOG_ERROR("loadObjModel: Allocate vertics pool Faield!\n");
                     return false;
@@ -271,7 +272,7 @@ bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o
     if(hasUV && (o_uvs != NULL))
         {
             *o_uvs = new float[sizeof(float) * UV_C * numVertex];
-            if(*o_uvs == 0)
+            if(*o_uvs == NULL)
                 {
                     LOG_ERROR("loadObjModel: Allocate UVs pool Faield!\n");
                     return false;
@@ -281,7 +282,7 @@ bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o
     if(hasNormal && (o_normals != NULL))
         {
             *o_normals = new float[sizeof(float) * NORMAL_C * numVertex];
-            if(*o_normals == 0)
+            if(*o_normals == NULL)
                 {
                     LOG_ERROR("loadObjModel: Allocate Normals pool Faield!\n");
                     return false;
@@ -291,34 +292,34 @@ bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o
 
     for(unsigned int i = 0; i < vertexIndices.size(); i++)
         {
-            if(hasVertex && (o_vertices != 0))
+            if(hasVertex && (o_vertices != NULL))
                 {
                     unsigned int vertexIndex = vertexIndices[i];
                     VEC3_F vertex = vertexDatas[vertexIndex - 1];
 
                     float* vertex_base = *o_vertices;
-                    vertex_base[i * VERTEX_C + 0] = vertex[0];
-                    vertex_base[i * VERTEX_C + 1] = vertex[1];
-                    vertex_base[i * VERTEX_C + 2] = vertex[2];
+                    vertex_base[i * VERTEX_C + VER_X] = vertex[VER_X];
+                    vertex_base[i * VERTEX_C + VER_Y] = vertex[VER_Y];
+                    vertex_base[i * VERTEX_C + VER_Z] = vertex[VER_Z];
                 }
-            if(hasUV && (o_uvs != 0))
+            if(hasUV && (o_uvs != NULL))
                 {
                     unsigned int uvIndex = uvIndices[i];
                     VEC2_F uv = uvDatas[uvIndex - 1];
 
                     float* uv_base = *o_uvs;
-                    uv_base[i * UV_C + 0] = uv[0];
-                    uv_base[i * UV_C + 1] = uv[1];
+                    uv_base[i * UV_C + TEX_U] = uv[TEX_U];
+                    uv_base[i * UV_C + TEX_Y] = uv[TEX_Y];
                 }
-            if(hasNormal && (o_normals != 0))
+            if(hasNormal && (o_normals != NULL))
                 {
                     unsigned int normalIndex = normalIndices[i];
                     VEC3_F normal = normalDatas[normalIndex - 1];
 
                     float* normal_base = *o_normals;
-                    normal_base[i * NORMAL_C + 0] = normal[0];
-                    normal_base[i * NORMAL_C + 1] = normal[1];
-                    normal_base[i * NORMAL_C + 2] = normal[2];
+                    normal_base[i * NORMAL_C + NOR_X] = normal[NOR_X];
+                    normal_base[i * NORMAL_C + NOR_Y] = normal[NOR_Y];
+                    normal_base[i * NORMAL_C + NOR_Z] = normal[NOR_Z];
                 }
         }
     return true;
@@ -327,14 +328,14 @@ bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o
 void VertexGenerator::unloadObjModel(float** vertices_addr, float** uvs_addr, float** normals_addr)
 {
     LOG_INFO("VertexGenerator::unloadObjModel...\n");
-    if(vertices_addr !=NULL && *vertices_addr != NULL)
+    if(vertices_addr != NULL && *vertices_addr != NULL)
         {
             delete [] *vertices_addr;
             *vertices_addr = NULL;
             LOG_INFO("\t->Release vertices pool!\n");
         }
 
-    if(uvs_addr !=NULL && *uvs_addr != NULL)
+    if(uvs_addr != NULL && *uvs_addr != NULL)
         {
             delete [] *uvs_addr;
             *uvs_addr = NULL;
