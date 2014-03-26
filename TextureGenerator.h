@@ -24,13 +24,12 @@
 #include <GLES2/gl2ext.h>
 #endif
 
+#include "Resource/ResourceProperty.h"
 #include "Pattern/Singleton.h"
 #include "Logging.h"
 
 namespace RenderEvaluator
 {
-
-#define TEXTURE_PATH "/data/RenderEvaluator/"
 
 class TextureGenerator : public Singleton<TextureGenerator>
 {

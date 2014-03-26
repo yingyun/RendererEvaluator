@@ -6,6 +6,12 @@
 */
 #include "BlenderModel.h"
 
+/*
+TODO: 
+    1: Add light(PHONG???)
+    2: Add model or view change every frame!
+*/
+
 namespace RenderEvaluator
 {
 
@@ -63,23 +69,23 @@ bool BlenderModel::updateAttributeOnce()
 
     /*Update model matrix*/
     LOG_INFO("BlenderModel: Generate model matrix\n");
-    MatrixTransform::getInstance().matrixIndentity(&mModelMatrix);
-    MatrixTransform::getInstance().matrixRotate(&mModelMatrix, 10.0f, 0.0f, 0.0f, 0.0f);
+    MatrixTransform::getInstance().doMAT_Identify(&mModelMatrix);
+    MatrixTransform::getInstance().doMAT_Rotate(&mModelMatrix, 10.0f, 0.0f, 0.0f, 0.0f);
     glUniformMatrix4fv(modelMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mModelMatrix.m));
     GL_ERROR_CHECK("BlenderModel:update model matrix");
 
     /*Update view matrix*/
     LOG_INFO("BlenderModel: Generate view matrix\n");
-    MatrixTransform::getInstance().matrixIndentity(&mViewMatrix);
-    MatrixTransform::getInstance().matrixLookAt(&mViewMatrix, 0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    MatrixTransform::getInstance().doMAT_Identify(&mViewMatrix);
+    MatrixTransform::getInstance().doMAT_LookAt(&mViewMatrix, 0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     glUniformMatrix4fv(viewMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mViewMatrix.m));
     GL_ERROR_CHECK("BlenderModel:update view matrix");
 
     /*Update projection matrix*/
     LOG_INFO("BlenderModel: Generate projection matrix\n");
-    MatrixTransform::getInstance().matrixIndentity(&mProjectionMatrix);
+    MatrixTransform::getInstance().doMAT_Identify(&mProjectionMatrix);
     const float aspect = (float)mLayerInfo.LayerWidth / (float)mLayerInfo.LayerHeight;
-    MatrixTransform::getInstance().matrixPerspectiveProjection(&mProjectionMatrix,
+    MatrixTransform::getInstance().doMAT_PersProjection(&mProjectionMatrix,
             40.0f, aspect, 1.0f, 100.0f);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mProjectionMatrix.m));
     GL_ERROR_CHECK("BlenderModel:update projection matrix");
@@ -89,19 +95,8 @@ bool BlenderModel::updateAttributeOnce()
 
 bool BlenderModel::updateBufferOnce()
 {
-#if 1
-    if(!VertexGenerator::getInstance().genObjectModel(mLayerInfo.LayerObjectModel, &mOBJModel))
-        {
-            LOG_ERROR("BlenderModel: Generating Object model failed!\n");
-            exit(-1);
-        }
-#endif
 
-#if 0
-    mOBJModel.numberVertices = 3;
-    float vertices[9] = {0.0, 1.0, 0.0, -1.0, -1.0, 0.0, 1.0, -1.0, 0.0};
-    mOBJModel.vertices  = vertices;
-#endif
+    VertexGenerator::getInstance().loadObjModel(mLayerInfo.LayerObjectModel, &mVerticesData, NULL, NULL, &mVerticesNum);
 
     /*Update VAO and vertex VBO*/
     glGenVertexArrays(1, &mVertexArrayObject);
@@ -110,22 +105,17 @@ bool BlenderModel::updateBufferOnce()
     glGenBuffers(1, &mVertexPositionBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexPositionBuffer);
 
-    LOG_INFO("debug,,,%d,  %p\n", mOBJModel.numberVertices, mOBJModel.vertices);
+    size_t vertexSizeByte = mVerticesNum * VERTEX_C * sizeof(float);
 
-    size_t vertexSizeByte = mOBJModel.numberVertices * 4 * sizeof(GLfloat);
-
-    glBufferData(GL_ARRAY_BUFFER, vertexSizeByte, reinterpret_cast<GLfloat*>(mOBJModel.vertices), GL_STATIC_DRAW);
-    glVertexAttribPointer(positionHandler, 4, GL_FLOAT, GL_FALSE, 0, (void *)0);
+    glBufferData(GL_ARRAY_BUFFER, vertexSizeByte, mVerticesData, GL_STATIC_DRAW);
+    glVertexAttribPointer(positionHandler, VERTEX_C, GL_FLOAT, GL_FALSE, 0, (void *)0);
     glEnableVertexAttribArray(positionHandler);
     GL_ERROR_CHECK("BlenderModel:Update VAO");
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-#if 1
-    VertexGenerator::getInstance().destroyObjectModel(&mOBJModel);
-#endif
-
+    VertexGenerator::getInstance().unloadObjModel(&mVerticesData, NULL, NULL);
     return true;
 }
 
@@ -134,7 +124,7 @@ bool BlenderModel::drawPolygonEvery()
     glBindVertexArray(mVertexArrayObject);
     GL_ERROR_CHECK("BlenderModel:Switch VAO");
 
-    glDrawArrays(MESH::TRIANGLES, 0, mOBJModel.numberVertices);
+    glDrawArrays(MESH::TRIANGLES, 0, mVerticesNum);
     GL_ERROR_CHECK("BlenderModel:drawPolygon");
 
     glBindVertexArray(0);

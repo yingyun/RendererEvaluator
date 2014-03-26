@@ -20,7 +20,7 @@ RENDEREVALUATOR_SINGLETON_STATIC_VAR_INIT(MatrixTransform);
 
 
 
-void MatrixTransform::matrixIndentity(Matrix44 * result)
+void MatrixTransform::doMAT_Identify(Matrix44 * result)
 {
     memset(result, 0x0, sizeof(Matrix44));
     result->m[0][0] = 1.0f;
@@ -29,7 +29,7 @@ void MatrixTransform::matrixIndentity(Matrix44 * result)
     result->m[3][3] = 1.0f;
 }
 
-void MatrixTransform::matrixMultiply(Matrix44 *result, Matrix44 *srcA, Matrix44 *srcB)
+void MatrixTransform::doMAT_Multiply(Matrix44 *result, Matrix44 *srcA, Matrix44 *srcB)
 {
     Matrix44 tmp;
     int i;
@@ -52,7 +52,7 @@ void MatrixTransform::matrixMultiply(Matrix44 *result, Matrix44 *srcA, Matrix44 
 
 /*---------------------Model-Linear Transformation---------------------*/
 
-void MatrixTransform::matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
+void MatrixTransform::doMAT_Rotate(Matrix44 * result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
     GLfloat sinAngle;
     GLfloat cosAngle;
@@ -102,11 +102,11 @@ void MatrixTransform::matrixRotate(Matrix44 * result, GLfloat angle, GLfloat x, 
             rotMat.m[3][2] = 0.0F;
             rotMat.m[3][3] = 1.0F;
 
-            matrixMultiply( result, &rotMat, result );
+            doMAT_Multiply( result, &rotMat, result );
         }
 }
 
-void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLfloat sz)
+void MatrixTransform::doMAT_Scale(Matrix44 * result, GLfloat sx, GLfloat sy, GLfloat sz)
 {
     result->m[0][0] *= sx;
     result->m[0][1] *= sx;
@@ -124,12 +124,9 @@ void MatrixTransform::matrixScale(Matrix44 * result, GLfloat sx, GLfloat sy, GLf
     result->m[2][3] *= sz;
 }
 
-
-
-
 /*---------------------Model-Move origin---------------------*/
 
-void MatrixTransform::matrixTranslate(Matrix44 * result, GLfloat tx, GLfloat ty, GLfloat tz)
+void MatrixTransform::doMAT_Translate(Matrix44 * result, GLfloat tx, GLfloat ty, GLfloat tz)
 {
     result->m[3][0] += (result->m[0][0] * tx + result->m[1][0] * ty + result->m[2][0] * tz);
     result->m[3][1] += (result->m[0][1] * tx + result->m[1][1] * ty + result->m[2][1] * tz);
@@ -140,7 +137,7 @@ void MatrixTransform::matrixTranslate(Matrix44 * result, GLfloat tx, GLfloat ty,
 
 /*---------------------View matrix---------------------*/
 
-void MatrixTransform::matrixLookAt(Matrix44 * result,
+void MatrixTransform::doMAT_LookAt(Matrix44 * result,
                                    const float eyeX, const float eyeY, const float eyeZ,
                                    const float centerX, const float centerY, const float centerZ,
                                    const float upX, const float upY, const float upZ)
@@ -151,15 +148,15 @@ void MatrixTransform::matrixLookAt(Matrix44 * result,
     forward[1] = centerY - eyeY;
     forward[2] = centerZ - eyeZ;
 
-    VertexGenerator::getInstance().OMVector3Normalizef(forward);
+    VectorTransform::getInstance().doVEC3_Normalize(forward);
 
     up[0] = upX;
     up[1] = upY;
     up[2] = upZ;
 
-    VertexGenerator::getInstance().OMVector3Crossf(side, forward, up);
-    VertexGenerator::getInstance().OMVector3Normalizef(side);
-    VertexGenerator::getInstance().OMVector3Crossf(up, side, forward);
+    VectorTransform::getInstance().doVEC3_Cross(side, forward, up);
+    VectorTransform::getInstance().doVEC3_Normalize(side);
+    VectorTransform::getInstance().doVEC3_Cross(up, side, forward);
 
     result->m[0][0] = side[0];
     result->m[0][1] = up[0];
@@ -182,13 +179,13 @@ void MatrixTransform::matrixLookAt(Matrix44 * result,
     result->m[3][3] = 1.0f;
 
     Matrix44 temp;
-    matrixIndentity(&temp);
+    doMAT_Identify(&temp);
 
     temp.m[3][0] = -eyeX;
     temp.m[3][1] = -eyeY;
     temp.m[3][2] = -eyeZ;
 
-    matrixMultiply(result, result, &temp);
+    doMAT_Multiply(result, result, &temp);
 }
 
 /*---------------------Projection matrix---------------------*/
@@ -197,13 +194,13 @@ void MatrixTransform::matrixLookAt(Matrix44 * result,
 *Convenience method to setup android style ortho projection in which the origin point was
 *the left-bottom and pixel based window size
 */
-void MatrixTransform::fullScreenOrthoProj(Matrix44 * result, GLfloat width, GLfloat height)
+void MatrixTransform::doMAT_FullScrOrthoProj(Matrix44 * result, GLfloat width, GLfloat height)
 {
-    matrixOrthoProjection(result, 0, width, 0, height, 0, 1);
+    doMAT_OrthoProjection(result, 0, width, 0, height, 0, 1);
 }
 
 /*Orthoprojection matrix*/
-void MatrixTransform::matrixOrthoProjection(Matrix44 * result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far)
+void MatrixTransform::doMAT_OrthoProjection(Matrix44 * result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far)
 {
     result->m[0][0] =  2 / (right - left);
     result->m[1][1] =  2 / (top   - bottom);
@@ -214,7 +211,7 @@ void MatrixTransform::matrixOrthoProjection(Matrix44 * result, GLfloat left, GLf
 }
 
 /*Perspective projection*/
-bool MatrixTransform::matrixFrustumf(Matrix44* result,
+bool MatrixTransform::doMAT_Frustumf(Matrix44* result,
                                      const float left, const float right, const float bottom, const float top, const float nearVal, const float farVal)
 {
     if ((right - left) == 0.0f || (top - bottom) == 0.0f || (farVal - nearVal) == 0.0f)
@@ -242,7 +239,7 @@ bool MatrixTransform::matrixFrustumf(Matrix44* result,
     return true;
 }
 
-bool MatrixTransform::matrixPerspectiveProjection(Matrix44* result,
+bool MatrixTransform::doMAT_PersProjection(Matrix44* result,
         const float fovy, const float aspect, const float zNear, const float zFar)
 {
     float xmin, xmax, ymin, ymax;
@@ -252,11 +249,11 @@ bool MatrixTransform::matrixPerspectiveProjection(Matrix44* result,
     xmin = ymin * aspect;
     xmax = ymax * aspect;
 
-    return matrixFrustumf(result, xmin, xmax, ymin, ymax, zNear, zFar);
+    return doMAT_Frustumf(result, xmin, xmax, ymin, ymax, zNear, zFar);
 }
 
 /*---------------------Debug---------------------*/
-void MatrixTransform::matrixDump(const Matrix44 * mDumped, const char * tag)
+void MatrixTransform::doMAT_Dump(const Matrix44 * mDumped, const char * tag)
 {
     /*
     * Use type (* variable_name)[ROW_NUM]; to define the 2D array
@@ -275,12 +272,6 @@ void MatrixTransform::matrixDump(const Matrix44 * mDumped, const char * tag)
               ,M[2][0] ,M[2][1] ,M[2][2] ,M[2][3]
               ,M[3][0] ,M[3][1] ,M[3][2] ,M[3][3]
              );
-}
-
-void MatrixTransform::vectorDump(const Vector4 * vDumped)
-{
-    const GLfloat * V = vDumped->v;
-    LOG_DEBUG("%f, %f, %f, %f\n", V[0], V[1], V[2], V[3]);
 }
 
 }

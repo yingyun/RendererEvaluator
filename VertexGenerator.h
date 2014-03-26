@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string>
+#include <vector>
 
 #if USE_OPENGL_ES_VER == 30
 #include <GLES3/gl3.h>
@@ -19,21 +20,20 @@
 #include <GLES2/gl2ext.h>
 #endif
 
+#include "Resource/ResourceProperty.h"
 #include "Pattern/Singleton.h"
 #include "Logging.h"
 
 using std::string;
+using std::vector;
 
 namespace RenderEvaluator
 {
 
-#define OM_BUFFERSIZE 1024
-#define OM_MAX_STRING  256
-#define OM_MAX_VERTICES 1048576
-#define OM_VERTICES_DIVISOR 4
-#define OM_MAX_ATTRIBUTES (OM_MAX_VERTICES/OM_VERTICES_DIVISOR)
-#define OM_MAX_TRIANGLE_ATTRIBUTES OM_MAX_VERTICES
-#define OBJ_MODEL_PATH "/data/RenderEvaluator/"
+#define ONE_LINE_SIZE 1024//TODO: optitmize it size
+#define VERTEX_C 3
+#define UV_C 2
+#define NORMAL_C 3
 
 class VertexGenerator : public Singleton<VertexGenerator>
 {
@@ -173,7 +173,7 @@ public:
         {
             return (&x)[i];
         }
-        inline reference       operator [] (size_t i)
+        inline reference operator [] (size_t i)
         {
             return (&x)[i];
         }
@@ -227,7 +227,7 @@ public:
         {
             return (&x)[i];
         }
-        inline reference       operator [] (size_t i)
+        inline reference operator [] (size_t i)
         {
             return (&x)[i];
         }
@@ -283,7 +283,7 @@ public:
         {
             return (&x)[i];
         }
-        inline reference       operator [] (size_t i)
+        inline reference operator [] (size_t i)
         {
             return (&x)[i];
         }
@@ -303,162 +303,15 @@ public:
     typedef VEC4<float> VEC4_F;
     typedef VEC4<int> VEC4_I;
 
-    /* ------------------------------Object model holder and export------------------------------ */
-    typedef struct objectmodel
-    {
-        float* vertices;
-        float* normals;
-        float* tangents;
-        float* bitangents;
-        float* texCoords;
-        float* allAttributes;
-        unsigned short* indices;
-        unsigned short numberVertices;
-        unsigned int numberIndices;
-        unsigned int mode;
-    } OBJModel;
+    /*------------------------------Public API------------------------------*/
+    bool loadObjModel(string objName, float** o_vertices, float** o_uvs,
+                      float** o_normals, unsigned int* o_vertexCount);
+    void unloadObjModel(float** vertices_addr, float** uvs_addr, float** normals_addr);
 
-    bool genObjectModel(string objName, OBJModel* shape);
-    void destroyObjectModel(OBJModel* shape);
-    bool OMVector3Normalizef(float vector[3]);
-    void OMVector3Crossf(float result[3], const float vector0[3], const float vector1[3]);
+
 
 private:
     /*------------------------------Structure for holding material data.------------------------------*/
-    typedef struct _OMmaterial
-    {
-        //Name of the material
-        char name[OM_MAX_STRING];
-        //Emissive color
-        float emissive[4];
-        //Ambient color
-        float ambient[4];
-        //Diffuse color
-        float diffuse[4];
-        //Specular color
-        float specular[4];
-        //Shininess
-        float shininess;
-        //Transparency, which is the alpha value
-        float transparency;
-        //Reflection
-        bool reflection;
-        //Refraction
-        bool refraction;
-        //Index of refraction
-        float indexOfRefraction;
-        //Ambient color texture filename
-        char ambientTextureFilename[OM_MAX_STRING];
-        //Diffuse color texture filename
-        char diffuseTextureFilename[OM_MAX_STRING];
-        //Specular color texture filename
-        char specularTextureFilename[OM_MAX_STRING];
-        //Transparency texture filename
-        char transparencyTextureFilename[OM_MAX_STRING];
-        //Bump texture filename
-        char bumpTextureFilename[OM_MAX_STRING];
-        //Can be used to store the ambient texture name
-        unsigned int ambientTextureName;
-        //Can be used to store the diffuse texture name
-        unsigned int diffuseTextureName;
-        //Can be used to store the specular texture name
-        unsigned int specularTextureName;
-        //Can be used to store the transparency texture name
-        unsigned int transparencyTextureName;
-        //Can be used to store the bump texture name
-        unsigned int bumpTextureName;
-    } OMmaterial;
-
-    /* ------------------------------Structure for holding material data list ------------------------------*/
-    typedef struct _OMmaterialList
-    {
-        //The material data.
-        OMmaterial material;
-        //The pointer to the next element.
-        struct _OMmaterialList* next;
-    } OMmaterialList;
-
-    /*------------------------------Group of geometry.------------------------------*/
-    typedef struct _OMgroup
-    {
-        //Name of the group
-        char name[OM_MAX_STRING];
-        //Name of the material
-        char materialName[OM_MAX_STRING];
-        //Pointer to the material.
-        OMmaterial* material;
-        //Indices
-        unsigned int* indices;
-        //Indices VBO
-        unsigned int indicesVBO;
-        //VAO of this group.
-        unsigned int vao;
-        //Number of indices
-        unsigned int numberIndices;
-        //Triangle render mode - could be either: GL_TRIANGLES   GL_TRIANGLE_STRIP
-        unsigned int mode;
-    } OMgroup;
-
-    /*------------------------------Structure for holding the group data list.------------------------------*/
-    typedef struct _OMgroupList
-    {
-        //The group data
-        OMgroup group;
-        //The pointer to the next group element
-        struct _OMgroupList* next;
-    } OMgroupList;
-
-    /* ------------------------------Structure for a complete wavefront object file.------------------------------*/
-    typedef struct _OMwavefront
-    {
-        //Vertices in homogeneous coordinates.
-        float* vertices;
-        //Vertices VBO.
-        unsigned int verticesVBO;
-        //Normals
-        float* normals;
-        //Normals VBO.
-        unsigned int normalsVBO;
-        //Tangents
-        float* tangents;
-        //Tangents VBO.
-        unsigned int tangentsVBO;
-        //Bitangents
-        float* bitangents;
-        //Bitangents VBO.
-        unsigned int bitangentsVBO;
-        //Texture coordinates
-        float* texCoords;
-        //Texture corrdinates VBO.
-        unsigned int texCoordsVBO;
-        //Number of vertices.
-        unsigned int numberVertices;
-        //Pointer to the first element of the groups.
-        OMgroupList* groups;
-        //Pointer to the first element of the materials.
-        OMmaterialList* materials;
-    } OMwavefront;
-
-    /* ------------------------------ObjectModel Export method, Private------------------------------ */
-    bool OMParseObjFile(string filePath, OBJModel* shape, OMwavefront* wavefront);
-    float OMVector3Lengthf(const float vector[3]);
-    void OMPoint4SubtractPoint4f(float result[3], const float point0[4], const float point1[4]);
-    void OMDestroyMaterial(OMmaterialList** materialList);
-
-    void OMInitMaterial(OMmaterial* material);
-    bool OMCalculateTangentSpacef(OBJModel* shape);
-
-    GLboolean OMCopyObjData(OBJModel* shape, unsigned short totalNumberVertices,
-                            float* triangleVertices, unsigned short totalNumberNormals, float* triangleNormals,
-                            unsigned short totalNumberTexCoords, float* triangleTexCoords);
-
-    bool OMLoadMaterial(const char* filename, OMmaterialList** materialList);
-
-    void OMFreeTempMemory(float** vertices, float** normals, float** texCoords,
-                          float** triangleVertices, float** triangleNormals, float** triangleTexCoords);
-
-    bool OMMallocTempMemory(float** vertices, float** normals, float** texCoords,
-                            float** triangleVertices, float** triangleNormals, float** triangleTexCoords);
 };
 
 }

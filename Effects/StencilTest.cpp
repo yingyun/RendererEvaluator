@@ -103,7 +103,7 @@ bool StencilTest::updateShaderOnce()
     mFragShader.append(fragShader);
 
     mProgram = ShaderProgramBuilder::getInstance().buildShaderProgram(
-        mVertexShader.string(), mFragShader.string());
+                   mVertexShader.string(), mFragShader.string());
     ShaderProgramBuilder::getInstance().useShaderProgram(mProgram);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);

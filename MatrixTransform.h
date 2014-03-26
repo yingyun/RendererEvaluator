@@ -21,7 +21,7 @@
 
 #include "Logging.h"
 #include "Pattern/Singleton.h"
-#include "VertexGenerator.h"
+#include "VectorTransform.h"
 
 namespace RenderEvaluator
 {
@@ -31,45 +31,39 @@ typedef struct
     GLfloat m[4][4];
 } Matrix44;
 
-typedef struct
-{
-    GLfloat v[4];
-} Vector4;
-
 class MatrixTransform : public Singleton<MatrixTransform>
 {
 public:
     MatrixTransform() {}
 
-    void matrixIndentity(Matrix44* result);
-    void matrixMultiply(Matrix44* result, Matrix44* srcA, Matrix44* srcB);
+    void doMAT_Identify(Matrix44* result);
+    void doMAT_Multiply(Matrix44* result, Matrix44* srcA, Matrix44* srcB);
 
     /*---------------------Model matrix---------------------*/
-    void matrixRotate(Matrix44* result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
-    void matrixScale(Matrix44* result, GLfloat sx, GLfloat sy, GLfloat sz);
-    void matrixTranslate(Matrix44 * result, GLfloat x, GLfloat y, GLfloat z);
+    void doMAT_Rotate(Matrix44* result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
+    void doMAT_Scale(Matrix44* result, GLfloat sx, GLfloat sy, GLfloat sz);
+    void doMAT_Translate(Matrix44 * result, GLfloat x, GLfloat y, GLfloat z);
 
     /*---------------------View matrix---------------------*/
-    void matrixLookAt(Matrix44* result,
+    void doMAT_LookAt(Matrix44* result,
                       const float eyeX, const float eyeY, const float eyeZ,
                       const float centerX, const float centerY, const float centerZ,
                       const float upX, const float upY, const float upZ);
 
     /*---------------------Projection matrix---------------------*/
-    void matrixOrthoProjection(Matrix44* result, GLfloat left, GLfloat right, GLfloat bottom,
+    void doMAT_OrthoProjection(Matrix44* result, GLfloat left, GLfloat right, GLfloat bottom,
                                GLfloat top, GLfloat near, GLfloat far);
 
-    void fullScreenOrthoProj(Matrix44* result, GLfloat width, GLfloat height);
+    void doMAT_FullScrOrthoProj(Matrix44* result, GLfloat width, GLfloat height);
 
-    bool matrixPerspectiveProjection(Matrix44* result,
-                                     const float fovy, const float aspect, const float zNear, const float zFar);
+    bool doMAT_PersProjection(Matrix44* result,
+                              const float fovy, const float aspect, const float zNear, const float zFar);
 
     /*---------------------Debug---------------------*/
-    void matrixDump(const Matrix44* M, const char * tag);
-    void vectorDump(const Vector4* vDumped);
+    void doMAT_Dump(const Matrix44* M, const char * tag);
 
 private:
-    bool matrixFrustumf(Matrix44* result,
+    bool doMAT_Frustumf(Matrix44* result,
                         const float left, const float right, const float bottom, const float top, const float nearVal, const float farVal);
 
 };

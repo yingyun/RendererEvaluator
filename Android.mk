@@ -27,6 +27,7 @@ LOCAL_SRC_FILES:= \
 	RenderMachine.cpp \
 	Platform/Native_Android.cpp \
 	MatrixTransform.cpp \
+	VectorTransform.cpp \
 	VertexGenerator.cpp \
 	TextureGenerator.cpp \
 	RenderChecker.cpp \

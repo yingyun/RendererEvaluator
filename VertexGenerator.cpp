@@ -73,1220 +73,285 @@ void VertexGenerator::Mesh2D::dumpInfo()
         }
 }
 
-/*------------------------Linear Algebra toolset------------------------*/
-float  VertexGenerator::OMVector3Lengthf(const float vector[3])
+//TODO: Reimplement below c-style string processing by C++ String style.
+bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o_uvs,
+                                   float** o_normals, unsigned int* o_vertexCount)
 {
-    return sqrtf(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
-}
+    vector<VEC3_F> vertexDatas;
+    vector<VEC2_F> uvDatas;
+    vector<VEC3_F> normalDatas;
+    vector<unsigned int> vertexIndices;
+    vector<unsigned int> uvIndices;
+    vector<unsigned int> normalIndices;
 
-void VertexGenerator::OMPoint4SubtractPoint4f(float result[3], const float point0[4], const float point1[4])
-{
-    result[0] = point0[0] - point1[0];
-    result[1] = point0[1] - point1[1];
-    result[2] = point0[2] - point1[2];
-}
+    bool hasVertex = false;
+    bool hasUV = false;
+    bool hasNormal = false;
 
-bool VertexGenerator::OMVector3Normalizef(float vector[3])
-{
-    int i;
-
-    float length = OMVector3Lengthf(vector);
-
-    if (length == 0.0f)
-        {
-            return false;
-        }
-
-    for (i = 0; i < 3; i++)
-        {
-            vector[i] /= length;
-        }
-
-    return true;
-}
-
-void VertexGenerator::OMVector3Crossf(float result[3], const float vector0[3], const float vector1[3])
-{
-    int i;
-
-    float temp[3];
-
-    temp[0] = vector0[1] * vector1[2] - vector0[2] * vector1[1];
-    temp[1] = vector0[2] * vector1[0] - vector0[0] * vector1[2];
-    temp[2] = vector0[0] * vector1[1] - vector0[1] * vector1[0];
-
-    for (i = 0; i < 3; i++)
-        {
-            result[i] = temp[i];
-        }
-}
-
-bool VertexGenerator::OMCalculateTangentSpacef(OBJModel* shape)
-{
-    unsigned int i;
-
-    if (!shape || !shape->vertices || !shape->texCoords || shape->mode != GL_TRIANGLES)
-        {
-            return false;
-        }
-
-    // Allocate memory if needed
-    if (!shape->tangents)
-        {
-            shape->tangents = (float*) malloc(3 * shape->numberVertices * sizeof(float));
-
-            if (!shape->tangents)
-                {
-                    return false;
-                }
-        }
-
-    if (!shape->bitangents)
-        {
-            shape->bitangents = (float*) malloc(3 * shape->numberVertices * sizeof(float));
-
-            if (!shape->bitangents)
-                {
-                    return false;
-                }
-        }
-
-    // Reset all tangents to 0.0f
-    for (i = 0; i < shape->numberVertices; i++)
-        {
-            shape->tangents[i * 3] = 0.0f;
-            shape->tangents[i * 3 + 1] = 0.0f;
-            shape->tangents[i * 3 + 2] = 0.0f;
-        }
-
-    if (shape->numberIndices > 0)
-        {
-            float s1, t1, s2, t2;
-            float Q1[4];
-            float Q2[4];
-            float tangent[3];
-            float scalar;
-
-            for (i = 0; i < shape->numberIndices; i += 3)
-                {
-                    s1 = shape->texCoords[2*shape->indices[i+1]] - shape->texCoords[2*shape->indices[i]];
-                    t1 = shape->texCoords[2*shape->indices[i+1]+1] - shape->texCoords[2*shape->indices[i]+1];
-                    s2 = shape->texCoords[2*shape->indices[i+2]] - shape->texCoords[2*shape->indices[i]];
-                    t2 = shape->texCoords[2*shape->indices[i+2]+1] - shape->texCoords[2*shape->indices[i]+1];
-
-                    scalar = 1.0f / (s1*t2-s2*t1);
-
-                    OMPoint4SubtractPoint4f(Q1, &shape->vertices[4*shape->indices[i+1]], &shape->vertices[4*shape->indices[i]]);
-                    Q1[3] = 1.0f;
-                    OMPoint4SubtractPoint4f(Q2, &shape->vertices[4*shape->indices[i+2]], &shape->vertices[4*shape->indices[i]]);
-                    Q2[3] = 1.0f;
-
-                    tangent[0] = scalar * (t2 * Q1[0] - t1 * Q2[0]);
-                    tangent[1] = scalar * (t2 * Q1[1] - t1 * Q2[1]);
-                    tangent[2] = scalar * (t2 * Q1[2] - t1 * Q2[2]);
-
-                    OMVector3Normalizef(tangent);
-
-                    shape->tangents[3 * shape->indices[i]] += tangent[0];
-                    shape->tangents[3 * shape->indices[i] + 1] += tangent[1];
-                    shape->tangents[3 * shape->indices[i] + 2] += tangent[2];
-
-                    shape->tangents[3 * shape->indices[i+1]] += tangent[0];
-                    shape->tangents[3 * shape->indices[i+1] + 1] += tangent[1];
-                    shape->tangents[3 * shape->indices[i+1] + 2] += tangent[2];
-
-                    shape->tangents[3 * shape->indices[i+2]] += tangent[0];
-                    shape->tangents[3 * shape->indices[i+2] + 1] += tangent[1];
-                    shape->tangents[3 * shape->indices[i+2] + 2] += tangent[2];
-                }
-        }
-    else
-        {
-            float s1, t1, s2, t2;
-            float Q1[4];
-            float Q2[4];
-            float tangent[3];
-            float scalar;
-
-            for (i = 0; i < shape->numberVertices; i += 3)
-                {
-                    s1 = shape->texCoords[2*(i+1)] - shape->texCoords[2*i];
-                    t1 = shape->texCoords[2*(i+1)+1] - shape->texCoords[2*i+1];
-                    s2 = shape->texCoords[2*(i+2)] - shape->texCoords[2*i];
-                    t2 = shape->texCoords[2*(i+2)+1] - shape->texCoords[2*i+1];
-
-                    scalar = 1.0f / (s1*t2-s2*t1);
-
-                    OMPoint4SubtractPoint4f(Q1, &shape->vertices[4*(i+1)], &shape->vertices[4*i]);
-                    Q1[3] = 1.0f;
-                    OMPoint4SubtractPoint4f(Q2, &shape->vertices[4*(i+2)], &shape->vertices[4*i]);
-                    Q2[3] = 1.0f;
-
-                    tangent[0] = scalar * (t2 * Q1[0] - t1 * Q2[0]);
-                    tangent[1] = scalar * (t2 * Q1[1] - t1 * Q2[1]);
-                    tangent[2] = scalar * (t2 * Q1[2] - t1 * Q2[2]);
-
-                    OMVector3Normalizef(tangent);
-
-                    shape->tangents[3 * i] += tangent[0];
-                    shape->tangents[3 * i + 1] += tangent[1];
-                    shape->tangents[3 * i + 2] += tangent[2];
-
-                    shape->tangents[3 * (i+1)] += tangent[0];
-                    shape->tangents[3 * (i+1) + 1] += tangent[1];
-                    shape->tangents[3 * (i+1) + 2] += tangent[2];
-
-                    shape->tangents[3 * (i+2)] += tangent[0];
-                    shape->tangents[3 * (i+2) + 1] += tangent[1];
-                    shape->tangents[3 * (i+2) + 2] += tangent[2];
-                }
-        }
-
-    // Normalize, as several triangles have added a vector
-    for (i = 0; i < shape->numberVertices; i++)
-        {
-            OMVector3Normalizef(&(shape->tangents[i * 3]));
-        }
-
-    // Calculate bitangents out of tangents and normals
-    for (i = 0; i < shape->numberVertices; i++)
-        {
-            OMVector3Crossf(&(shape->bitangents[i * 3]), &(shape->normals[i * 3]), &(shape->tangents[i * 3]));
-        }
-
-    return true;
-}
-
-/*
-        float* vertices;
-        float* normals;
-        float* tangents;
-        float* bitangents;
-        float* texCoords;
-        float* allAttributes;
-        unsigned short* indices;
-        unsigned short numberVertices;
-        unsigned int numberIndices;
-        unsigned int mode;
-*/
-
-/*------------------------Object model toolset------------------------*/
-bool VertexGenerator::genObjectModel(string objName, OBJModel* shape)
-{
     string  filleName = string(OBJ_MODEL_PATH) + string(objName);
-    bool result = OMParseObjFile(filleName, shape, 0);
-    LOG_INFO("ObjModel: numVertices %d, numIndices %d, vertex=%p, normal=%p, texCoords=%p \n",
-             shape->numberVertices, shape->numberIndices, shape->vertices, shape->normals, shape->texCoords);
-    return result;
-}
+    const char* filePath = filleName .data();
 
-/*
-* OBJ (or .OBJ) is a geometry definition file format first developed by Wavefront Technologies
-* for its Advanced Visualizer animation package. The file format is open and has been adopted
-* by other 3D graphics application vendors. For the most part it is a universally accepted format.
-*
-* Reference: http://en.wikipedia.org/wiki/Wavefront_.obj_file
-*/
-bool VertexGenerator::OMParseObjFile(string filePath, OBJModel* shape, OMwavefront* wavefront)
-{
-    bool result;
-    const char* filename = filePath.data();
-    FILE* f;
+    LOG_INFO("VertexGenerator::loadObjModel file %s...\n", filePath);
 
-    char buffer[OM_BUFFERSIZE];
-    char identifier[7];
-
-    float x, y, z;
-    float s, t;
-
-    float* vertices = 0;
-    float* normals = 0;
-    float* texCoords = 0;
-
-    unsigned int numberVertices = 0;
-    unsigned int numberNormals = 0;
-    unsigned int numberTexCoords = 0;
-
-    float* triangleVertices = 0;
-    float* triangleNormals = 0;
-    float* triangleTexCoords = 0;
-
-    unsigned int totalNumberVertices = 0;
-    unsigned int totalNumberNormals = 0;
-    unsigned int totalNumberTexCoords = 0;
-
-    unsigned int facesEncoding = 0;
-
-    char name[OM_MAX_STRING];
-
-    unsigned int numberIndicesGroup = 0;
-    unsigned int numberMaterials = 0;
-    unsigned int numberGroups = 0;
-
-    OMgroupList* currentGroupList = 0;
-
-    if (!filename || !shape)
+    FILE * file = fopen(filePath, "r");
+    if( file == NULL )
         {
+            LOG_ERROR("%s Open %s failed!!! Right path???\n", __func__, filePath);
             return false;
         }
 
-    memset(shape, 0, sizeof(OBJModel));
-    LOG_INFO("ObjModel: Opening %s!\n", filename);
-
-    f = fopen(filename, "r");
-
-    if (!f)
+    char lineBuffer[ONE_LINE_SIZE];
+    while(true)
         {
-            LOG_ERROR("ObjModel: Open target obj file failed!\n");
-            return false;
-        }
-
-    if (!OMMallocTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals,
-                            &triangleTexCoords))
-        {
-            OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals,
-                             &triangleTexCoords);
-
-            fclose(f);
-
-            return false;
-        }
-
-    while (!feof(f))
-        {
-            if (fgets(buffer, OM_BUFFERSIZE, f) == 0)
+            if(fgets(lineBuffer, ONE_LINE_SIZE, file) == 0)
                 {
-                    if (ferror(f))
+                    if(ferror(file))
                         {
-                            OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals,
-                                             &triangleTexCoords);
-
-                            fclose(f);
-
+                            fclose(file);
+                            LOG_ERROR("%s Get oneline buffer failed!!!\n", __func__);
                             return false;
                         }
-                }
-
-            if (wavefront)
-                {
-                    if (strncmp(buffer, "mtllib", 6) == 0)
+                    if(feof(file) != 0)
                         {
-                            sscanf(buffer, "%s %s", identifier, name);
-
-                            if (numberMaterials == 0)
-                                {
-                                    wavefront->materials = 0;
-                                }
-
-                            if (!OMLoadMaterial(name, &wavefront->materials))
-                                {
-                                    OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals,
-                                                     &triangleTexCoords);
-
-                                    fclose(f);
-
-                                    return false;
-                                }
-
-                            numberMaterials++;
-                        }
-                    else if (strncmp(buffer, "usemtl", 6) == 0)
-                        {
-                            if (!currentGroupList)
-                                {
-                                    OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals,
-                                                     &triangleTexCoords);
-
-                                    fclose(f);
-
-                                    return false;
-                                }
-
-                            sscanf(buffer, "%s %s", identifier, name);
-
-                            strcpy(currentGroupList->group.materialName, name);
-                        }
-                    else if (strncmp(buffer, "g", 1) == 0)
-                        {
-                            OMgroupList* newGroupList;
-
-                            sscanf(buffer, "%s %s", identifier, name);
-
-                            newGroupList = (OMgroupList*)malloc(sizeof(OMgroupList));
-
-                            if (!newGroupList)
-                                {
-                                    OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals,
-                                                     &triangleTexCoords);
-
-                                    fclose(f);
-
-                                    return false;
-                                }
-
-                            memset(newGroupList, 0, sizeof(OMgroupList));
-
-                            strcpy(newGroupList->group.name, name);
-
-                            if (numberGroups == 0)
-                                {
-                                    wavefront->groups = newGroupList;
-                                }
-                            else
-                                {
-                                    if (!currentGroupList)
-                                        {
-                                            free(newGroupList);
-
-                                            OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals,
-                                                             &triangleTexCoords);
-
-                                            fclose(f);
-
-                                            return false;
-                                        }
-
-                                    currentGroupList->next = newGroupList;
-
-                                    currentGroupList->group.numberIndices = numberIndicesGroup;
-                                    numberIndicesGroup = 0;
-                                }
-
-                            currentGroupList = newGroupList;
-
-                            numberGroups++;
+                            fclose(file);
+                            LOG_INFO("ObjectModel file scaner met end of file!\n");
+                            break;
                         }
                 }
 
-            //Vertex Texture
-            if (strncmp(buffer, "vt", 2) == 0)
+            //Scanning the whole line one by one to retrive attributes data.
+            char identifier[5];
+            if (strncmp( lineBuffer, "v", 1 ) == 0)
                 {
-                    if (numberTexCoords == OM_MAX_ATTRIBUTES)
-                        {
-                            OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals,
-                                             &triangleTexCoords);
+                    VEC3_F vertex;
+                    sscanf(lineBuffer, "%s %f %f %f\n",identifier, &vertex[0], &vertex[1], &vertex[2]);
+                    vertexDatas.push_back(vertex);
 
-                            fclose(f);
-
-                            return false;
-                        }
-
-                    sscanf(buffer, "%s %f %f", identifier, &s, &t);
-                    LOG_INFO("ObjModel: VertexTexture: s %f, t %f\n", s, t);
-
-                    texCoords[2 * numberTexCoords + 0] = s;
-                    texCoords[2 * numberTexCoords + 1] = t;
-
-                    numberTexCoords++;
+                    LOG_DEBUG("%s-> %f, %f, %f\n", identifier, vertex[0], vertex[1], vertex[2]); 
                 }
-            //Vertex Normal
-            else if (strncmp(buffer, "vn", 2) == 0)
+            else if (strncmp( lineBuffer, "vt", 2) == 0)
                 {
-                    if (numberNormals == OM_MAX_ATTRIBUTES)
-                        {
-                            OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals,
-                                             &triangleTexCoords);
+                    VEC2_F uv;
+                    sscanf(lineBuffer, "%s %f %f\n", identifier, &uv[0], &uv[1]);
+                    /*
+                    *NOTE: Invert V coordinate since we will only use DDS texture, which are inverted.
+                    *Remove if you want to use TGA or BMP loaders.
+                    */
+                    uv[1] = -uv[1];
+                    uvDatas.push_back(uv);
 
-                            fclose(f);
-
-                            return false;
-                        }
-
-                    sscanf(buffer, "%s %f %f %f", identifier, &x, &y, &z);
-                    LOG_INFO("ObjModel: %s VertexNormal: x %f, y %f, z %f\n", identifier, x, y, z);
-
-                    normals[3 * numberNormals + 0] = x;
-                    normals[3 * numberNormals + 1] = y;
-                    normals[3 * numberNormals + 2] = z;
-
-                    numberNormals++;
+                    LOG_DEBUG("%s-> %f, %f\n",identifier, uv[0], uv[1]);
                 }
-            //Vertex
-            else if (strncmp(buffer, "v", 1) == 0)
+            else if (strncmp( lineBuffer, "vn", 2) == 0)
                 {
-                    if (numberVertices == OM_MAX_ATTRIBUTES)
-                        {
-                            OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals,
-                                             &triangleTexCoords);
+                    VEC3_F normal;
+                    sscanf(lineBuffer, "%s %f %f %f\n",identifier, &normal[0], &normal[1], &normal[2]);
+                    normalDatas.push_back(normal);
 
-                            fclose(f);
-
-                            return false;
-                        }
-
-                    sscanf(buffer, "%s %f %f %f", identifier, &x, &y, &z);
-                    LOG_INFO("ObjModel: %s Vertex: x %f, y %f, z %f\n", identifier, x, y, z);
-
-                    vertices[4 * numberVertices + 0] = x;
-                    vertices[4 * numberVertices + 1] = y;
-                    vertices[4 * numberVertices + 2] = z;
-                    vertices[4 * numberVertices + 3] = 1.0f;
-
-                    numberVertices++;
+                    LOG_DEBUG("%s-> %f, %f, %f\n", identifier, normal[0], normal[1], normal[2]);
                 }
-            //Face, index list
-            else if (strncmp(buffer, "f", 1) == 0)
+            else if (strncmp( lineBuffer, "f", 1) == 0)
                 {
+                    enum FACE_TYPE
+                    {
+                        VERTEX_UV_NORMAL,
+                        VERTEX_UV,
+                        VERTEX_NORMAL,
+                        VERTEX,
+                    };
+                    enum FACE_TYPE faceFormat;
+                    //face format :::  f 5//3 6//3 2//3
+                    char septs[] = " \n";
                     char* token;
+                    token = strtok(lineBuffer, septs);
+                    token = strtok(0, septs);
 
-                    int vIndex, vtIndex, vnIndex;
-
-                    unsigned int edgeCount = 0;
-
-                    token = strtok(buffer, " \t");
-                    token = strtok(0, " \n");
-
-                    if (!token)
+                    if(strstr(token, "//") != 0)
                         {
-                            continue;
+                            faceFormat = VERTEX_NORMAL;
                         }
-
-                    // Check faces
-                    if (strstr(token, "//") != 0)
+                    else if(strstr(token, "/") == 0)
                         {
-                            facesEncoding = 2;
+                            faceFormat = VERTEX;
                         }
-                    else if (strstr(token, "/") == 0)
+                    else if(strstr(token, "/") != 0)
                         {
-                            facesEncoding = 0;
-                        }
-                    else if (strstr(token, "/") != 0)
-                        {
-                            char* c = strstr(token, "/");
-
-                            c++;
-
-                            if (!c)
+                            char* first_slash = strstr(token, "/");
+                            first_slash++;
+                            if(!first_slash)
                                 {
-                                    continue;
+                                    LOG_ERROR("%s Can't be happned!!!\n", __func__);
+                                    return false;
                                 }
 
-                            if (strstr(c, "/") == 0)
+                            if(strstr(first_slash, "/") == 0)
                                 {
-                                    facesEncoding = 1;
+                                    faceFormat = VERTEX_UV;
                                 }
                             else
                                 {
-                                    facesEncoding = 3;
+                                    faceFormat = VERTEX_UV_NORMAL;
                                 }
                         }
 
-                    while (token != 0)
+                    unsigned int vertexIndex;
+                    unsigned int uvIndex;
+                    unsigned int normalIndex;
+
+                    while(token != 0)
                         {
-                            vIndex = -1;
-                            vtIndex = -1;
-                            vnIndex = -1;
-
-                            switch (facesEncoding)
+                            switch(faceFormat)
                                 {
-                                    case 0:
-                                        sscanf(token, "%d", &vIndex);
-                                        break;
-                                    case 1:
-                                        sscanf(token, "%d/%d", &vIndex, &vtIndex);
-                                        break;
-                                    case 2:
-                                        sscanf(token, "%d//%d", &vIndex, &vnIndex);
-                                        break;
-                                    case 3:
-                                        sscanf(token, "%d/%d/%d", &vIndex, &vtIndex, &vnIndex);
-                                        break;
+                                    case VERTEX_UV_NORMAL:
+                                    {
+                                        hasVertex = true;
+                                        hasUV = true;
+                                        hasNormal = true;
+                                        int matches = sscanf(token, "%d/%d/%d", &vertexIndex, &uvIndex, &normalIndex);
+                                        vertexIndices.push_back(vertexIndex);
+                                        uvIndices.push_back(uvIndex);
+                                        normalIndices.push_back(normalIndex);
+
+                                        LOG_DEBUG("Face Parsing-> V_U_N: %d %d %d\n", vertexIndex, uvIndex, normalIndex); 
+                                    }
+                                    break;
+                                    case VERTEX_UV:
+                                    {
+                                        hasVertex = true;
+                                        hasUV = true;
+                                        int matches = sscanf(token, "%d/%d", &vertexIndex, &uvIndex);
+                                        vertexIndices.push_back(vertexIndex);
+                                        uvIndices.push_back(uvIndex);
+
+                                        LOG_DEBUG("Face Parsing-> V_U: %d %d\n", vertexIndex, uvIndex);
+                                    }
+                                    break;
+                                    case VERTEX_NORMAL:
+                                    {
+                                        hasVertex = true;
+                                        hasNormal = true;
+                                        int matches = sscanf(token, "%d//%d", &vertexIndex, &normalIndex);
+                                        vertexIndices.push_back(vertexIndex);
+                                        normalIndices.push_back(normalIndex);
+
+                                        LOG_DEBUG("Face Parsing-> V_N: %d %d\n", vertexIndex, normalIndex);
+                                    }
+                                    break;
+                                    case VERTEX:
+                                    {
+                                        hasVertex = true;
+                                        int matches = sscanf(token, "%d", &vertexIndex);
+                                        vertexIndices.push_back(vertexIndex);
+
+                                        LOG_DEBUG("Face Parsing-> V: %d\n", vertexIndex);
+                                    }
+                                    break;
                                 }
-
-                            vIndex--;
-                            vtIndex--;
-                            vnIndex--;
-
-                            if (vIndex >= 0)
-                                {
-                                    if (edgeCount < 3)
-                                        {
-                                            if (totalNumberVertices >= OM_MAX_TRIANGLE_ATTRIBUTES)
-                                                {
-                                                    OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices,
-                                                                     &triangleNormals, &triangleTexCoords);
-
-                                                    fclose(f);
-
-                                                    return GL_FALSE;
-                                                }
-
-                                            memcpy(&triangleVertices[4 * totalNumberVertices], &vertices[4 * vIndex], 4 * sizeof(float));
-
-                                            totalNumberVertices++;
-                                            numberIndicesGroup++;
-                                        }
-                                    else
-                                        {
-                                            if (totalNumberVertices >= OM_MAX_TRIANGLE_ATTRIBUTES - 2)
-                                                {
-                                                    OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices,
-                                                                     &triangleNormals, &triangleTexCoords);
-
-                                                    fclose(f);
-
-                                                    return GL_FALSE;
-                                                }
-
-                                            memcpy(&triangleVertices[4 * (totalNumberVertices)],
-                                                   &triangleVertices[4 * (totalNumberVertices - edgeCount)], 4 * sizeof(float));
-                                            memcpy(&triangleVertices[4 * (totalNumberVertices + 1)],
-                                                   &triangleVertices[4 * (totalNumberVertices - 1)], 4 * sizeof(float));
-                                            memcpy(&triangleVertices[4 * (totalNumberVertices + 2)],
-                                                   &vertices[4 * vIndex], 4 * sizeof(float));
-
-                                            totalNumberVertices += 3;
-                                            numberIndicesGroup += 3;
-                                        }
-                                }
-                            if (vnIndex >= 0)
-                                {
-                                    if (edgeCount < 3)
-                                        {
-                                            if (totalNumberNormals >= OM_MAX_TRIANGLE_ATTRIBUTES)
-                                                {
-                                                    OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices,
-                                                                     &triangleNormals, &triangleTexCoords);
-
-                                                    fclose(f);
-
-                                                    return GL_FALSE;
-                                                }
-
-                                            memcpy(&triangleNormals[3 * totalNumberNormals], &normals[3 * vnIndex], 3 * sizeof(float));
-
-                                            totalNumberNormals++;
-                                        }
-                                    else
-                                        {
-                                            if (totalNumberNormals >= OM_MAX_TRIANGLE_ATTRIBUTES - 2)
-                                                {
-                                                    OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices,
-                                                                     &triangleNormals, &triangleTexCoords);
-
-                                                    fclose(f);
-
-                                                    return GL_FALSE;
-                                                }
-
-                                            memcpy(&triangleNormals[3 * (totalNumberNormals)],
-                                                   &triangleNormals[3 * (totalNumberNormals - edgeCount)], 3 * sizeof(float));
-                                            memcpy(&triangleNormals[3 * (totalNumberNormals + 1)],
-                                                   &triangleNormals[3 * (totalNumberNormals - 1)], 3 * sizeof(float));
-                                            memcpy(&triangleNormals[3 * (totalNumberNormals + 2)],
-                                                   &normals[3 * vnIndex], 3 * sizeof(float));
-
-                                            totalNumberNormals += 3;
-                                        }
-                                }
-                            if (vtIndex >= 0)
-                                {
-                                    if (edgeCount < 3)
-                                        {
-                                            if (totalNumberTexCoords >= OM_MAX_TRIANGLE_ATTRIBUTES)
-                                                {
-                                                    OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices,
-                                                                     &triangleNormals, &triangleTexCoords);
-
-                                                    fclose(f);
-
-                                                    return GL_FALSE;
-                                                }
-
-                                            memcpy(&triangleTexCoords[2 * totalNumberTexCoords],
-                                                   &texCoords[2 * vtIndex], 2 * sizeof(float));
-
-                                            totalNumberTexCoords++;
-                                        }
-                                    else
-                                        {
-                                            if (totalNumberTexCoords >= OM_MAX_TRIANGLE_ATTRIBUTES - 2)
-                                                {
-                                                    OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices,
-                                                                     &triangleNormals, &triangleTexCoords);
-
-                                                    fclose(f);
-
-                                                    return GL_FALSE;
-                                                }
-
-                                            memcpy(&triangleTexCoords[2 * (totalNumberTexCoords)],
-                                                   &triangleTexCoords[2 * (totalNumberTexCoords - edgeCount)], 2 * sizeof(float));
-                                            memcpy(&triangleTexCoords[2 * (totalNumberTexCoords + 1)],
-                                                   &triangleTexCoords[2 * (totalNumberTexCoords - 1)], 2 * sizeof(float));
-                                            memcpy(&triangleTexCoords[2 * (totalNumberTexCoords + 2)],
-                                                   &texCoords[2 * vtIndex], 2 * sizeof(float));
-
-                                            totalNumberTexCoords += 3;
-                                        }
-                                }
-
-                            edgeCount++;
-
                             token = strtok(0, " \n");
                         }
                 }
         }
 
-    fclose(f);
+    //Create data pool which exported to the caller,
+    //NOTE that the caller also has guarantee to release it by calling unloadObjModel
+    unsigned int numVertex = vertexIndices.size();
+    *o_vertexCount = numVertex;
+    LOG_INFO("loadObjModel: %d number of vertex we have imported!\n", *o_vertexCount);
 
-    if (wavefront && currentGroupList)
+    if(hasVertex && (o_vertices != NULL))
         {
-            currentGroupList->group.numberIndices = numberIndicesGroup;
-            numberIndicesGroup = 0;
+            *o_vertices = new float[sizeof(float) * VERTEX_C * numVertex];
+            if(*o_vertices == 0)
+                {
+                    LOG_ERROR("loadObjModel: Allocate vertics pool Faield!\n");
+                    return false;
+                }
+            LOG_INFO("\t->Allocate vertices pool!\n");
+        }
+    if(hasUV && (o_uvs != NULL))
+        {
+            *o_uvs = new float[sizeof(float) * UV_C * numVertex];
+            if(*o_uvs == 0)
+                {
+                    LOG_ERROR("loadObjModel: Allocate UVs pool Faield!\n");
+                    return false;
+                }
+            LOG_INFO("\t->Allocate UVs pool!\n");
+        }
+    if(hasNormal && (o_normals != NULL))
+        {
+            *o_normals = new float[sizeof(float) * NORMAL_C * numVertex];
+            if(*o_normals == 0)
+                {
+                    LOG_ERROR("loadObjModel: Allocate Normals pool Faield!\n");
+                    return false;
+                }
+            LOG_INFO("\t->Allocate normals pool!\n");
         }
 
-    result = OMCopyObjData(shape, totalNumberVertices, triangleVertices, totalNumberNormals,
-                           triangleNormals, totalNumberTexCoords, triangleTexCoords);
-
-    OMFreeTempMemory(&vertices, &normals, &texCoords, &triangleVertices, &triangleNormals, &triangleTexCoords);
-
-    if (result)
+    for(unsigned int i = 0; i < vertexIndices.size(); i++)
         {
-            OMCalculateTangentSpacef(shape);
-        }
-
-    return result;
-}
-
-void VertexGenerator::OMInitMaterial(OMmaterial* material)
-{
-    if (!material)
-        {
-            return;
-        }
-
-    material->name[0] = 0;
-
-    material->emissive[0] = 0.0f;
-    material->emissive[1] = 0.0f;
-    material->emissive[2] = 0.0f;
-    material->emissive[3] = 1.0f;
-
-    material->ambient[0] = 0.0f;
-    material->ambient[1] = 0.0f;
-    material->ambient[2] = 0.0f;
-    material->ambient[3] = 1.0f;
-
-    material->diffuse[0] = 0.0f;
-    material->diffuse[1] = 0.0f;
-    material->diffuse[2] = 0.0f;
-    material->diffuse[3] = 1.0f;
-
-    material->specular[0] = 0.0f;
-    material->specular[1] = 0.0f;
-    material->specular[2] = 0.0f;
-    material->specular[3] = 1.0f;
-
-    material->shininess = 0.0f;
-
-    material->transparency = 1.0f;
-
-    material->reflection = false;
-
-    material->refraction = false;
-
-    material->indexOfRefraction = 1.0f;
-
-    material->ambientTextureFilename[0] = 0;
-
-    material->diffuseTextureFilename[0] = 0;
-
-    material->specularTextureFilename[0] = 0;
-
-    material->transparencyTextureFilename[0] = 0;
-
-    material->bumpTextureFilename[0] = 0;
-
-    material->ambientTextureName = 0;
-
-    material->diffuseTextureName = 0;
-
-    material->specularTextureName = 0;
-
-    material->transparencyTextureName = 0;
-
-    material->bumpTextureName = 0;
-}
-
-bool VertexGenerator::OMLoadMaterial(const char* filename, OMmaterialList** materialList)
-{
-    FILE* f;
-
-    int i, k;
-
-    char buffer[OM_BUFFERSIZE];
-    char* checkBuffer;
-    char name[OM_MAX_STRING];
-    char identifier[7];
-
-    OMmaterialList* currentMaterialList = 0;
-
-    if (!filename || !materialList)
-        {
-            return false;
-        }
-
-    f = fopen(filename, "r");
-
-    if (!f)
-        {
-            return false;
-        }
-
-    while (!feof(f))
-        {
-            if (fgets(buffer, OM_BUFFERSIZE, f) == 0)
+            if(hasVertex && (o_vertices != 0))
                 {
-                    if (ferror(f))
-                        {
-                            fclose(f);
+                    unsigned int vertexIndex = vertexIndices[i];
+                    VEC3_F vertex = vertexDatas[vertexIndex - 1];
 
-                            return false;
-                        }
+                    float* vertex_base = *o_vertices;
+                    vertex_base[i * VERTEX_C + 0] = vertex[0];
+                    vertex_base[i * VERTEX_C + 1] = vertex[1];
+                    vertex_base[i * VERTEX_C + 2] = vertex[2];
                 }
-
-            checkBuffer = buffer;
-
-            k = 0;
-
-            // Skip first spaces etc.
-            while (*checkBuffer)
+            if(hasUV && (o_uvs != 0))
                 {
-                    if (*checkBuffer != ' ' && *checkBuffer != '\t')
-                        {
-                            break;
-                        }
+                    unsigned int uvIndex = uvIndices[i];
+                    VEC2_F uv = uvDatas[uvIndex - 1];
 
-                    checkBuffer++;
-                    k++;
-
-                    if (k >= OM_BUFFERSIZE)
-                        {
-                            fclose(f);
-
-                            return false;
-                        }
+                    float* uv_base = *o_uvs;
+                    uv_base[i * UV_C + 0] = uv[0];
+                    uv_base[i * UV_C + 1] = uv[1];
                 }
-
-            i = 0;
-
-            while (checkBuffer[i])
+            if(hasNormal && (o_normals != 0))
                 {
-                    if (checkBuffer[i] == ' ' || checkBuffer[i] == '\t')
-                        {
-                            break;
-                        }
+                    unsigned int normalIndex = normalIndices[i];
+                    VEC3_F normal = normalDatas[normalIndex - 1];
 
-                    checkBuffer[i] = tolower(checkBuffer[i]);
-
-                    i++;
-
-                    if (i >= OM_BUFFERSIZE - k)
-                        {
-                            fclose(f);
-
-                            return false;
-                        }
-                }
-
-            if (strncmp(checkBuffer, "newmtl", 6) == 0)
-                {
-                    OMmaterialList* newMaterialList = 0;
-
-                    sscanf(checkBuffer, "%s %s", identifier, name);
-
-                    newMaterialList = (OMmaterialList*)malloc(sizeof(OMmaterialList));
-
-                    if (!newMaterialList)
-                        {
-                            OMDestroyMaterial(materialList);
-
-                            fclose(f);
-
-                            return false;
-                        }
-
-                    memset(newMaterialList, 0, sizeof(OMmaterialList));
-
-                    OMInitMaterial(&newMaterialList->material);
-
-                    strcpy(newMaterialList->material.name, name);
-
-                    if (*materialList == 0)
-                        {
-                            *materialList = newMaterialList;
-                        }
-                    else
-                        {
-                            currentMaterialList->next = newMaterialList;
-                        }
-
-                    currentMaterialList = newMaterialList;
-                }
-            else if (strncmp(checkBuffer, "ke", 2) == 0)
-                {
-                    sscanf(checkBuffer, "%s %f %f %f", identifier, &currentMaterialList->material.emissive[0],
-                           &currentMaterialList->material.emissive[1], &currentMaterialList->material.emissive[2]);
-
-                    currentMaterialList->material.emissive[3] = 1.0f;
-                }
-            else if (strncmp(checkBuffer, "ka", 2) == 0)
-                {
-                    sscanf(checkBuffer, "%s %f %f %f", identifier, &currentMaterialList->material.ambient[0],
-                           &currentMaterialList->material.ambient[1], &currentMaterialList->material.ambient[2]);
-
-                    currentMaterialList->material.ambient[3] = 1.0f;
-                }
-            else if (strncmp(checkBuffer, "kd", 2) == 0)
-                {
-                    sscanf(checkBuffer, "%s %f %f %f", identifier, &currentMaterialList->material.diffuse[0],
-                           &currentMaterialList->material.diffuse[1], &currentMaterialList->material.diffuse[2]);
-
-                    currentMaterialList->material.diffuse[3] = 1.0f;
-                }
-            else if (strncmp(checkBuffer, "ks", 2) == 0)
-                {
-                    sscanf(checkBuffer, "%s %f %f %f", identifier, &currentMaterialList->material.specular[0],
-                           &currentMaterialList->material.specular[1], &currentMaterialList->material.specular[2]);
-
-                    currentMaterialList->material.specular[3] = 1.0f;
-                }
-            else if (strncmp(checkBuffer, "ns", 2) == 0)
-                {
-                    sscanf(checkBuffer, "%s %f", identifier, &currentMaterialList->material.shininess);
-                }
-            else if (strncmp(checkBuffer, "d", 1) == 0 || strncmp(checkBuffer, "Tr", 2) == 0)
-                {
-                    sscanf(checkBuffer, "%s %f", identifier, &currentMaterialList->material.transparency);
-                }
-            else if (strncmp(checkBuffer, "ni", 2) == 0)
-                {
-                    sscanf(checkBuffer, "%s %f", identifier, &currentMaterialList->material.indexOfRefraction);
-                }
-            else if (strncmp(checkBuffer, "map_ka", 6) == 0)
-                {
-                    sscanf(checkBuffer, "%s %s", identifier, name);
-
-                    strcpy(currentMaterialList->material.ambientTextureFilename, name);
-                }
-            else if (strncmp(checkBuffer, "map_kd", 6) == 0)
-                {
-                    sscanf(checkBuffer, "%s %s", identifier, name);
-
-                    strcpy(currentMaterialList->material.diffuseTextureFilename, name);
-                }
-            else if (strncmp(checkBuffer, "map_ks", 6) == 0)
-                {
-                    sscanf(checkBuffer, "%s %s", identifier, name);
-
-                    strcpy(currentMaterialList->material.specularTextureFilename, name);
-                }
-            else if (strncmp(checkBuffer, "map_d", 5) == 0)
-                {
-                    sscanf(checkBuffer, "%s %s", identifier, name);
-
-                    strcpy(currentMaterialList->material.transparencyTextureFilename, name);
-                }
-            else if (strncmp(checkBuffer, "map_bump", 8) == 0 || strncmp(checkBuffer, "bump", 4) == 0)
-                {
-                    sscanf(checkBuffer, "%s %s", identifier, name);
-
-                    strcpy(currentMaterialList->material.bumpTextureFilename, name);
-                }
-            else if (strncmp(checkBuffer, "illum", 5) == 0)
-                {
-                    int illum;
-
-                    sscanf(checkBuffer, "%s %d", identifier, &illum);
-
-                    // Only setting reflection and refraction depending on illumination model.
-                    switch (illum)
-                        {
-                            case 3:
-                            case 4:
-                            case 5:
-                            case 8:
-                            case 9:
-                                currentMaterialList->material.reflection = true;
-                                break;
-                            case 6:
-                            case 7:
-                                currentMaterialList->material.reflection = true;
-                                currentMaterialList->material.refraction = true;
-                                break;
-                        }
+                    float* normal_base = *o_normals;
+                    normal_base[i * NORMAL_C + 0] = normal[0];
+                    normal_base[i * NORMAL_C + 1] = normal[1];
+                    normal_base[i * NORMAL_C + 2] = normal[2];
                 }
         }
-
-    fclose(f);
-
     return true;
 }
 
-void VertexGenerator::OMDestroyMaterial(OMmaterialList** materialList)
+void VertexGenerator::unloadObjModel(float** vertices_addr, float** uvs_addr, float** normals_addr)
 {
-    OMmaterialList* currentMaterialList = 0;
-    OMmaterialList* nextMaterialList = 0;
-
-    if (!materialList)
+    LOG_INFO("VertexGenerator::unloadObjModel...\n");
+    if(vertices_addr !=NULL && *vertices_addr != NULL)
         {
-            return;
+            delete [] *vertices_addr;
+            *vertices_addr = NULL;
+            LOG_INFO("\t->Release vertices pool!\n");
         }
 
-    currentMaterialList = *materialList;
-    while (currentMaterialList != 0)
+    if(uvs_addr !=NULL && *uvs_addr != NULL)
         {
-            nextMaterialList = currentMaterialList->next;
-
-            memset(&currentMaterialList->material, 0, sizeof(OMmaterial));
-
-            free(currentMaterialList);
-
-            currentMaterialList = nextMaterialList;
+            delete [] *uvs_addr;
+            *uvs_addr = NULL;
+            LOG_INFO("\t->Release UVs pool!\n");
         }
 
-    *materialList = 0;
+    if(normals_addr != NULL && *normals_addr != NULL)
+        {
+            delete [] *normals_addr;
+            *normals_addr = NULL;
+            LOG_INFO("\t->Release normals pool!\n");
+        }
 }
 
-void VertexGenerator::destroyObjectModel(OBJModel* shape)
-{
-    if (!shape)
-        {
-            return;
-        }
 
-    if (shape->vertices)
-        {
-            free(shape->vertices);
 
-            shape->vertices = 0;
-        }
 
-    if (shape->normals)
-        {
-            free(shape->normals);
 
-            shape->normals = 0;
-        }
-
-    if (shape->tangents)
-        {
-            free(shape->tangents);
-
-            shape->tangents = 0;
-        }
-
-    if (shape->bitangents)
-        {
-            free(shape->bitangents);
-
-            shape->bitangents = 0;
-        }
-
-    if (shape->texCoords)
-        {
-            free(shape->texCoords);
-
-            shape->texCoords = 0;
-        }
-
-    if (shape->allAttributes)
-        {
-            free(shape->allAttributes);
-
-            shape->allAttributes = 0;
-        }
-
-    if (shape->indices)
-        {
-            free(shape->indices);
-
-            shape->indices = 0;
-        }
-
-    shape->numberVertices = 0;
-    shape->numberIndices = 0;
-    shape->mode = 0;
-}
-
-GLboolean VertexGenerator::OMCopyObjData(OBJModel* shape, unsigned short totalNumberVertices,
-        float* triangleVertices, unsigned short totalNumberNormals, float* triangleNormals,
-        unsigned short totalNumberTexCoords, float* triangleTexCoords)
-{
-    unsigned int indicesCounter = 0;
-
-    if (!shape || !triangleVertices || !triangleNormals || !triangleTexCoords)
-        {
-            return false;
-        }
-
-    shape->numberVertices = totalNumberVertices;
-
-    if (totalNumberVertices > 0)
-        {
-            shape->vertices = (float*)malloc(totalNumberVertices * 4 * sizeof(float));
-
-            if (shape->vertices == 0)
-                {
-                    destroyObjectModel(shape);
-
-                    return false;
-                }
-
-            memcpy(shape->vertices, triangleVertices, totalNumberVertices * 4 * sizeof(float));
-        }
-    if (totalNumberNormals > 0)
-        {
-            shape->normals = (float*)malloc(totalNumberNormals * 3 * sizeof(float));
-
-            if (shape->normals == 0)
-                {
-                    destroyObjectModel(shape);
-
-                    return false;
-                }
-
-            memcpy(shape->normals, triangleNormals, totalNumberNormals * 3 * sizeof(float));
-        }
-    if (totalNumberTexCoords > 0)
-        {
-            shape->texCoords = (float*)malloc(totalNumberTexCoords * 2 * sizeof(float));
-
-            if (shape->texCoords == 0)
-                {
-                    destroyObjectModel(shape);
-
-                    return false;
-                }
-
-            memcpy(shape->texCoords, triangleTexCoords, totalNumberTexCoords * 2 * sizeof(float));
-        }
-
-    // Just create the indices from the list of vertices.
-
-    shape->numberIndices = totalNumberVertices;
-
-    if (totalNumberVertices > 0)
-        {
-            shape->indices = (unsigned short*)malloc(totalNumberVertices * sizeof(unsigned short));
-
-            if (shape->indices == 0)
-                {
-                    destroyObjectModel(shape);
-
-                    return false;
-                }
-
-            for (indicesCounter = 0; indicesCounter < totalNumberVertices; indicesCounter++)
-                {
-                    shape->indices[indicesCounter] = indicesCounter;
-                }
-        }
-
-    shape->mode = GL_TRIANGLES;
-
-    return true;
-}
-
-bool VertexGenerator::OMMallocTempMemory(float** vertices, float** normals, float** texCoords,
-        float** triangleVertices, float** triangleNormals, float** triangleTexCoords)
-{
-    if (!vertices || !normals || !texCoords || !triangleVertices || !triangleNormals || !triangleTexCoords)
-        {
-            LOG_ERROR("ObjModel: MallocTempMemory failed input parameters!\n");
-            return false;
-        }
-
-    *vertices = (float*)malloc(4 * OM_MAX_ATTRIBUTES * sizeof(float));
-    if (!*vertices)
-        {
-            LOG_ERROR("ObjModel: malloc failed! +%d\n", __LINE__);
-            return false;
-        }
-
-    *normals = (float*)malloc(3 * OM_MAX_ATTRIBUTES * sizeof(float));
-    if (!*normals)
-        {
-            LOG_ERROR("ObjModel: malloc failed! +%d\n", __LINE__);
-            return false;
-        }
-
-    *texCoords = (float*)malloc(2 * OM_MAX_ATTRIBUTES * sizeof(float));
-    if (!*texCoords)
-        {
-            LOG_ERROR("ObjModel: malloc failed! +%d\n", __LINE__);
-            return false;
-        }
-
-    *triangleVertices = (float*)malloc(4 * OM_MAX_TRIANGLE_ATTRIBUTES * sizeof(float));
-    if (!*triangleVertices)
-        {
-            LOG_ERROR("ObjModel: malloc failed! +%d\n", __LINE__);
-            return false;
-        }
-
-    *triangleNormals = (float*)malloc(3 * OM_MAX_TRIANGLE_ATTRIBUTES * sizeof(float));
-    if (!*triangleNormals)
-        {
-            LOG_ERROR("ObjModel: malloc failed! +%d\n", __LINE__);
-            return false;
-        }
-
-    *triangleTexCoords = (float*)malloc(2 * OM_MAX_TRIANGLE_ATTRIBUTES * sizeof(float));
-    if (!*triangleTexCoords)
-        {
-            LOG_ERROR("ObjModel: malloc failed! +%d\n", __LINE__);
-            return false;
-        }
-
-    return true;
-}
-
-void VertexGenerator::OMFreeTempMemory(float** vertices, float** normals, float** texCoords,
-                                       float** triangleVertices, float** triangleNormals, float** triangleTexCoords)
-{
-    if (vertices && *vertices)
-        {
-            free(*vertices);
-
-            *vertices = 0;
-        }
-
-    if (normals && *normals)
-        {
-            free(*normals);
-
-            *normals = 0;
-        }
-
-    if (texCoords && *texCoords)
-        {
-            free(*texCoords);
-
-            *texCoords = 0;
-        }
-
-    if (triangleVertices && *triangleVertices)
-        {
-            free(*triangleVertices);
-
-            *triangleVertices = 0;
-        }
-
-    if (triangleNormals && *triangleNormals)
-        {
-            free(*triangleNormals);
-
-            *triangleNormals = 0;
-        }
-
-    if (triangleTexCoords && *triangleTexCoords)
-        {
-            free(*triangleTexCoords);
-
-            *triangleTexCoords = 0;
-        }
-}
 
 }

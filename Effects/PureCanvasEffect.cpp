@@ -69,8 +69,8 @@ bool PureCanvasEffect::updateAttributeOnce()
     float height = (float)mLayerInfo.LayerHeight;
 
     /*Update projection matrix*/
-    MatrixTransform::getInstance().matrixIndentity(&mProjectionMatrix);
-    MatrixTransform::getInstance().fullScreenOrthoProj(&mProjectionMatrix, width, height);
+    MatrixTransform::getInstance().doMAT_Identify(&mProjectionMatrix);
+    MatrixTransform::getInstance().doMAT_FullScrOrthoProj(&mProjectionMatrix, width, height);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, (GLfloat *)mProjectionMatrix.m);
     GL_ERROR_CHECK("PureCanvas: update projection matrix");
 

@@ -17,7 +17,6 @@ namespace RenderEvaluator
 
 typedef VertexGenerator::Mesh2D MESH;
 typedef VertexGenerator::VEC2_F vec2f;
-typedef VertexGenerator::OBJModel ObjectModel;
 
 class BlenderModel: public EffectBase
 {
@@ -28,7 +27,9 @@ private:
     Matrix44 mViewMatrix;
     Matrix44 mProjectionMatrix;
     LayerRenderType mLayerInfo;
-    ObjectModel mOBJModel;
+
+    float* mVerticesData;
+    unsigned int mVerticesNum;
 
     GLuint mProgram;
     GLuint positionHandler;
