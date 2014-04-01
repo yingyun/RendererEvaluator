@@ -1,6 +1,5 @@
 /*
 *polygon generater.
-*Object loader code get from GLUS project*
 *
 *Copyright (C) 2013 - 2014 Cui. Yingyun
 *This file is released under the GPL2
