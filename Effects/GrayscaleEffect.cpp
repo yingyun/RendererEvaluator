@@ -76,7 +76,7 @@ bool GrayscaleEffect::updateAttributeOnce()
 
     /*Update projection matrix*/
     MatrixTransform::getInstance().doMAT_Identify(&mProjectionMatrix);
-    MatrixTransform::getInstance().doMAT_FullScrOrthoProj(&mProjectionMatrix, width, height);
+    MatrixTransform::getInstance().doMAT_LeftBottomAsOriginrojection(&mProjectionMatrix, width, height);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, (GLfloat *)mProjectionMatrix.m);
     GL_ERROR_CHECK("GrayScale: update projection matrix");
 

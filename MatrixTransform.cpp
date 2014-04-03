@@ -194,13 +194,13 @@ void MatrixTransform::doMAT_LookAt(Matrix44 * result,
 *Convenience method to setup android style ortho projection in which the origin point was
 *the left-bottom and pixel based window size
 */
-void MatrixTransform::doMAT_FullScrOrthoProj(Matrix44 * result, GLfloat width, GLfloat height)
+void MatrixTransform::doMAT_LeftBottomAsOriginrojection(Matrix44 * result, GLfloat width, GLfloat height)
 {
-    doMAT_OrthoProjection(result, 0, width, 0, height, 0, 1);
+    doMAT_OrthogonalProjection(result, 0, width, 0, height, 0, 1);
 }
 
 /*Orthoprojection matrix*/
-void MatrixTransform::doMAT_OrthoProjection(Matrix44 * result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far)
+void MatrixTransform::doMAT_OrthogonalProjection(Matrix44 * result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far)
 {
     result->m[0][0] =  2 / (right - left);
     result->m[1][1] =  2 / (top   - bottom);
@@ -239,7 +239,7 @@ bool MatrixTransform::doMAT_Frustumf(Matrix44* result,
     return true;
 }
 
-bool MatrixTransform::doMAT_PersProjection(Matrix44* result,
+bool MatrixTransform::doMAT_PerspectiveProjection(Matrix44* result,
         const float fovy, const float aspect, const float zNear, const float zFar)
 {
     float xmin, xmax, ymin, ymax;

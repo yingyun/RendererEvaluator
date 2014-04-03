@@ -85,7 +85,7 @@ bool BlenderModel::updateAttributeOnce()
     LOG_INFO("BlenderModel: Generate projection matrix\n");
     MatrixTransform::getInstance().doMAT_Identify(&mProjectionMatrix);
     const float aspect = (float)mLayerInfo.LayerWidth / (float)mLayerInfo.LayerHeight;
-    MatrixTransform::getInstance().doMAT_PersProjection(&mProjectionMatrix,
+    MatrixTransform::getInstance().doMAT_PerspectiveProjection(&mProjectionMatrix,
             40.0f, aspect, 1.0f, 100.0f);
     glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mProjectionMatrix.m));
     GL_ERROR_CHECK("BlenderModel:update projection matrix");

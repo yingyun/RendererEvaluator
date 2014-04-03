@@ -51,12 +51,12 @@ public:
                       const float upX, const float upY, const float upZ);
 
     /*---------------------Projection matrix---------------------*/
-    void doMAT_OrthoProjection(Matrix44* result, GLfloat left, GLfloat right, GLfloat bottom,
+    void doMAT_OrthogonalProjection(Matrix44* result, GLfloat left, GLfloat right, GLfloat bottom,
                                GLfloat top, GLfloat near, GLfloat far);
 
-    void doMAT_FullScrOrthoProj(Matrix44* result, GLfloat width, GLfloat height);
+    void doMAT_LeftBottomAsOriginrojection(Matrix44* result, GLfloat width, GLfloat height);
 
-    bool doMAT_PersProjection(Matrix44* result,
+    bool doMAT_PerspectiveProjection(Matrix44* result,
                               const float fovy, const float aspect, const float zNear, const float zFar);
 
     /*---------------------Debug---------------------*/
