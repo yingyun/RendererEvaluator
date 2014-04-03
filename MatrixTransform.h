@@ -31,6 +31,11 @@ typedef struct
     GLfloat m[4][4];
 } Matrix44;
 
+typedef struct
+{
+    GLfloat m[3][3];
+} Matrix33;
+
 class MatrixTransform : public Singleton<MatrixTransform>
 {
 public:
@@ -50,14 +55,17 @@ public:
                       const float centerX, const float centerY, const float centerZ,
                       const float upX, const float upY, const float upZ);
 
+    /*---------------------Normal matrix---------------------*/
+    void doMat_ExtractMat3FromMat4(Matrix44* src, Matrix33* dest);
+
     /*---------------------Projection matrix---------------------*/
     void doMAT_OrthogonalProjection(Matrix44* result, GLfloat left, GLfloat right, GLfloat bottom,
-                               GLfloat top, GLfloat near, GLfloat far);
+                                    GLfloat top, GLfloat near, GLfloat far);
 
     void doMAT_LeftBottomAsOriginrojection(Matrix44* result, GLfloat width, GLfloat height);
 
     bool doMAT_PerspectiveProjection(Matrix44* result,
-                              const float fovy, const float aspect, const float zNear, const float zFar);
+                                     const float fovy, const float aspect, const float zNear, const float zFar);
 
     /*---------------------Debug---------------------*/
     void doMAT_Dump(const Matrix44* M, const char * tag);

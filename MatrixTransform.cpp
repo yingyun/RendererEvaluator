@@ -188,6 +188,28 @@ void MatrixTransform::doMAT_LookAt(Matrix44 * result,
     doMAT_Multiply(result, result, &temp);
 }
 
+
+/*---------------------Normal matrix---------------------*/
+
+void MatrixTransform::doMat_ExtractMat3FromMat4(Matrix44 * src, Matrix33 * dest)
+{
+    if(src == NULL || dest == NULL)
+        return;
+
+    dest->m[0][0] = src->m[0][0];
+    dest->m[0][1] = src->m[0][1];
+    dest->m[0][2] = src->m[0][2];
+
+    dest->m[1][0] = src->m[1][0];
+    dest->m[1][1] = src->m[1][1];
+    dest->m[1][2] = src->m[1][2];
+
+    dest->m[2][0] = src->m[2][0];
+    dest->m[2][1] = src->m[2][1];
+    dest->m[2][2] = src->m[2][2];
+}
+
+
 /*---------------------Projection matrix---------------------*/
 
 /*
