@@ -45,7 +45,7 @@ bool BlenderModel::updateShaderOnce()
         vec4 vertex;\n\
         vertex = u_modelMatrix * a_position;\n\
         vertex = u_viewMatrix * vertex;\n\
-        v_eye = -vec4(vertex.xyz);\n\
+        v_eye = -vec4(vertex);\n\
         v_normal = u_normalMatrix * a_normal;\n\
         gl_Position =  u_projection * vertex;\n\
     }\n";
@@ -93,7 +93,8 @@ bool BlenderModel::updateShaderOnce()
     }\n";
     mFragShader.append(fragShader);
 
-    mProgram = ShaderProgramBuilder::getInstance().buildShaderProgram(mVertexShader.string(), mFragShader.string());
+    mProgram = ShaderProgramBuilder::getInstance().buildShaderProgram(
+                   mVertexShader.string(), mFragShader.string());
     ShaderProgramBuilder::getInstance().useShaderProgram(mProgram);
 
     return true;
