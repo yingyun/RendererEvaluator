@@ -118,17 +118,12 @@ bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o
                         }
                 }
 
-            //Scanning the whole line one by one to retrive attributes data.
+            /*
+            *Scanning the whole line one by one to retrive attributes data.
+            *Watch out the order of judging the identifier
+            */
             char identifier[5];
-            if (strncmp( lineBuffer, "v", 1 ) == 0)
-                {
-                    VEC3_F vertex;
-                    sscanf(lineBuffer, "%s %f %f %f\n",identifier, &vertex[0], &vertex[1], &vertex[2]);
-                    vertexDatas.push_back(vertex);
-
-                    LOG_DEBUG("%s-> %f, %f, %f\n", identifier, vertex[0], vertex[1], vertex[2]);
-                }
-            else if (strncmp( lineBuffer, "vt", 2) == 0)
+            if (strncmp( lineBuffer, "vt", 2) == 0)
                 {
                     VEC2_F uv;
                     sscanf(lineBuffer, "%s %f %f\n", identifier, &uv[0], &uv[1]);
@@ -148,6 +143,14 @@ bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o
                     normalDatas.push_back(normal);
 
                     LOG_DEBUG("%s-> %f, %f, %f\n", identifier, normal[0], normal[1], normal[2]);
+                }
+            else if (strncmp( lineBuffer, "v", 1 ) == 0)
+                {
+                    VEC3_F vertex;
+                    sscanf(lineBuffer, "%s %f %f %f\n",identifier, &vertex[0], &vertex[1], &vertex[2]);
+                    vertexDatas.push_back(vertex);
+
+                    LOG_DEBUG("%s-> %f, %f, %f\n", identifier, vertex[0], vertex[1], vertex[2]);
                 }
             else if (strncmp( lineBuffer, "f", 1) == 0)
                 {
