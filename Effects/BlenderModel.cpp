@@ -95,7 +95,7 @@ void BlenderModel::gen_updateMNVPMatrix()
     /*Update model matrix*/
     LOG_INFO("BlenderModel: Generate model matrix\n");
     MatrixTransform::getInstance().doMAT_Identify(&mModelMatrix);
-    MatrixTransform::getInstance().doMAT_Rotate(&mModelMatrix, 0.0f, 0.0f, 0.0f, 0.0f);
+    MatrixTransform::getInstance().doMAT_Rotate(&mModelMatrix, 90.0f, 0.0f, 0.0f, 0.0f);
     glUniformMatrix4fv(modelMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mModelMatrix.m));
     GL_ERROR_CHECK("BlenderModel:update model matrix");
 
@@ -138,12 +138,9 @@ bool BlenderModel::updateShaderOnce()
     varying vec3 v_normal;\n\
     void main(void)\n\
     {\n\
-        vec4 vertex;\n\
-        vertex = u_modelMatrix * a_position;\n\
-        vertex = u_viewMatrix * vertex;\n\
-        v_eye = -vec4(vertex);\n\
+        v_eye = -(u_viewMatrix * u_modelMatrix * a_position);\n\
+        gl_Position = u_projection * -v_eye;\n\
         v_normal = u_normalMatrix * a_normal;\n\
-        gl_Position =  u_projection * vertex;\n\
     }\n";
     mVertexShader.append(vertexShader);
 
