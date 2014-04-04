@@ -21,6 +21,38 @@ typedef VertexGenerator::VEC2_F vec2f;
 class BlenderModel: public EffectBase
 {
 private:
+    typedef struct
+    {
+        GLfloat direction[3];
+        GLfloat ambientColor[4];
+        GLfloat diffuseColor[4];
+        GLfloat specularColor[4];
+    } LightProperties;
+
+    typedef struct
+    {
+        GLfloat ambientColor[4];
+        GLfloat diffuseColor[4];
+        GLfloat specularColor[4];
+        GLfloat specularExponent;
+    } MaterialProperties;
+
+    typedef struct
+    {
+        GLint directionLocation;
+        GLint ambientColorLocation;
+        GLint diffuseColorLocation;
+        GLint specularColorLocation;
+    } LightLocations;
+
+    typedef struct
+    {
+        GLint ambientColorLocation;
+        GLint diffuseColorLocation;
+        GLint specularColorLocation;
+        GLint specularExponentLocation;
+    } MaterialLocations;
+
     String8 mFragShader;
     String8 mVertexShader;
     Matrix44 mModelMatrix;
@@ -44,23 +76,9 @@ private:
     GLuint mVertexPositionBuffer;
     GLuint mNormalPositionBuffer;
 
-    typedef struct
-    {
-        GLfloat direction[3];
-        GLfloat ambientColor[4];
-        GLfloat diffuseColor[4];
-        GLfloat specularColor[4];
-    } LightProperties;
-
-    typedef struct
-    {
-        GLfloat ambientColor[4];
-        GLfloat diffuseColor[4];
-        GLfloat specularColor[4];
-        GLfloat specularExponent;
-    } MaterialProperties;
-
-    // This is a white light.
+    /*
+    *TODO: Change it dynamically???
+    */
     LightProperties light =
     {
         { 1.0f, 1.0f, 1.0f },
@@ -69,7 +87,6 @@ private:
         { 1.0f, 1.0f, 1.0f, 1.0f }
     };
 
-    // Blue color material with white specular color.
     MaterialProperties material =
     {
         { 0.0f, 1.0f, 0.0f, 1.0f },
@@ -77,22 +94,6 @@ private:
         { 1.0f, 1.0f, 1.0f, 1.0f },
         20.0f
     };
-
-    typedef struct
-    {
-        GLint directionLocation;
-        GLint ambientColorLocation;
-        GLint diffuseColorLocation;
-        GLint specularColorLocation;
-    } LightLocations;
-
-    typedef struct
-    {
-        GLint ambientColorLocation;
-        GLint diffuseColorLocation;
-        GLint specularColorLocation;
-        GLint specularExponentLocation;
-    } MaterialLocations;
 
     LightLocations g_light;
     MaterialLocations g_material;
@@ -105,6 +106,14 @@ public:
     virtual bool updateBufferOnce();
     virtual bool drawPolygonEvery();
     virtual bool updateParamsEvery();
+
+    void retriveShaderVariableLocation();
+    void setupPhongColor();
+    void gen_updateMNVPMatrix();
+    void gen_updateVertexVBO();
+    void gen_updateNormalVBO();
+
+    
 };
 
 }
