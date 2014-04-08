@@ -12,6 +12,7 @@ namespace RenderEvaluator
 BlenderModel::BlenderModel(LayerRenderType layerInfo)
 {
     mLayerInfo = layerInfo;
+    mDegreeRotate = 0.0f;
 }
 
 BlenderModel::~BlenderModel()
@@ -78,18 +79,16 @@ void BlenderModel::setupLight_MaterialColor()
     glUniform1f(mMaterialHandler.specularExponentLocation, material.specularExponent);
 }
 
-void BlenderModel::gen_updateModelMatrix()
+void BlenderModel::gen_uploadModelMatrix(float degree)
 {
-    LOG_INFO("BlenderModel: Generate model matrix\n");
     MatrixTransform::getInstance().doMAT_Identify(&mModelMatrix);
-    MatrixTransform::getInstance().doMAT_Rotate(&mModelMatrix, 0.0f, 1.0f, 1.0f, 1.0f);
+    MatrixTransform::getInstance().doMAT_Rotate(&mModelMatrix, degree, 0.0f, 1.0f, 0.0f);
     glUniformMatrix4fv(mModelMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mModelMatrix.m));
     GL_ERROR_CHECK("BlenderModel:update model matrix");
 }
 
 void BlenderModel::gen_uploadViewMatrix()
 {
-    LOG_INFO("BlenderModel: Generate view matrix\n");
     MatrixTransform::getInstance().doMAT_Identify(&mViewMatrix);
     MatrixTransform::getInstance().doMAT_LookAt(&mViewMatrix, 0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     glUniformMatrix4fv(mViewMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mViewMatrix.m));
@@ -98,7 +97,6 @@ void BlenderModel::gen_uploadViewMatrix()
 
 void BlenderModel::gen_uploadNormallMatrix()
 {
-    LOG_INFO("BlenderModel: Generate normal matrix\n");
     Matrix44 mvMatrix;
     MatrixTransform::getInstance().doMAT_Multiply(&mvMatrix, &mModelMatrix, &mViewMatrix);
     MatrixTransform::getInstance().doMat_ExtractMat3FromMat4(&mvMatrix, &mNormalMatrix);
@@ -108,7 +106,6 @@ void BlenderModel::gen_uploadNormallMatrix()
 
 void BlenderModel::gen_uploadProjectionMatrix()
 {
-    LOG_INFO("BlenderModel: Generate projection matrix\n");
     MatrixTransform::getInstance().doMAT_Identify(&mProjectionMatrix);
     const float aspect = (float)mLayerInfo.LayerWidth / (float)mLayerInfo.LayerHeight;
     MatrixTransform::getInstance().doMAT_PerspectiveProjection(&mProjectionMatrix,
@@ -119,7 +116,7 @@ void BlenderModel::gen_uploadProjectionMatrix()
 
 void BlenderModel::gen_updateMNVPMatrix()
 {
-    gen_updateModelMatrix();
+    gen_uploadModelMatrix(mDegreeRotate);
     gen_uploadViewMatrix();
     gen_uploadNormallMatrix();
     gen_uploadProjectionMatrix();
@@ -232,7 +229,10 @@ bool BlenderModel::updateBufferOnce()
 
 bool BlenderModel::updateParamsEvery()
 {
-    /*TODO  Model Matrix need to change every frame */
+    mDegreeRotate = static_cast<float>(static_cast<int>(mDegreeRotate + 10) % 360);
+    gen_uploadModelMatrix(mDegreeRotate);
+    gen_uploadNormallMatrix();
+
     return true;
 }
 

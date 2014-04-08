@@ -64,6 +64,7 @@ private:
     float* mVerticesData;
     float* mNormalData;
     unsigned int mVerticesNum;
+    float mDegreeRotate;
 
     /*
     *TODO: Change it dynamically???
@@ -102,7 +103,7 @@ private:
     void gen_updateMNVPMatrix();
     void gen_updateVertexVBO();
     void gen_updateNormalVBO();
-    void gen_updateModelMatrix();
+    void gen_uploadModelMatrix(float degree);
     void gen_uploadViewMatrix();
     void gen_uploadNormallMatrix();
     void gen_uploadProjectionMatrix();

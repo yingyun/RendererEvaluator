@@ -67,7 +67,7 @@ bool RenderMachine::polygonViewSetup()
 
     /* Buffer Clear */
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClearDepthf(0.0);
+    glClearDepthf(1.0);
     glClearStencil(0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -75,6 +75,7 @@ bool RenderMachine::polygonViewSetup()
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
     return true;
 }
 
