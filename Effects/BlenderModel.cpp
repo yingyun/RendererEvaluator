@@ -6,13 +6,6 @@
 */
 #include "BlenderModel.h"
 
-/*
-TODO:
-    1: Add light(Blinn-Phong)
-    2: Add model or view change every frame!
-    3: Refactor routine architecture
-*/
-
 namespace RenderEvaluator
 {
 
@@ -23,7 +16,6 @@ BlenderModel::BlenderModel(LayerRenderType layerInfo)
 
 BlenderModel::~BlenderModel()
 {
-    /*Release source*/
     glDeleteBuffers(1, &mVertexPositionBuffer);
     glDeleteBuffers(1, &mNormalPositionBuffer);
     glDeleteVertexArrays(1, &mVertexArrayObject);
@@ -31,99 +23,121 @@ BlenderModel::~BlenderModel()
 
 void BlenderModel::gen_updateVertexVBO()
 {
-    /*Update Vertex VBO*/
     glGenBuffers(1, &mVertexPositionBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexPositionBuffer);
 
     size_t vertexSizeByte = mVerticesNum * VERTEX_C * sizeof(float);
     glBufferData(GL_ARRAY_BUFFER, vertexSizeByte, mVerticesData, GL_STATIC_DRAW);
-    glVertexAttribPointer(positionHandler, VERTEX_C, GL_FLOAT, GL_FALSE, 0, (void *)0);
-    glEnableVertexAttribArray(positionHandler);
+    glVertexAttribPointer(mPositionHandler, VERTEX_C, GL_FLOAT, GL_FALSE, 0, (void *)0);
+    glEnableVertexAttribArray(mPositionHandler);
     GL_ERROR_CHECK("BlenderModel: Update Vertex VBO");
 }
 
 void BlenderModel::gen_updateNormalVBO()
 {
-    /*Update Normal VBO*/
     glGenBuffers(1, &mNormalPositionBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mNormalPositionBuffer);
 
     size_t normalSizeByte = mVerticesNum * NORMAL_C * sizeof(float);
     glBufferData(GL_ARRAY_BUFFER, normalSizeByte, mNormalData, GL_STATIC_DRAW);
-    glVertexAttribPointer(normalHandler, NORMAL_C, GL_FLOAT, GL_FALSE, 0, (void *)0);
-    glEnableVertexAttribArray(normalHandler);
+    glVertexAttribPointer(mNormalHandler, NORMAL_C, GL_FLOAT, GL_FALSE, 0, (void *)0);
+    glEnableVertexAttribArray(mNormalHandler);
     GL_ERROR_CHECK("BlenderModel: Update Normal VBO");
 }
 
 void BlenderModel::retriveShaderVariableLocation()
 {
-    /*Get the attribute from GLSL*/
-    positionHandler = glGetAttribLocation(mProgram, "a_position");
-    normalHandler = glGetAttribLocation(mProgram, "a_normal");
-    modelMatrixHandler = glGetUniformLocation(mProgram, "u_modelMatrix");
-    viewMatrixHandler = glGetUniformLocation(mProgram, "u_viewMatrix");
-    projectionHandler = glGetUniformLocation(mProgram, "u_projection");
-    normalMatrixHandler = glGetUniformLocation(mProgram, "u_normalMatrix");
+    mPositionHandler = glGetAttribLocation(mProgram, "a_position");
+    mNormalHandler = glGetAttribLocation(mProgram, "a_normal");
+    mModelMatrixHandler = glGetUniformLocation(mProgram, "u_modelMatrix");
+    mViewMatrixHandler = glGetUniformLocation(mProgram, "u_viewMatrix");
+    mProjectionHandler = glGetUniformLocation(mProgram, "u_projection");
+    mNormalMatrixHandler = glGetUniformLocation(mProgram, "u_normalMatrix");
 
-    g_light.directionLocation = glGetUniformLocation(mProgram, "u_light.direction");
-    g_light.ambientColorLocation = glGetUniformLocation(mProgram, "u_light.ambientColor");
-    g_light.diffuseColorLocation = glGetUniformLocation(mProgram, "u_light.diffuseColor");
-    g_light.specularColorLocation = glGetUniformLocation(mProgram, "u_light.specularColor");
+    mLightHandler.directionLocation = glGetUniformLocation(mProgram, "u_light.direction");
+    mLightHandler.ambientColorLocation = glGetUniformLocation(mProgram, "u_light.ambientColor");
+    mLightHandler.diffuseColorLocation = glGetUniformLocation(mProgram, "u_light.diffuseColor");
+    mLightHandler.specularColorLocation = glGetUniformLocation(mProgram, "u_light.specularColor");
 
-    g_material.ambientColorLocation = glGetUniformLocation(mProgram, "u_material.ambientColor");
-    g_material.diffuseColorLocation = glGetUniformLocation(mProgram, "u_material.diffuseColor");
-    g_material.specularColorLocation = glGetUniformLocation(mProgram, "u_material.specularColor");
-    g_material.specularExponentLocation = glGetUniformLocation(mProgram, "u_material.specularExponent");
+    mMaterialHandler.ambientColorLocation = glGetUniformLocation(mProgram, "u_material.ambientColor");
+    mMaterialHandler.diffuseColorLocation = glGetUniformLocation(mProgram, "u_material.diffuseColor");
+    mMaterialHandler.specularColorLocation = glGetUniformLocation(mProgram, "u_material.specularColor");
+    mMaterialHandler.specularExponentLocation = glGetUniformLocation(mProgram, "u_material.specularExponent");
 }
 
-void BlenderModel::setupPhongColor()
+void BlenderModel::setupLight_MaterialColor()
 {
-    /*Update light and material color property*/
-    glUniform3fv(g_light.directionLocation, 1, light.direction);
-    glUniform4fv(g_light.ambientColorLocation, 1, light.ambientColor);
-    glUniform4fv(g_light.diffuseColorLocation, 1, light.diffuseColor);
-    glUniform4fv(g_light.specularColorLocation, 1, light.specularColor);
+    glUniform3fv(mLightHandler.directionLocation, 1, light.direction);
+    glUniform4fv(mLightHandler.ambientColorLocation, 1, light.ambientColor);
+    glUniform4fv(mLightHandler.diffuseColorLocation, 1, light.diffuseColor);
+    glUniform4fv(mLightHandler.specularColorLocation, 1, light.specularColor);
 
-    glUniform4fv(g_material.ambientColorLocation, 1, material.ambientColor);
-    glUniform4fv(g_material.diffuseColorLocation, 1, material.diffuseColor);
-    glUniform4fv(g_material.specularColorLocation, 1, material.specularColor);
-    glUniform1f(g_material.specularExponentLocation, material.specularExponent);
+    glUniform4fv(mMaterialHandler.ambientColorLocation, 1, material.ambientColor);
+    glUniform4fv(mMaterialHandler.diffuseColorLocation, 1, material.diffuseColor);
+    glUniform4fv(mMaterialHandler.specularColorLocation, 1, material.specularColor);
+    glUniform1f(mMaterialHandler.specularExponentLocation, material.specularExponent);
 }
 
-void BlenderModel::gen_updateMNVPMatrix()
+void BlenderModel::gen_updateModelMatrix()
 {
-    /*Update model matrix*/
     LOG_INFO("BlenderModel: Generate model matrix\n");
     MatrixTransform::getInstance().doMAT_Identify(&mModelMatrix);
-    MatrixTransform::getInstance().doMAT_Rotate(&mModelMatrix, 90.0f, 0.0f, 0.0f, 0.0f);
-    glUniformMatrix4fv(modelMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mModelMatrix.m));
+    MatrixTransform::getInstance().doMAT_Rotate(&mModelMatrix, 0.0f, 1.0f, 1.0f, 1.0f);
+    glUniformMatrix4fv(mModelMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mModelMatrix.m));
     GL_ERROR_CHECK("BlenderModel:update model matrix");
+}
 
-    /*Update view matrix*/
+void BlenderModel::gen_uploadViewMatrix()
+{
     LOG_INFO("BlenderModel: Generate view matrix\n");
     MatrixTransform::getInstance().doMAT_Identify(&mViewMatrix);
     MatrixTransform::getInstance().doMAT_LookAt(&mViewMatrix, 0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-    glUniformMatrix4fv(viewMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mViewMatrix.m));
+    glUniformMatrix4fv(mViewMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mViewMatrix.m));
     GL_ERROR_CHECK("BlenderModel:update view matrix");
+}
 
-    /*Update normal matrix*/
+void BlenderModel::gen_uploadNormallMatrix()
+{
     LOG_INFO("BlenderModel: Generate normal matrix\n");
     Matrix44 mvMatrix;
     MatrixTransform::getInstance().doMAT_Multiply(&mvMatrix, &mModelMatrix, &mViewMatrix);
     MatrixTransform::getInstance().doMat_ExtractMat3FromMat4(&mvMatrix, &mNormalMatrix);
-    glUniformMatrix3fv(normalMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mNormalMatrix.m));
+    glUniformMatrix3fv(mNormalMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mNormalMatrix.m));
+    GL_ERROR_CHECK("BlenderModel:update normal matrix");
+}
 
-    /*Update projection matrix*/
+void BlenderModel::gen_uploadProjectionMatrix()
+{
     LOG_INFO("BlenderModel: Generate projection matrix\n");
     MatrixTransform::getInstance().doMAT_Identify(&mProjectionMatrix);
     const float aspect = (float)mLayerInfo.LayerWidth / (float)mLayerInfo.LayerHeight;
     MatrixTransform::getInstance().doMAT_PerspectiveProjection(&mProjectionMatrix,
             40.0f, aspect, 1.0f, 100.0f);
-    glUniformMatrix4fv(projectionHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mProjectionMatrix.m));
+    glUniformMatrix4fv(mProjectionHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mProjectionMatrix.m));
     GL_ERROR_CHECK("BlenderModel:update projection matrix");
 }
 
+void BlenderModel::gen_updateMNVPMatrix()
+{
+    gen_updateModelMatrix();
+    gen_uploadViewMatrix();
+    gen_uploadNormallMatrix();
+    gen_uploadProjectionMatrix();
+}
 
+/* ----------------------------------- Helper Utility -------------------------------*/
+#define VAO_SAVE \
+    do{glGenVertexArrays(1, &mVertexArrayObject); glBindVertexArray(mVertexArrayObject);} while(false);
+#define VAO_RESTORE \
+    do{glBindVertexArray(0); glBindBuffer(GL_ARRAY_BUFFER, 0);} while(false)
+#define VAO_BEGIN \
+    do{glBindVertexArray(mVertexArrayObject);} while(false);
+#define VAO_END \
+    do{glBindVertexArray(0);} while(false)
+#define OBJECT_INIT \
+    do{VertexGenerator::getInstance().loadObjModel(mLayerInfo.LayerObjectModel, &mVerticesData, NULL, &mNormalData, &mVerticesNum);} while(false)
+#define OBJECT_RECYCLE \
+    do{VertexGenerator::getInstance().unloadObjModel(&mVerticesData, NULL, &mNormalData);} while(false)
 
 bool BlenderModel::updateShaderOnce()
 {
@@ -193,54 +207,40 @@ bool BlenderModel::updateShaderOnce()
     return true;
 }
 
-
 bool BlenderModel::updateAttributeOnce()
 {
     retriveShaderVariableLocation();
-    setupPhongColor();
+    setupLight_MaterialColor();
     gen_updateMNVPMatrix();
 
     return true;
 }
 
-
 bool BlenderModel::updateBufferOnce()
 {
-    VertexGenerator::getInstance().loadObjModel(mLayerInfo.LayerObjectModel,
-            &mVerticesData, NULL, &mNormalData, &mVerticesNum);
+    OBJECT_INIT;
 
-    /*Update VAO*/
-    glGenVertexArrays(1, &mVertexArrayObject);
-    glBindVertexArray(mVertexArrayObject);
+    VAO_SAVE {
+        gen_updateVertexVBO();
+        gen_updateNormalVBO();
+     } VAO_RESTORE;
 
-    gen_updateVertexVBO();
-    gen_updateNormalVBO();
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    VertexGenerator::getInstance().unloadObjModel(&mVerticesData, NULL, &mNormalData);
-
-    return true;
-}
-
-bool BlenderModel::drawPolygonEvery()
-{
-    glBindVertexArray(mVertexArrayObject);
-
-    glDrawArrays(MESH::TRIANGLES, 0, mVerticesNum);
-
-    glBindVertexArray(0);
+     OBJECT_RECYCLE;
 
     return true;
 }
 
 bool BlenderModel::updateParamsEvery()
 {
-
     /*TODO  Model Matrix need to change every frame */
+    return true;
+}
 
-
+bool BlenderModel::drawPolygonEvery()
+{
+    VAO_BEGIN {
+        glDrawArrays(MESH::TRIANGLES, 0, mVerticesNum);
+    } VAO_END;
 
     return true;
 }

@@ -65,17 +65,6 @@ private:
     float* mNormalData;
     unsigned int mVerticesNum;
 
-    GLuint mProgram;
-    GLuint positionHandler;
-    GLuint normalHandler;
-    GLuint projectionHandler;
-    GLuint modelMatrixHandler;
-    GLuint normalMatrixHandler;
-    GLuint viewMatrixHandler;
-    GLuint mVertexArrayObject;
-    GLuint mVertexPositionBuffer;
-    GLuint mNormalPositionBuffer;
-
     /*
     *TODO: Change it dynamically???
     */
@@ -95,8 +84,28 @@ private:
         20.0f
     };
 
-    LightLocations g_light;
-    MaterialLocations g_material;
+    GLuint mProgram;
+    GLuint mPositionHandler;
+    GLuint mNormalHandler;
+    GLuint mProjectionHandler;
+    GLuint mModelMatrixHandler;
+    GLuint mNormalMatrixHandler;
+    GLuint mViewMatrixHandler;
+    GLuint mVertexArrayObject;
+    GLuint mVertexPositionBuffer;
+    GLuint mNormalPositionBuffer;
+    LightLocations mLightHandler;
+    MaterialLocations mMaterialHandler;
+
+    void retriveShaderVariableLocation();
+    void setupLight_MaterialColor();
+    void gen_updateMNVPMatrix();
+    void gen_updateVertexVBO();
+    void gen_updateNormalVBO();
+    void gen_updateModelMatrix();
+    void gen_uploadViewMatrix();
+    void gen_uploadNormallMatrix();
+    void gen_uploadProjectionMatrix();
 
 public:
     BlenderModel(LayerRenderType layerInfo);
@@ -106,14 +115,6 @@ public:
     virtual bool updateBufferOnce();
     virtual bool drawPolygonEvery();
     virtual bool updateParamsEvery();
-
-    void retriveShaderVariableLocation();
-    void setupPhongColor();
-    void gen_updateMNVPMatrix();
-    void gen_updateVertexVBO();
-    void gen_updateNormalVBO();
-
-    
 };
 
 }
