@@ -99,7 +99,7 @@ void BlenderModel::gen_uploadNormallMatrix()
 {
     Matrix44 mvMatrix;
     MatrixTransform::getInstance().doMAT_Multiply(&mvMatrix, &mModelMatrix, &mViewMatrix);
-    MatrixTransform::getInstance().doMat_ExtractMat3FromMat4(&mvMatrix, &mNormalMatrix);
+    MatrixTransform::getInstance().doMat_ExtractMat3FromMat4(&mNormalMatrix, &mvMatrix);
     glUniformMatrix3fv(mNormalMatrixHandler, 1, GL_FALSE, reinterpret_cast<GLfloat*>(mNormalMatrix.m));
     GL_ERROR_CHECK("BlenderModel:update normal matrix");
 }

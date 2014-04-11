@@ -9,16 +9,9 @@
 
 namespace RenderEvaluator
 {
-/*
-* Cui.YY  FixMe; Need to review equation
-* Detaild equation refer 3D Math primer please
-* Take a look at in Android matrix design
-*/
 #define PI  3.14159265
 
 RENDEREVALUATOR_SINGLETON_STATIC_VAR_INIT(MatrixTransform);
-
-
 
 void MatrixTransform::doMAT_Identify(Matrix44 * result)
 {
@@ -191,7 +184,7 @@ void MatrixTransform::doMAT_LookAt(Matrix44 * result,
 
 /*---------------------Normal matrix---------------------*/
 
-void MatrixTransform::doMat_ExtractMat3FromMat4(Matrix44 * src, Matrix33 * dest)
+void MatrixTransform::doMat_ExtractMat3FromMat4(Matrix33 * dest, Matrix44 * src)
 {
     if(src == NULL || dest == NULL)
         return;

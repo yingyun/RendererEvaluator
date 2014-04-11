@@ -56,7 +56,7 @@ public:
                       const float upX, const float upY, const float upZ);
 
     /*---------------------Normal matrix---------------------*/
-    void doMat_ExtractMat3FromMat4(Matrix44* src, Matrix33* dest);
+    void doMat_ExtractMat3FromMat4(Matrix33* dest, Matrix44* src);
 
     /*---------------------Projection matrix---------------------*/
     void doMAT_OrthogonalProjection(Matrix44* result, GLfloat left, GLfloat right, GLfloat bottom,
