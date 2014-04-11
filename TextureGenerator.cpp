@@ -11,7 +11,7 @@ namespace RenderEvaluator
 
 RENDEREVALUATOR_SINGLETON_STATIC_VAR_INIT(TextureGenerator);
 
-void TextureGenerator::loadTexture(std::string texture, int * width, int * height, void ** pixelData, SkBitmap& bitmap)
+void TextureGenerator::loadTexture(void** pixelData, int* width, int* height, std::string texture, SkBitmap& bitmap)
 {
 
     /*

@@ -73,8 +73,8 @@ void VertexGenerator::Mesh2D::dumpInfo()
 }
 
 //TODO: Reimplement below c-style string processing by C++ String style.
-bool VertexGenerator::loadObjModel(string objName, float** o_vertices, float** o_uvs,
-                                   float** o_normals, unsigned int* o_vertexCount)
+bool VertexGenerator::loadObjModel(float** o_vertices, float** o_uvs,
+                                   float** o_normals, unsigned int* o_vertexCount, string objName)
 {
     vector<VEC3_F> vertexDatas;
     vector<VEC2_F> uvDatas;

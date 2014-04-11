@@ -206,8 +206,8 @@ bool GaussianBlur::updateBufferOnce()
     void * pixelData;
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, texture[0]);
-    TextureGenerator::getInstance().loadTexture(mLayerInfo.LayerTexture,
-            &textureWidth, &textureHeight, &pixelData, mBitmap);
+    TextureGenerator::getInstance().loadTexture(&pixelData,
+            &textureWidth, &textureHeight, mLayerInfo.LayerTexture, mBitmap);
     TextureGenerator::getInstance().samplingMode(GL_NEAREST, GL_NEAREST,
             GL_REPEAT, GL_REPEAT);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0,

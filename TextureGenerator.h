@@ -35,7 +35,7 @@ class TextureGenerator : public Singleton<TextureGenerator>
 {
 public:
     TextureGenerator() {}
-    void loadTexture(std::string texture, int* width, int* height, void** pixelData, SkBitmap& bitmap);
+    void loadTexture(void** pixelData, int* width, int* height, std::string texture, SkBitmap& bitmap);
     void samplingMode(int minFilter, int magFilter, int sFilter, int tFilter);
 };
 

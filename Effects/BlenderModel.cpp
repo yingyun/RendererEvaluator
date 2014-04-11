@@ -132,7 +132,7 @@ void BlenderModel::gen_updateMNVPMatrix()
 #define VAO_END \
     do{glBindVertexArray(0);} while(false)
 #define OBJECT_INIT \
-    do{VertexGenerator::getInstance().loadObjModel(mLayerInfo.LayerObjectModel, &mVerticesData, NULL, &mNormalData, &mVerticesNum);} while(false)
+    do{VertexGenerator::getInstance().loadObjModel(&mVerticesData, NULL, &mNormalData, &mVerticesNum, mLayerInfo.LayerObjectModel);} while(false)
 #define OBJECT_RECYCLE \
     do{VertexGenerator::getInstance().unloadObjModel(&mVerticesData, NULL, &mNormalData);} while(false)
 

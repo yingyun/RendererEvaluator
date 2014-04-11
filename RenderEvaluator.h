@@ -27,9 +27,9 @@ using std::string;
 using std::vector;
 
 void usageRender();
-LayerRenderType parseLayer(INIReader& configParser, string& layerName);
+LayerRenderType parseLayer(INIReader& configParser, const string& layerName);
 MainFunctionType parseMainFunction(INIReader& configParser);
-void handleLayerRenderTask(INIReader& configParser, unsigned int numOfLayer);
+void handleLayerRenderTask(INIReader& configParser, const unsigned int numOfLayer);
 void handleFlatlandTask(INIReader& configParser);
 void handleGTest(INIReader& configParser);
 

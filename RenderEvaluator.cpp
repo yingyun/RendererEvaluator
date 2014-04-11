@@ -44,15 +44,16 @@ Note: Be sure you have config.ini and texture image files under /data/RenderEval
     std::cout << description.data() << std::endl;
 }
 
-void handleLayerRenderTask(INIReader& configParser, unsigned int numOfLayer)
+void handleLayerRenderTask(INIReader& configParser, const unsigned int numOfLayer)
 {
     sp<Native_Android> nativeSurface = new Native_Android();
     if(!nativeSurface->startService()) LOG_ERROR("Establish connection with SF was failed!\n");
+    size_t layers = numOfLayer;
 
     vector< sp<RenderMachine> > renders;
-    CLAMP(numOfLayer);
+    CLAMP(layers);
 
-    for(unsigned int index = 0; index < numOfLayer; ++index)
+    for(unsigned int index = 0; index < layers; ++index)
         {
             /* Parse specific layer info */
             string layerName("Layer");
@@ -81,7 +82,7 @@ void handleGTest(INIReader& configParser)
     /* Do something */
 }
 
-LayerRenderType parseLayer(INIReader & configParser, string& layerName)
+LayerRenderType parseLayer(INIReader & configParser, const string& layerName)
 {
     LayerRenderType layerInfo;
     layerInfo.LayerRenderEffect = configParser.GetString(layerName, "LayerRenderEffect", "default");

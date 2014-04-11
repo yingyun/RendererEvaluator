@@ -315,8 +315,8 @@ public:
     typedef VEC4<int> VEC4_I;
 
     /*------------------------------Public API------------------------------*/
-    bool loadObjModel(string objName, float** o_vertices, float** o_uvs,
-                      float** o_normals, unsigned int* o_vertexCount);
+    bool loadObjModel(float** o_vertices, float** o_uvs,
+                      float** o_normals, unsigned int* o_vertexCount, string objName);
     void unloadObjModel(float** vertices_addr, float** uvs_addr, float** normals_addr);
 
 
