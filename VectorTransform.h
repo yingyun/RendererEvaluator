@@ -19,7 +19,6 @@ class VectorTransform : public Singleton<VectorTransform>
 {
 public:
     VectorTransform() {}
-
     inline float  doVEC3_Length(const float vector[3]);
     bool doVEC3_Normalize(float vector[3]);
     void doVEC3_Cross(float result[3], const float vector0[3], const float vector1[3]);

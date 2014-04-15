@@ -74,8 +74,6 @@ public:
     void startRender(EGLNativeWindowType surface);
     static void* mainRender(void* thisthis);
 
-    EGLNativeWindowType mWindowSurface;
-
 private:
     void polygonEffectSelect();
     bool polygonViewSetup();
@@ -84,6 +82,7 @@ private:
 
     static void frameControl(int fd, int events, void* data);
 
+    EGLNativeWindowType mWindowSurface;
     DisplayEventReceiver mDisplayEventReceiver;
     sp<Looper> mLoop;
     EGLSurface mEGLSurface;

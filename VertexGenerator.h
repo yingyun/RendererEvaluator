@@ -85,7 +85,6 @@ public:
             }
         };
 
-
         Mesh2D(): mPrimitive(TRIANGLE_FAN), mVertices(0), mVertexCount(4),
             mVertexSize(2), mTexCoordsSize(2)
         {
@@ -97,49 +96,17 @@ public:
         Mesh2D& operator = (Mesh2D& mesh);
 
         template <typename TYPE>
-        inline VertexArray<TYPE> getPositionArray()
-        {
-            return VertexArray<TYPE>(getPositions(), mStride);
-        }
-
+        inline VertexArray<TYPE> getPositionArray() { return VertexArray<TYPE>(getPositions(), mStride); }
         template <typename TYPE>
-        inline VertexArray<TYPE> getTexCoordArray()
-        {
-            return VertexArray<TYPE>(getTexCoords(), mStride);
-        }
-
-        inline Primitive getPrimitive()
-        {
-            return mPrimitive;
-        }
-        inline float* getPositions()
-        {
-            return mVertices;
-        }
-        inline float* getTexCoords()
-        {
-            return mVertices + mVertexSize;
-        }
-        inline size_t getVertexCount()
-        {
-            return mVertexCount;
-        }
-        inline size_t getVertexSize()
-        {
-            return mVertexSize;
-        }
-        inline size_t getTexCoordsSize()
-        {
-            return mTexCoordsSize;
-        }
-        inline size_t getByteStride()
-        {
-            return mStride*sizeof(float);
-        }
-        inline size_t getStride()
-        {
-            return mStride;
-        }
+        inline VertexArray<TYPE> getTexCoordArray() { return VertexArray<TYPE>(getTexCoords(), mStride); }
+        inline Primitive getPrimitive() { return mPrimitive; }
+        inline float* getPositions() { return mVertices; }
+        inline float* getTexCoords() { return mVertices + mVertexSize; }
+        inline size_t getVertexCount() { return mVertexCount; }
+        inline size_t getVertexSize() { return mVertexSize; }
+        inline size_t getTexCoordsSize() { return mTexCoordsSize; }
+        inline size_t getByteStride() { return mStride*sizeof(float); }
+        inline size_t getStride() { return mStride; }
         void dumpInfo();
 
     private:
@@ -150,7 +117,6 @@ public:
         size_t mTexCoordsSize;
         size_t mStride;
     };
-
 
     /* ------------------------------VEC2 implementation------------------------------ */
     template <typename TYPE>
@@ -176,18 +142,9 @@ public:
         };
 
         enum { SIZE = 2 };
-        inline static size_type size()
-        {
-            return SIZE;
-        }
-        inline const_reference operator [] (size_t i) const
-        {
-            return (&x)[i];
-        }
-        inline reference operator [] (size_t i)
-        {
-            return (&x)[i];
-        }
+        inline static size_type size() { return SIZE; }
+        inline const_reference operator [] (size_t i) const { return (&x)[i]; }
+        inline reference operator [] (size_t i) { return (&x)[i]; }
 
         VEC2() : x(0), y(0) { }
 
@@ -230,18 +187,9 @@ public:
         };
 
         enum { SIZE = 3 };
-        inline static size_type size()
-        {
-            return SIZE;
-        }
-        inline const_reference operator [] (size_t i) const
-        {
-            return (&x)[i];
-        }
-        inline reference operator [] (size_t i)
-        {
-            return (&x)[i];
-        }
+        inline static size_type size() { return SIZE; }
+        inline const_reference operator [] (size_t i) const { return (&x)[i]; }
+        inline reference operator [] (size_t i) { return (&x)[i]; }
 
         VEC3() : x(0), y(0), z(0) { }
 
@@ -286,18 +234,9 @@ public:
         };
 
         enum { SIZE = 4 };
-        inline static size_type size()
-        {
-            return SIZE;
-        }
-        inline const_reference operator [] (size_t i) const
-        {
-            return (&x)[i];
-        }
-        inline reference operator [] (size_t i)
-        {
-            return (&x)[i];
-        }
+        inline static size_type size() { return SIZE; }
+        inline const_reference operator [] (size_t i) const { return (&x)[i]; }
+        inline reference operator [] (size_t i) { return (&x)[i]; }
 
         VEC4() : x(0), y(0), z(0), w(0) { }
 
@@ -318,11 +257,6 @@ public:
     bool loadObjModel(float** o_vertices, float** o_uvs,
                       float** o_normals, unsigned int* o_vertexCount, string objName);
     void unloadObjModel(float** vertices_addr, float** uvs_addr, float** normals_addr);
-
-
-
-private:
-    /*------------------------------Structure for holding material data.------------------------------*/
 };
 
 }
