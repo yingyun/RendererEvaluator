@@ -8,8 +8,8 @@
 #ifndef RESOURCE_RESOURCEPROPERTY_H
 #define RESOURCE_RESOURCEPROPERTY_H
 
-#define CONFIG_INI_PATH "/data/RenderEvaluator/config.ini"
-#define TEXTURE_PATH "/data/RenderEvaluator/"
-#define OBJ_MODEL_PATH "/data/RenderEvaluator/"
+#define CONFIG_INI_PATH "/data/RendererEvaluator/config.ini"
+#define TEXTURE_PATH "/data/RendererEvaluator/"
+#define OBJ_MODEL_PATH "/data/RendererEvaluator/"
 
 #endif

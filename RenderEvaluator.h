@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <boost/foreach.hpp>
+//#include <boost/foreach.hpp>
 
 #define NUMOFSURFACE_MAX 12
 #define  CLAMP(numOfLayer) do{ if(numOfLayer< 1) numOfLayer = 1; else if(numOfLayer > NUMOFSURFACE_MAX) numOfLayer = NUMOFSURFACE_MAX;} while( 0 )

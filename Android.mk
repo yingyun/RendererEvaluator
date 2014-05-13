@@ -1,18 +1,18 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
-BOOST_STATIC_VERSION := gcc-mt-1_53
-BOOST_INCLUDE_PATH := external/boost_1_53_0/include
-BOOST_STATIC_LIB_PATH := external/boost_1_53_0/static_lib
+#BOOST_STATIC_VERSION := gcc-mt-1_53
+#BOOST_INCLUDE_PATH := external/boost_1_53_0/include
+#BOOST_STATIC_LIB_PATH := external/boost_1_53_0/static_lib
 PREBUILT_STDCXX_PATH := prebuilts/ndk/current/sources/cxx-stl/gnu-libstdc++
 
 LOCAL_C_INCLUDES += \
 	external/stlport/stlport \
 	bionic \
 	bionic/libstdc++/include \
-	$(BOOST_INCLUDE_PATH) \
 	$(PREBUILT_STDCXX_PATH)/include \
-	$(PREBUILT_STDCXX_PATH)/libs/$(TARGET_CPU_ABI)/include
+	$(PREBUILT_STDCXX_PATH)/libs/$(TARGET_CPU_ABI)/include \
+#	$(BOOST_INCLUDE_PATH)
 
 LOCAL_SRC_FILES:= \
 	Effects/GrayscaleEffect.cpp \
