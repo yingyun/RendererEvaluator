@@ -55,7 +55,7 @@ LOCAL_CPPFLAGS += -fexceptions -std=c++11
 #but some of device didn't support ES30.
 LOCAL_CFLAGS := -DUSE_OPENGL_ES_VER=30
 
-LOCAL_MODULE:= RenderEvaluator
+LOCAL_MODULE:= RendererEvaluator
 
 LOCAL_MODULE_TAGS := optional
 include $(BUILD_EXECUTABLE)

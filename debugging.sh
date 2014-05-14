@@ -3,7 +3,7 @@
 
 mm -j4
 adb push $1/system/bin/RenderEvaluator /system/bin/
-adb shell mkdir -p /data/RenderEvaluator
+adb shell mkdir -p /data/RendererEvaluator
 adb push Resource/config.ini /data/RendererEvaluator
 
 echo ""
