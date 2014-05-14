@@ -40,7 +40,7 @@ void usageRender()
     */
     string description;
     description += "Cui.YY RenderEvaluator Ver:0.2\n\
-Note: Be sure you have config.ini and texture image files under /data/RenderEvaluator/\n\n";
+Note: Be sure you have config.ini and texture image files under /data/RendererEvaluator/\n\n";
     std::cout << description.data() << std::endl;
 }
 
